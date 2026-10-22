@@ -56,8 +56,8 @@ function LoginForm() {
           <h1 className="text-xl font-semibold text-brand-navy">Sign in</h1>
           <p className="mt-1 text-sm text-slate-600">
             {step === "email"
-              ? "We'll email you a sign-in link. No password needed."
-              : `Check ${email}. Click the link in the email on this device, or enter the 6-digit code if your email shows one.`}
+              ? "We'll email you a sign-in code. No password needed."
+              : `Check ${email}. Click the link in the email on this device, or enter the code from the email.`}
           </p>
 
           {step === "email" ? (
@@ -71,8 +71,8 @@ function LoginForm() {
           ) : (
             <form onSubmit={verifyCode} className="mt-5 space-y-4">
               <div>
-                <label className="label" htmlFor="code">6-digit code</label>
-                <input id="code" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} required autoComplete="one-time-code" className="input tracking-[0.4em]" value={code} onChange={(e) => setCode(e.target.value)} />
+                <label className="label" htmlFor="code">Sign-in code</label>
+                <input id="code" inputMode="numeric" pattern="[0-9]{6,10}" maxLength={10} required autoComplete="one-time-code" className="input tracking-[0.4em]" value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} />
               </div>
               <button className="btn-primary w-full" disabled={busy}>{busy ? "Checking…" : "Sign in"}</button>
               <button type="button" className="w-full text-sm text-brand-teal hover:underline" onClick={() => setStep("email")}>
