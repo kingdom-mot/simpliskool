@@ -1,24 +1,35 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const params = useSearchParams();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [step, setStep] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    params.get("error") === "link" ? "That sign-in link has expired or was opened in a different browser. Request a new one." : null,
+  );
 
   async function sendCode(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true } });
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/callback` } });
     setBusy(false);
     if (error) return setError(error.message);
     setStep("code");
@@ -44,7 +55,9 @@ export default function LoginPage() {
         <div className="card shadow-sm">
           <h1 className="text-xl font-semibold text-brand-navy">Sign in</h1>
           <p className="mt-1 text-sm text-slate-600">
-            {step === "email" ? "We'll email you a 6-digit code. No password needed." : `Enter the code we sent to ${email}.`}
+            {step === "email"
+              ? "We'll email you a sign-in link. No password needed."
+              : `Check ${email}. Click the link in the email on this device, or enter the 6-digit code if your email shows one.`}
           </p>
 
           {step === "email" ? (

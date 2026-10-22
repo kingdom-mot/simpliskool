@@ -18,11 +18,12 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
 
 1. **Supabase**
    - Create a project at supabase.com.
-   - Open **SQL Editor**, paste `supabase/migrations/0001_foundation.sql` and run it.
-   - **Authentication → Providers → Email**: keep Email enabled.
-   - **Authentication → Email Templates → Magic Link**: make sure the template shows the code, for example:
-     `Your Simpliskool sign-in code is {{ .Token }}`
-   - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` (and `http://localhost:3000` for local work).
+   - Open the file `supabase/migrations/0001_foundation.sql`, copy **all of its contents**, paste them into **SQL Editor → New query** and click **Run** (run it once per project).
+   - **Authentication → Sign In / Providers → Email**: keep Email enabled.
+   - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
+   - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
+   - Optional: to show a 6-digit code instead, add `{{ .Token }}` to the *Magic Link* and *Confirm signup* templates under **Authentication → Emails → Templates**.
+   - Before the pilot: connect Brevo under **Authentication → Emails → SMTP Settings** (host `smtp-relay.brevo.com`, port 587, your Brevo login and SMTP key, sender `enquiries@simpliskool.com`). Without custom SMTP, Supabase only emails members of your Supabase organization, with a low hourly limit.
 2. **Environment**: copy `.env.example` to `.env.local` and fill in the Supabase URL, anon key and service role key.
 3. **Run locally**
    ```bash
