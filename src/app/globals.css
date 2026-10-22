@@ -3,7 +3,11 @@
 @tailwind utilities;
 
 body {
-  @apply bg-white text-slate-900 antialiased;
+  @apply bg-brand-cloud text-brand-slate antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading font-extrabold text-brand-navy;
 }
 
 @layer components {

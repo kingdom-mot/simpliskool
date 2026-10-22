@@ -1,12 +1,8 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+// Brand fonts (self-hosted): Nunito Sans for titles and headers, Plus Jakarta Sans for body text.
+import "@fontsource-variable/nunito-sans";
+import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
-
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
 
 export const metadata: Metadata = {
   title: "Simpliskool — Simplifying school management",
@@ -16,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} font-sans`}>{children}</body>
+      <body className="font-sans">{children}</body>
     </html>
   );
 }
