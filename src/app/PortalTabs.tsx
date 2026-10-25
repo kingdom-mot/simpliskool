@@ -16,7 +16,7 @@ const ROLES = [
     id: "teacher",
     label: "Teachers",
     title: "Classroom overview",
-    desc: "Mark the register in seconds, enter scores once, and get a reminder with your lesson note before every class.",
+    desc: "Mark attendance in seconds, enter scores once, and let the AI assistant help with notes and comments.",
     panel: "Mrs Okafor · JSS 2A",
     points: ["Attendance that works offline", "Score entry with automatic grading", "Lesson notes approved by the principal", "Homework, CBT tests and AI help"],
     rows: [["Today’s attendance", "Not yet taken"], ["Mathematics CA 2 scores", "28 of 34 entered"], ["Lesson note, week 9", "Approved"], ["Next class", "Basic Science · 2:00pm"]],
