@@ -47,7 +47,7 @@ export default function Home() {
       <a href="#main" className="sk-skip">Skip to main content</a>
 
       <div className="bg-brand-navy px-4 py-2.5 text-center text-sm font-semibold text-white">
-        Now onboarding 20 pilot schools in Lagos, Ogun and Ibadan.{" "}
+        Now onboarding pilot schools in Lagos and its environs.{" "}
         <a href="#pilot" className="font-bold text-[#7FE0D2] underline-offset-2 hover:underline">Join the pilot →</a>
       </div>
 
@@ -247,8 +247,8 @@ export default function Home() {
               <Image src="/simpliskool-icon.png" alt="" width={192} height={192} className="pointer-events-none absolute -bottom-10 -right-8 h-64 w-64 opacity-10" />
               <div className="relative grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
                 <div>
-                  <Eyebrow light>Pilot programme · Lagos, Ogun, Ibadan</Eyebrow>
-                  <h2 id="pilot-h" className="mt-3 text-3xl !text-white md:text-[44px] md:leading-tight">Be one of our first 20 schools</h2>
+                  <Eyebrow light>Pilot programme · Lagos and its environs</Eyebrow>
+                  <h2 id="pilot-h" className="mt-3 text-3xl !text-white md:text-[44px] md:leading-tight">Be one of our first pilot schools</h2>
                   <p className="mt-4 max-w-xl text-lg leading-relaxed text-[#DCE5F0]">Pilot schools get free setup, staff training and free use during the pilot. We&apos;ll move your existing records in for you.</p>
                 </div>
                 <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
