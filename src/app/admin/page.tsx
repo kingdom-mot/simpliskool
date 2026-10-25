@@ -1,8 +1,8 @@
 import { PortalShell } from "@/components/PortalShell";
-import { requireSchool } from "@/lib/auth";
+import { requireSchool, ROLE_LABEL } from "@/lib/auth";
 
 export default async function AdminHome() {
-  const { supabase, school, membership } = await requireSchool(["owner", "admin", "bursar"]);
+  const { supabase, school, membership } = await requireSchool(["owner", "admin", "principal", "bursar"]);
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
 
   const count = (table: string) =>
@@ -12,7 +12,7 @@ export default async function AdminHome() {
     count("students"),
     count("classes"),
     count("subjects"),
-    supabase.from("memberships").select("id", { count: "exact", head: true }).eq("school_id", school.id).in("role", ["admin", "bursar", "teacher"]),
+    supabase.from("memberships").select("id", { count: "exact", head: true }).eq("school_id", school.id).in("role", ["admin", "principal", "bursar", "teacher"]),
     supabase.from("academic_sessions").select("id", { count: "exact", head: true }).eq("school_id", school.id).eq("is_current", true),
     count("fee_items"),
     supabase.from("admission_applications").select("id", { count: "exact", head: true }).eq("school_id", school.id).eq("status", "new"),
@@ -36,7 +36,7 @@ export default async function AdminHome() {
   const doneCount = setup.filter((s) => s.done).length;
 
   return (
-    <PortalShell schoolName={school.name} roleLabel={membership.role === "bursar" ? "Bursar" : "Administrator"}>
+    <PortalShell schoolName={school.name} roleLabel={ROLE_LABEL[membership.role]}>
       <h1 className="text-2xl font-semibold text-brand-navy">Welcome to {school.name}</h1>
       <p className="mt-1 text-sm text-slate-600">
         Your school website:{" "}

@@ -2,17 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { homeForRole, requireUser, SCHOOL_COOKIE } from "@/lib/auth";
+import { homeForRole, requireUser, ROLE_LABEL, SCHOOL_COOKIE } from "@/lib/auth";
 import { chooseSchool } from "./actions";
-
-const ROLE_LABEL: Record<string, string> = {
-  owner: "Owner",
-  admin: "Administrator",
-  bursar: "Bursar",
-  teacher: "Teacher",
-  student: "Student",
-  parent: "Parent",
-};
 
 export default async function DashboardPage() {
   const { memberships } = await requireUser();

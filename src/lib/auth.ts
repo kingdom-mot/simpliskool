@@ -2,7 +2,17 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export type Role = "owner" | "admin" | "bursar" | "teacher" | "student" | "parent";
+export type Role = "owner" | "admin" | "principal" | "bursar" | "teacher" | "student" | "parent";
+
+export const ROLE_LABEL: Record<Role, string> = {
+  owner: "Owner",
+  admin: "Administrator",
+  principal: "Principal",
+  bursar: "Bursar",
+  teacher: "Teacher",
+  student: "Student",
+  parent: "Parent",
+};
 
 export type Membership = {
   school_id: string;
@@ -16,6 +26,7 @@ export function homeForRole(role: Role): string {
   switch (role) {
     case "owner":
     case "admin":
+    case "principal":
     case "bursar":
       return "/admin";
     case "teacher":
@@ -29,6 +40,7 @@ export function homeForRole(role: Role): string {
 
 /** Signed-in user plus their school memberships. Redirects to /login when signed out. */
 export async function requireUser() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) redirect("/login?error=setup");
   const supabase = createClient();
   const {
     data: { user },

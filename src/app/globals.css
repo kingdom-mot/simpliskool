@@ -10,20 +10,58 @@ h1, h2, h3, h4, h5, h6 {
   @apply font-heading font-extrabold text-brand-navy;
 }
 
+/* Visible keyboard focus everywhere (WCAG 2.4.7). */
+:focus-visible {
+  outline: 3px solid #173B70;
+  outline-offset: 2px;
+}
+
 @layer components {
-  .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-teal-dark disabled:opacity-50;
+  /* White text on brand teal is only 3.4:1, so buttons use Teal 700 (5:1). */
+  .btn-primary,
+  .sk-btn {
+    @apply inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl bg-brand-teal-dark px-5 py-3 text-base font-bold text-white transition-colors hover:bg-[#096A5D] disabled:cursor-not-allowed disabled:opacity-60;
   }
-  .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-semibold text-brand-navy hover:bg-slate-50;
+  .btn-primary {
+    @apply min-h-[44px] py-2.5 text-sm;
+  }
+  .btn-secondary,
+  .sk-btn-outline {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-brand-navy bg-white px-4 py-2.5 text-sm font-bold text-brand-navy hover:bg-brand-mist;
+  }
+  .input,
+  .sk-input {
+    @apply w-full rounded-xl border-[1.5px] border-[#6B7A90] bg-white px-4 py-3 text-base text-brand-slate placeholder:text-[#6B7A90] focus:border-brand-navy;
   }
   .input {
-    @apply w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-brand-teal focus:outline-none focus:ring-2 focus:ring-brand-teal/20;
+    @apply rounded-lg px-3 py-2.5 text-sm;
+  }
+  .input[aria-invalid="true"],
+  .sk-input[aria-invalid="true"] {
+    @apply border-2 border-[#B42318];
+  }
+  /* Dropdown with a navy arrow 14px in from the right edge. */
+  .sk-select,
+  select.input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23173B70' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px 16px;
+    padding-right: 44px;
+    cursor: pointer;
   }
   .label {
-    @apply mb-1 block text-sm font-medium text-slate-700;
+    @apply mb-1 block text-sm font-bold text-brand-navy;
   }
   .card {
-    @apply rounded-xl border border-slate-200 bg-white p-5;
+    @apply rounded-2xl border border-[#E3EAF3] bg-white p-5;
+  }
+  .sk-dots {
+    background-image: radial-gradient(#173b701a 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .sk-skip {
+    @apply absolute -left-[9999px] top-2 z-50 rounded-lg bg-brand-navy px-4 py-3 font-bold text-white focus:left-2;
   }
 }
