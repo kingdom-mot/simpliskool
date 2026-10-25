@@ -24,7 +24,7 @@ const ROLES = [
   {
     id: "parent",
     label: "Parents",
-    title: "Parents stay in the loop, without the calls",
+    title: "Parents stay in the loop",
     desc: "One login for all their children. Results, fees, attendance and school news, right on their phone.",
     panel: "Mr Adebayo · 2 children",
     points: ["Pay fees online and download receipts", "View and download report cards", "Daily attendance and homework updates", "School announcements and events"],
