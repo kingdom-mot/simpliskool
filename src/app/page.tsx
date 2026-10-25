@@ -121,7 +121,7 @@ export default function Home() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F6F2]">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0B7D6E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>
                 </div>
-                <div><div className="text-[13px] font-bold text-brand-navy">₦85,000 fee received</div><div className="text-xs text-[#4A5A70]">Tolu A. · JSS 2 · via Paystack</div></div>
+                <div><div className="text-[13px] font-bold text-brand-navy">₦85,000 fee received</div><div className="text-xs text-[#4A5A70]">Tolu A. · JSS 2</div></div>
               </div>
               <div className="absolute right-0 top-0 w-[210px] rounded-2xl bg-[#0F2A52] px-4 py-3.5 text-white shadow-[0_18px_40px_-12px_rgba(15,42,82,0.4)] sm:-right-4">
                 <div className="text-[11px] font-bold tracking-[0.06em] text-[#F4B740]">RESULT RELEASED</div>
