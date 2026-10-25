@@ -168,7 +168,7 @@ export default function Home() {
               <Feature title="Works when network is unavailable" body="Take attendance and enter scores offline; they sync the moment you're back online." />
               <Feature title="Lesson notes and staff clock-in" body="Teachers submit notes for the principal to approve, and the principal clocks staff in and out each day." />
               <Feature wide title="Your own school website, included" body="A clean, mobile-ready site at yourschool.simpliskool.com, with news, gallery and online admission forms that land straight in your admin portal." />
-              <Feature title="Multi-branch groups" body="Proprietors compare every branch's fees, attendance and results from one dashboard." />
+              <Feature title="Multi-branch groups" body="Proprietors monitor every branch's fees, attendance and results from one dashboard." />
             </div>
           </div>
         </section>
