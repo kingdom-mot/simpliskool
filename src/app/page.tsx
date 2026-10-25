@@ -15,7 +15,7 @@ const STEPS = [
 ];
 
 const PLANS = [
-  { name: "Starter", for: "Small schools getting organised", items: ["Admin, teacher, parent and student portals", "Attendance, results and report cards", "Fees and Paystack payments", "School website"] },
+  { name: "Starter", for: "Small schools getting organised", items: ["Admin, teacher, parent and student portals", "Attendance, results and report cards", "Fees and online payments", "School website"] },
   { name: "Standard", for: "Growing schools that want it all", popular: true, items: ["Everything in Starter", "CBT exams and lesson notes", "AI teaching assistant", "Staff clock-in, payroll and timetables"] },
   { name: "Group", for: "Proprietors with several branches", items: ["Everything in Standard", "Multi-branch dashboard", "Shared settings across branches", "Priority support"] },
 ];
@@ -23,7 +23,7 @@ const PLANS = [
 const FAQS = [
   { q: "Do we need computers or special equipment?", a: "No. Simpliskool runs in the browser on any smartphone, tablet or laptop. Teachers can take attendance offline and it syncs later." },
   { q: "Can you move our existing student records in?", a: "Yes. Upload your student and parent lists from Excel, or send them to us and our team will import them during setup." },
-  { q: "How do parents pay fees?", a: "Parents pay by card, bank transfer or USSD through Paystack. Each payment is matched to the right invoice, receipts are issued instantly, and the money is paid into the school's bank account." },
+  { q: "How do parents pay fees?", a: "Parents pay by card, bank transfer or USSD. Each payment is matched to the right invoice, receipts are issued instantly, and the money is paid into the school's bank account." },
   { q: "How do young pupils sign in without a phone?", a: "Older students and parents sign in with a code sent to their phone or email. Younger pupils sign in with their admission number and a PIN printed on a login slip by the school." },
   { q: "Is our school data safe?", a: "Each school's data is kept separate and protected with role-based access, so teachers, parents and students only see what they should. Data is encrypted and backed up daily." },
   { q: "We have more than one campus. Does that work?", a: "Yes. The group dashboard lets proprietors see every branch together while each branch runs its own day-to-day." },
@@ -163,7 +163,7 @@ export default function Home() {
             </div>
             <div className="grid gap-5 md:grid-cols-3">
               <Feature wide dark title="Results and report cards in minutes" body="Teachers enter CA and exam scores; totals, grades, positions and class averages calculate themselves. The principal approves, then branded report cards go to every parent at once." />
-              <Feature title="Fees on Paystack" body="Invoices, part payments, receipts and debtor lists, matched automatically and paid into your school's bank account." />
+              <Feature title="Online fee payments" body="Invoices, part payments, receipts and debtor lists, matched automatically and paid into your school's bank account." />
               <Feature title="CBT exams" body="Timed computer-based tests with question banks, shuffling and instant marking." />
               <Feature title="Works when the network doesn't" body="Take attendance and enter scores offline; they sync the moment you're back online." />
               <Feature title="Lesson notes and staff clock-in" body="Teachers submit notes for the principal to approve, and the principal clocks staff in and out each day." />
