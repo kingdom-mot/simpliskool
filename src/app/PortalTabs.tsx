@@ -19,7 +19,7 @@ const ROLES = [
     desc: "Mark the register in seconds, enter scores once, and get a reminder with your lesson note before every class.",
     panel: "Mrs Okafor · JSS 2A",
     points: ["Attendance that works offline", "Score entry with automatic grading", "Lesson notes approved by the principal", "Homework, CBT tests and AI help"],
-    rows: [["Register for today", "Not yet taken"], ["Mathematics CA 2 scores", "28 of 34 entered"], ["Lesson note, week 9", "Approved"], ["Next class", "Basic Science · 2:00pm"]],
+    rows: [["Today’s attendance", "Not yet taken"], ["Mathematics CA 2 scores", "28 of 34 entered"], ["Lesson note, week 9", "Approved"], ["Next class", "Basic Science · 2:00pm"]],
   },
   {
     id: "parent",
