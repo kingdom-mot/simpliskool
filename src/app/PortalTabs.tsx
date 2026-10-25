@@ -15,7 +15,7 @@ const ROLES = [
   {
     id: "teacher",
     label: "Teachers",
-    title: "Less admin, more teaching",
+    title: "Classroom overview",
     desc: "Mark the register in seconds, enter scores once, and get a reminder with your lesson note before every class.",
     panel: "Mrs Okafor · JSS 2A",
     points: ["Attendance that works offline", "Score entry with automatic grading", "Lesson notes approved by the principal", "Homework, CBT tests and AI help"],
