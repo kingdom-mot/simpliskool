@@ -162,7 +162,7 @@ export default function Home() {
               <h2 id="features-h" className="mt-3 text-3xl md:text-[44px] md:leading-tight">Less paperwork. More teaching.</h2>
             </div>
             <div className="grid gap-5 md:grid-cols-3">
-              <Feature wide dark title="Results and report cards in minutes" body="Teachers enter CA and exam scores; totals, grades, positions and class averages calculate themselves. The principal approves, then branded report cards go to every parent at once." />
+              <Feature wide dark title="Results and report cards in minutes" body="Teachers enter CA and exam scores; totals, grades, positions and class averages calculate themselves. Upon approval, branded report cards are released to parents at once." />
               <Feature title="Online fee payments" body="Invoices, part payments, receipts and defaulter lists, matched automatically and paid into your school's bank account." />
               <Feature title="CBT exams" body="Timed computer-based tests with question banks, shuffling and instant marking." />
               <Feature title="Works when the network doesn't" body="Take attendance and enter scores offline; they sync the moment you're back online." />
