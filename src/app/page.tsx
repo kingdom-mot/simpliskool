@@ -165,7 +165,7 @@ export default function Home() {
               <Feature wide dark title="Results and report cards in minutes" body="Teachers enter CA and exam scores; totals, grades, positions and class averages calculate themselves. Upon approval, branded report cards are released to parents at once." />
               <Feature title="Online fee payments" body="Invoices, part payments, receipts and defaulter lists, matched automatically and paid into your school's bank account." />
               <Feature title="CBT exams" body="Timed computer-based tests with question banks, shuffling and instant marking." />
-              <Feature title="Works when the network doesn't" body="Take attendance and enter scores offline; they sync the moment you're back online." />
+              <Feature title="Works when network is unavailable" body="Take attendance and enter scores offline; they sync the moment you're back online." />
               <Feature title="Lesson notes and staff clock-in" body="Teachers submit notes for the principal to approve, and the principal clocks staff in and out each day." />
               <Feature wide title="Your own school website, included" body="A clean, mobile-ready site at yourschool.simpliskool.com, with news, gallery and online admission forms that land straight in your admin portal." />
               <Feature title="Multi-branch groups" body="Proprietors compare every branch's fees, attendance and results from one dashboard." />
