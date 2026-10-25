@@ -25,7 +25,7 @@ const FAQS = [
   { q: "Can you move our existing student records in?", a: "Yes. Upload your student and parent lists from Excel, or send them to us and our team will import them during setup." },
   { q: "How do parents pay fees?", a: "Parents pay by card, bank transfer or USSD. Each payment is matched to the right invoice, receipts are issued instantly, and the money is paid into the school's bank account." },
   { q: "How do young pupils sign in without a phone?", a: "Older students and parents sign in with a code sent to their phone or email. Younger pupils sign in with their admission number and a PIN printed on a login slip by the school." },
-  { q: "Is our school data safe?", a: "Each school's data is kept separate and protected with role-based access, so teachers, parents and students only see what they should. Data is encrypted and backed up daily." },
+  { q: "Is our school data safe?", a: "Each school's data is kept separate and protected with role-based access, so teachers, parents and students only see what they should. Data is encrypted and backed up daily. We handle personal data in line with the Nigeria Data Protection Act 2023: your school owns its data, we only use it to run Simpliskool, we never sell it, and you can export or delete it at any time." },
   { q: "We have more than one campus. Does that work?", a: "Yes. The group dashboard lets proprietors see every branch together while each branch runs its own day-to-day." },
 ];
 
