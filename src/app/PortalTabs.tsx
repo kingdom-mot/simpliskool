@@ -9,7 +9,7 @@ const ROLES = [
     title: "See the whole school at a glance",
     desc: "Set up sessions, classes and staff once. Then watch fees, attendance and results update in real time.",
     panel: "Today at Bright Stars",
-    points: ["Admissions, enrolment and student records", "Fee invoices, online payments and debtor lists", "Approve and release results with one click", "Staff attendance, payroll and timetables"],
+    points: ["Admissions, enrolment and student records", "Fee invoices, online payments and defaulter lists", "Approve and release results with one click", "Staff attendance, payroll and timetables"],
     rows: [["Fees collected this term", "₦18.4m of ₦25.9m"], ["Students present today", "617 of 642"], ["New admission forms", "9 waiting"], ["Results awaiting approval", "JSS 1–3"]],
   },
   {
