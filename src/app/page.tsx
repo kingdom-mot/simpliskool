@@ -90,7 +90,7 @@ export default function Home() {
                 <a href="#portals" className="inline-flex min-h-[52px] items-center rounded-full border-[1.5px] border-brand-navy bg-white px-6 text-base font-bold text-brand-navy hover:bg-brand-mist">Explore the portals</a>
               </div>
               <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold text-[#4A5A70]">
-                {["Works on any phone", "Fees paid via Paystack", "Keeps working offline"].map((t) => (
+                {["Works on any phone", "Fees paid online", "Keeps working offline"].map((t) => (
                   <li key={t} className="flex items-center gap-1.5"><Check />{t}</li>
                 ))}
               </ul>
