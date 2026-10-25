@@ -36,7 +36,7 @@ const ROLES = [
     title: "Everything a student needs for the day",
     desc: "Timetable, homework, lesson notes and CBT practice in one simple space. Younger pupils sign in with a PIN.",
     panel: "Tolu Adebayo · JSS 2A",
-    points: ["Today's timetable and homework", "Lesson notes from every subject", "CBT tests and practice quizzes", "Results history across terms"],
+    points: ["Today's timetable and homework", "Lesson notes from every subject", "CBT and practice quizzes", "Results history across terms"],
     rows: [["Next lesson", "English · 09:20"], ["Homework due", "2 this week"], ["CBT: Basic Science", "Opens Thu 10:00"], ["Last term average", "78.4%"]],
   },
   {
