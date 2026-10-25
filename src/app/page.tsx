@@ -83,7 +83,7 @@ export default function Home() {
                 Run your whole school from <span className="text-brand-teal-dark">one simple place.</span>
               </h1>
               <p className="max-w-[540px] text-lg leading-relaxed text-[#4A5A70] md:text-[19px]">
-                Admissions, attendance, results, fees, CBT exams and parent updates, connected in one platform. Built for schools in Africa.
+                Admissions, attendance, results, fees, computer-based exams and parent updates, connected in one platform. Built for schools in Africa.
               </p>
               <div className="flex flex-wrap gap-3">
                 <a href={DEMO} className="inline-flex min-h-[52px] items-center rounded-full bg-brand-teal-dark px-7 text-base font-bold text-white hover:bg-[#096A5D]">Book a free demo</a>
