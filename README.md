@@ -18,12 +18,17 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
 
 1. **Supabase**
    - Create a project at supabase.com.
-   - Open the file `supabase/migrations/0001_foundation.sql`, copy **all of its contents**, paste them into **SQL Editor → New query** and click **Run** (run it once per project).
+   - Run each file in `supabase/migrations/` **in order, one at a time**: open it, copy **all of its contents**, paste into **SQL Editor → New query** and click **Run**.
+     - `0001_foundation.sql`
+     - `0002_principal_role.sql` (run it on its own before 0003)
+     - `0003_signin_and_principal.sql`
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
    - Optional: to show a 6-digit code instead, add `{{ .Token }}` to the *Magic Link* and *Confirm signup* templates under **Authentication → Emails → Templates**.
-   - Before the pilot: connect Brevo under **Authentication → Emails → SMTP Settings** (host `smtp-relay.brevo.com`, port 587, your Brevo login and SMTP key, sender `enquiries@simpliskool.com`). Without custom SMTP, Supabase only emails members of your Supabase organization, with a low hourly limit.
+   - Before the pilot: connect Resend under **Authentication → Emails → SMTP Settings** (host `smtp.resend.com`, port 465, username `resend`, password = your Resend API key, sender `enquiries@simpliskool.com`). Without custom SMTP, Supabase only emails members of your Supabase organization, with a low hourly limit.
+   - **Phone sign-in**: under **Authentication → Sign In / Providers → Phone**, turn Phone on and connect an SMS provider (Twilio, MessageBird, Vonage or Textlocal; for Termii use a *Send SMS* auth hook). Until then the Phone tab tells people to use email.
+   - **Student PIN sign-in** needs `SUPABASE_SERVICE_ROLE_KEY` set on the server (Vercel). Students get their PIN from the school (admin, principal or class teacher resets it); 5 wrong PINs lock the account for 15 minutes.
 2. **Environment**: copy `.env.example` to `.env.local` and fill in the Supabase URL, anon key and service role key.
 3. **Run locally**
    ```bash
@@ -45,6 +50,7 @@ select id from public.profiles where email = 'you@example.com';
 | Role | Home | Can do |
 | --- | --- | --- |
 | owner, admin | /admin | Everything in their school |
+| principal | /admin | Academics, staff, lesson notes and student PINs; not school settings or money |
 | bursar | /admin | Fees and payments |
 | teacher | /teacher | Attendance and scores for their classes and subjects |
 | parent | /parent | Their own children's records, released results and fees |
