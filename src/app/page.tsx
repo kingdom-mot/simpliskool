@@ -5,7 +5,7 @@ import { PortalTabs } from "./PortalTabs";
 const DEMO = "mailto:enquiries@simpliskool.com?subject=Simpliskool%20demo%20request";
 const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
 
-const MODULES = ["Admissions", "Student records", "Attendance", "Results & report cards", "Fees & Paystack", "CBT exams", "Lesson notes", "Homework", "Timetables", "Staff clock-in", "Payroll", "School website", "AI assistant", "Multi-branch"];
+const MODULES = ["Admissions", "Student records", "Attendance", "Results & report cards", "Fee payments", "CBT exams", "Lesson notes", "Homework", "Timetables", "Staff clock-in", "Payroll", "School website", "AI assistant", "Multi-branch"];
 
 const STEPS = [
   { t: "Book a demo", d: "We walk you through Simpliskool using your school's real setup." },
