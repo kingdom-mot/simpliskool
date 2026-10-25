@@ -267,7 +267,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-[1200px] flex-wrap justify-between gap-10 px-4 py-12 sm:px-6">
           <div className="max-w-xs">
             <Image src="/simpliskool-logo-dark.png" alt="Simpliskool" width={143} height={32} className="h-8 w-auto" />
-            <p className="mt-4 text-[15px] leading-relaxed text-[#4A5A70]">Simplifying school management. A product of Dream Savvy Solutions, Lagos.</p>
+            <p className="mt-4 text-[15px] leading-relaxed text-[#4A5A70]">Simplifying school management.<br />A product of Dream Savvy Solutions, Lagos.</p>
           </div>
           <div className="flex gap-16 text-[15px]">
             <div className="flex flex-col gap-2.5">
