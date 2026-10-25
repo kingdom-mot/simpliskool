@@ -11,7 +11,7 @@ const STEPS = [
   { t: "Book a demo", d: "We walk you through Simpliskool using your school's real setup." },
   { t: "We set you up", d: "Sessions, classes, subjects and fees configured, and your records imported." },
   { t: "Train your staff", d: "A short hands-on session for admins and teachers, in person or online." },
-  { t: "Go live", d: "Parents and students get their logins, and you get support by WhatsApp and email." },
+  { t: "Go live", d: "Where all setup has been completed, tested, and approved, and the website or application is officially launched and ready to use." },
 ];
 
 const PLANS = [
