@@ -42,7 +42,7 @@ const ROLES = [
   {
     id: "group",
     label: "School groups",
-    title: "Run every branch from one dashboard",
+    title: "Manage every branch from one dashboard",
     desc: "For proprietors with more than one campus: compare branches and spot problems early.",
     panel: "Bright Stars Group · 3 branches",
     points: ["Fees and enrolment across all branches", "Compare attendance and results", "Shared settings and report cards", "Approve payroll for every branch"],
