@@ -40,6 +40,7 @@ export function homeForRole(role: Role): string {
 
 /** Signed-in user plus their school memberships. Redirects to /login when signed out. */
 export async function requireUser() {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) redirect("/login?error=setup");
   const supabase = createClient();
   const {
     data: { user },

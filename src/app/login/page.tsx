@@ -54,6 +54,7 @@ function SignIn() {
   const params = useSearchParams();
   const isNew = params.get("new") === "1";
   const supabase = createClient();
+  const NOT_READY = "Sign-in isn't available on this version of the site yet. Please try again later or contact enquiries@simpliskool.com.";
 
   const [method, setMethod] = useState<Method>(params.get("as") === "student" ? "pin" : "email");
   const [step, setStep] = useState<"start" | "code">("start");
@@ -66,7 +67,11 @@ function SignIn() {
   const [wrongTries, setWrongTries] = useState(0);
   const [cooldown, setCooldown] = useState(0);
   const [error, setError] = useState<string | null>(
-    params.get("error") === "link" ? "That sign-in link has expired or was opened in a different browser. Request a new code." : null,
+    params.get("error") === "link"
+      ? "That sign-in link has expired or was opened in a different browser. Request a new code."
+      : params.get("error") === "setup"
+        ? "Sign-in isn't available on this version of the site yet. Please try again later or contact enquiries@simpliskool.com."
+        : null,
   );
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const codeRef = useRef<HTMLInputElement>(null);
@@ -110,6 +115,7 @@ function SignIn() {
       }
     }
     if (!t) return;
+    if (!supabase) return setError(NOT_READY);
     setBusy(true);
     const { error } =
       t.kind === "email"
@@ -127,6 +133,7 @@ function SignIn() {
   async function verifyCode(e: React.FormEvent) {
     e.preventDefault();
     if (!target) return;
+    if (!supabase) return setError(NOT_READY);
     if (wrongTries >= 5) return setError("Too many tries. For your safety, please wait 15 minutes before trying again.");
     setBusy(true);
     setError(null);
