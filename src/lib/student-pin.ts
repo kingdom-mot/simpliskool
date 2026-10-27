@@ -22,15 +22,27 @@ export async function resetStudentPin(studentId: string): Promise<PinResult> {
     return { ok: false, error: error?.message.includes("permission") ? "You can't reset this student's PIN." : "We couldn't reset the PIN. Please try again." };
   }
 
-  if (!data.user_id) {
-    const admin = createAdminClient();
+  // PIN sign-in uses a private account per student. Create it if missing, or if the
+  // student was using their own phone or email until now.
+  const admin = createAdminClient();
+  let needsAccount = !data.user_id;
+  if (data.user_id) {
+    const { data: u } = await admin.auth.admin.getUserById(data.user_id);
+    needsAccount = u?.user?.email !== studentLoginEmail(data.student_id);
+  }
+  if (needsAccount) {
+    let userId: string | undefined;
     const { data: created, error: createError } = await admin.auth.admin.createUser({
       email: studentLoginEmail(data.student_id),
       email_confirm: true,
       user_metadata: { full_name: data.full_name },
     });
-    const userId = created?.user?.id;
-    if (createError || !userId) return { ok: false, error: "The PIN was reset but the student's account couldn't be created. Please try again." };
+    userId = created?.user?.id;
+    if (!userId && createError) {
+      const { data: existing } = await admin.from("profiles").select("id").eq("email", studentLoginEmail(data.student_id)).maybeSingle<{ id: string }>();
+      userId = existing?.id;
+    }
+    if (!userId) return { ok: false, error: "The PIN was reset but the student's account couldn't be created. Please try again." };
 
     await admin.from("students").update({ user_id: userId }).eq("id", data.student_id);
     await admin.from("memberships").upsert(

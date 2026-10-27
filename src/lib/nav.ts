@@ -9,9 +9,9 @@ const ADMIN: NavGroup[] = [
   {
     label: "People",
     items: [
-      { key: "students", label: "Students", href: null },
+      { key: "students", label: "Students", href: "/admin/students" },
       { key: "parents", label: "Parents", href: null },
-      { key: "staff", label: "Staff", href: null },
+      { key: "staff", label: "Staff", href: "/admin/staff" },
       { key: "staffatt", label: "Staff attendance", href: null },
       { key: "admissions", label: "Admissions", href: null },
     ],
@@ -19,7 +19,7 @@ const ADMIN: NavGroup[] = [
   {
     label: "Academics",
     items: [
-      { key: "classes", label: "Classes & subjects", href: null },
+      { key: "classes", label: "Classes & subjects", href: "/admin/classes" },
       { key: "timetable", label: "Timetable", href: null },
       { key: "attendance", label: "Student attendance", href: null },
       { key: "lessonnotes", label: "Lesson note review", href: null },
@@ -45,7 +45,7 @@ const ADMIN: NavGroup[] = [
   {
     label: "School",
     items: [
-      { key: "sessions", label: "Sessions & terms", href: null },
+      { key: "sessions", label: "Sessions & terms", href: "/admin/sessions" },
       { key: "settings", label: "Settings", href: null },
     ],
   },

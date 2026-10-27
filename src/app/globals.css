@@ -61,7 +61,63 @@ h1, h2, h3, h4, h5, h6 {
     background-image: radial-gradient(#173b701a 1.2px, transparent 1.2px);
     background-size: 22px 22px;
   }
+  /* Buttons in the school's own colours (inside a portal). */
+  .s-btn {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-c2 px-4 py-2.5 text-sm font-bold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .s-btn2 {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-c1 bg-white px-4 py-2.5 text-sm font-bold text-c1 hover:bg-brand-cloud disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .s-btn-danger {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border-[1.5px] border-[#B42318] bg-white px-4 py-2.5 text-sm font-bold text-[#B42318] hover:bg-[#FEF3F2];
+  }
+  .s-link {
+    @apply font-bold text-c2 underline underline-offset-2;
+  }
+  .tbl {
+    @apply w-full border-collapse text-sm;
+  }
+  .tbl th {
+    @apply whitespace-nowrap border-b border-[#E3EAF3] px-3 py-2.5 text-left text-[13px] font-bold text-[#4A5A70];
+  }
+  .tbl td {
+    @apply border-b border-[#EEF3F9] px-3 py-3 align-middle;
+  }
+  .tbl th[scope="row"] {
+    @apply text-sm text-c1;
+  }
   .sk-skip {
     @apply absolute -left-[9999px] top-2 z-50 rounded-lg bg-brand-navy px-4 py-3 font-bold text-white focus:left-2;
   }
+}
+
+/* Printing PIN slips: only the slips, two to a row, no app chrome. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .pin-slip {
+    break-inside: avoid;
+  }
+}
+
+/* Screen-reader-only text inside a scrolling table must not widen the page on phones. */
+.overflow-x-auto,
+.overflow-auto {
+  position: relative;
 }

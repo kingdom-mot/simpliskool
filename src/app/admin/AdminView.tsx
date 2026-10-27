@@ -35,12 +35,12 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
 
   const setup = [
-    { label: "Set the current session and term", done: !!d?.setup.session },
-    { label: "Create classes and arms", done: !!d?.setup.classes },
-    { label: "Add subjects", done: !!d?.setup.subjects },
+    { label: "Set the current session and term", done: !!d?.setup.session, href: "/admin/sessions" },
+    { label: "Create classes and arms", done: !!d?.setup.classes, href: "/admin/classes" },
+    { label: "Add subjects", done: !!d?.setup.subjects, href: "/admin/classes" },
     { label: "Set this term's fees", done: !!d?.setup.fees },
-    { label: "Invite teachers and bursar", done: !!d?.setup.staff },
-    { label: "Add students and parents", done: !!d?.setup.students },
+    { label: "Invite teachers and bursar", done: !!d?.setup.staff, href: "/admin/staff" },
+    { label: "Add students and parents", done: !!d?.setup.students, href: "/admin/students/import" },
   ];
   const doneCount = setup.filter((s) => s.done).length;
   const next = setup.filter((s) => !s.done).slice(0, 2).map((s) => s.label.toLowerCase());
@@ -86,7 +86,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
           </section>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard tone="teal" icon={ICONS.users} label="Students enrolled" value={String(d?.students ?? 0)} sub={d?.new_students ? `${d.new_students} new this term` : "Active students"} />
           <StatCard
             tone="blue"
@@ -118,7 +118,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
           />
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[1.4fr_1fr]">
           {isFinance ? (
             <Card labelledBy="fee-h" className="flex flex-col gap-3.5">
               <h2 id="fee-h" className="text-lg !text-c1">
@@ -195,7 +195,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
           </Card>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-3">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-3">
           <Card labelledBy="todo-h" className="flex flex-col gap-3">
             <h2 id="todo-h" className="text-lg !text-c1">
               Needs your attention
@@ -286,7 +286,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
   );
 }
 
-function SetupList({ items }: { items: { label: string; done: boolean }[] }) {
+function SetupList({ items }: { items: { label: string; done: boolean; href?: string }[] }) {
   return (
     <ul className="flex flex-col gap-2.5">
       {items.map((s) => (
@@ -299,7 +299,13 @@ function SetupList({ items }: { items: { label: string; done: boolean }[] }) {
             <span className="h-5 w-5 flex-none rounded-full border-2 border-[#C9D6EA]" />
           )}
           <span className={s.done ? "text-[#4A5A70] line-through" : ""}>
-            {s.label}
+            {!s.done && s.href ? (
+              <Link href={s.href} className="font-semibold text-c1 underline underline-offset-2">
+                {s.label}
+              </Link>
+            ) : (
+              s.label
+            )}
             <span className="sr-only">{s.done ? " (done)" : " (to do)"}</span>
           </span>
         </li>

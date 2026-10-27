@@ -60,6 +60,8 @@ export function initials(name: string): string {
   const words = name.replace(/[^A-Za-z0-9 ]/g, " ").split(/\s+/).filter(Boolean);
   const skip = new Set(["the", "of", "and", "school", "college", "academy", "schools"]);
   const main = words.filter((w) => !skip.has(w.toLowerCase()));
-  const use = (main.length ? main : words).slice(0, 2);
+  // "Greenfield Academy" -> "GA": with one main word, take the word after it too.
+  const one = main.length === 1 ? words.slice(words.indexOf(main[0]), words.indexOf(main[0]) + 2) : [];
+  const use = (main.length >= 2 ? main : one.length ? one : words).slice(0, 2);
   return use.map((w) => w[0]!.toUpperCase()).join("") || "S";
 }
