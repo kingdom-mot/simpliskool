@@ -48,7 +48,7 @@ export async function requireUser() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const [{ data: memberships }, { data: profile }] = await Promise.all([
+  const [{ data: memberships, error: membershipError }, { data: profile }] = await Promise.all([
     supabase
       .from("memberships")
       .select("school_id, role, schools(id, name, slug, logo_url, primary_color, secondary_color)")
@@ -56,6 +56,12 @@ export async function requireUser() {
       .returns<Membership[]>(),
     supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle<{ full_name: string | null }>(),
   ]);
+
+  // Never treat a database error as "no schools": that sends people back to onboarding in a loop.
+  if (membershipError) {
+    console.error("Loading memberships failed", membershipError);
+    redirect("/status?problem=memberships");
+  }
 
   const fullName = profile?.full_name?.trim() || user.email?.split("@")[0] || "there";
   return { supabase, user, fullName, memberships: memberships ?? [] };
@@ -68,6 +74,7 @@ export async function requireSchool(allowed: Role[]) {
   const inSchool = ctx.memberships.filter((m) => m.school_id === selected);
   const pool = inSchool.length ? inSchool : ctx.memberships;
   const membership = pool.find((m) => allowed.includes(m.role));
-  if (!membership || !membership.schools) redirect("/dashboard");
+  if (!membership) redirect("/dashboard");
+  if (!membership.schools) redirect("/status?problem=school-access");
   return { ...ctx, membership, school: membership.schools };
 }
