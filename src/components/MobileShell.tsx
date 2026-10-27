@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SignOutButton } from "@/components/SignOutButton";
 import type { Tab } from "@/lib/nav";
 import { schoolThemeStyle } from "@/lib/theme";
 import { SCHOOL_GRADIENT } from "@/components/ui";
@@ -34,9 +35,7 @@ export function MobileShell({
             <SchoolBadge school={school} size={34} />
             <span className="truncate text-[15px] font-bold">{school.name}</span>
           </Link>
-          <form action="/auth/signout" method="post">
-            <button className="min-h-[44px] rounded-xl bg-white/15 px-3 text-sm font-bold text-white hover:bg-white/25">Sign out</button>
-          </form>
+          <SignOutButton className="min-h-[44px] rounded-xl bg-white/15 px-3 text-sm font-bold text-white hover:bg-white/25" />
         </div>
         <div className="mx-auto mt-4 max-w-[640px]">
           <h1 className="text-2xl !text-white">{title}</h1>

@@ -76,7 +76,7 @@ export const TEACHER_NAV: NavGroup[] = [
   {
     label: "Attendance and results",
     items: [
-      { key: "register", label: "Register", href: null },
+      { key: "register", label: "Register", href: "/teacher/register" },
       { key: "scores", label: "Score entry", href: null },
       { key: "broadsheet", label: "Class broadsheet", href: null },
     ],

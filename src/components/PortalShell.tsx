@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { SignOutButton } from "@/components/SignOutButton";
 import type { NavGroup } from "@/lib/nav";
 import { initials, schoolThemeStyle } from "@/lib/theme";
 import { personInitials } from "@/lib/format";
@@ -79,9 +80,9 @@ export function PortalShell({
           <Link href="/dashboard" className="block rounded-lg px-2 py-1" aria-label="Simpliskool home">
             <Image src="/simpliskool-logo.png" alt="Simpliskool" width={130} height={29} className="h-[26px] w-auto" />
           </Link>
-          <form action="/auth/signout" method="post" className="md:hidden">
-            <button className="min-h-[44px] rounded-xl border border-white/40 px-3 text-sm font-bold text-white hover:bg-white/10">Sign out</button>
-          </form>
+          <div className="md:hidden">
+            <SignOutButton className="min-h-[44px] rounded-xl border border-white/40 px-3 text-sm font-bold text-white hover:bg-white/10" />
+          </div>
         </div>
 
         <Link href="/dashboard" className="flex items-center gap-2.5 rounded-[14px] bg-black/15 px-3 py-2.5 hover:bg-black/25">
@@ -122,9 +123,7 @@ export function PortalShell({
               {personInitials(fullName)}
             </span>
             <span className="min-w-0 flex-1 truncate text-sm font-semibold">{fullName}</span>
-            <form action="/auth/signout" method="post">
-              <button className="min-h-[40px] rounded-lg px-2 text-sm font-bold text-white underline-offset-2 hover:underline">Sign out</button>
-            </form>
+            <SignOutButton className="min-h-[40px] rounded-lg px-2 text-sm font-bold text-white underline-offset-2 hover:underline" />
           </div>
         </div>
       </aside>

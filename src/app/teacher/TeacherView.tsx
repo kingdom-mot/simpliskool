@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { OfflineReady } from "@/components/OfflineReady";
 import { PortalShell } from "@/components/PortalShell";
 import { Bar, Card, Empty, ICONS, Icon, Pill, SCHOOL_GRADIENT, TONES, TONE_CYCLE } from "@/components/ui";
 import type { ShellSchool } from "@/components/PortalShell";
@@ -27,6 +29,7 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
 
   return (
     <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="today">
+      <OfflineReady />
       <div className="flex flex-col gap-5">
         <div>
           <p className="text-sm text-[#4A5A70]">
@@ -69,7 +72,10 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
                 </p>
               </div>
             </div>
-            <span className="rounded-full bg-white/15 px-4 py-2 text-sm font-bold text-white">Online register coming soon</span>
+            <Link href={`/teacher/register?class=${c.id}`} className="rounded-xl bg-white px-5 py-3.5 text-[15px] font-extrabold text-c1">
+              {c.marked ? "View register" : "Take register"}
+              <span className="sr-only"> for {c.name}</span>
+            </Link>
           </section>
         ))}
 
