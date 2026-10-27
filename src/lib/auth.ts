@@ -17,7 +17,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 export type Membership = {
   school_id: string;
   role: Role;
-  schools: { id: string; name: string; slug: string; logo_url: string | null } | null;
+  schools: { id: string; name: string; slug: string; logo_url: string | null; primary_color: string | null; secondary_color: string | null } | null;
 };
 
 export const SCHOOL_COOKIE = "sk_school";
@@ -47,13 +47,17 @@ export async function requireUser() {
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: memberships } = await supabase
-    .from("memberships")
-    .select("school_id, role, schools(id, name, slug, logo_url)")
-    .eq("user_id", user.id)
-    .returns<Membership[]>();
+  const [{ data: memberships }, { data: profile }] = await Promise.all([
+    supabase
+      .from("memberships")
+      .select("school_id, role, schools(id, name, slug, logo_url, primary_color, secondary_color)")
+      .eq("user_id", user.id)
+      .returns<Membership[]>(),
+    supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle<{ full_name: string | null }>(),
+  ]);
 
-  return { supabase, user, memberships: memberships ?? [] };
+  const fullName = profile?.full_name?.trim() || user.email?.split("@")[0] || "there";
+  return { supabase, user, fullName, memberships: memberships ?? [] };
 }
 
 /** The school the user is working in, checked against the roles allowed on this page. */

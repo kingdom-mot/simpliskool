@@ -14,6 +14,9 @@ const config: Config = {
           cloud: "#F5F8FC",
           slate: "#263449",
         },
+        // The school's own colours (set per school in Settings). Fall back to Simpliskool navy and teal.
+        c1: "var(--c1, #173B70)",
+        c2: "var(--c2, #0B7D6E)",
       },
       fontFamily: {
         sans: ["'Plus Jakarta Sans Variable'", "Arial", "sans-serif"],

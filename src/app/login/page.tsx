@@ -338,12 +338,13 @@ function ErrorText({ message }: { message: string }) {
 }
 
 function PinForm() {
+  const params = useSearchParams();
   const [state, action] = useFormState<PinState, FormData>(signInWithPin, { error: null });
   return (
     <form action={action} className="space-y-4">
       <div>
         <label htmlFor="school" className="mb-2 block text-[15px] font-bold text-brand-navy">School code</label>
-        <input id="school" name="school" required autoCapitalize="none" autoComplete="organization" spellCheck={false} placeholder="e.g. brightstars" className="sk-input" aria-describedby="school-hint" />
+        <input id="school" name="school" defaultValue={params.get("school") ?? ""} required autoCapitalize="none" autoComplete="organization" spellCheck={false} placeholder="e.g. brightstars" className="sk-input" aria-describedby="school-hint" />
         <p id="school-hint" className="mt-2 text-sm text-[#4A5A70]">It&apos;s on your login slip, and in your school&apos;s web address.</p>
       </div>
       <div>
