@@ -20,8 +20,8 @@ function canGrant(by: Role, role: StaffRole) {
   return by === "principal" && (role === "teacher" || role === "bursar");
 }
 
-function origin() {
-  const h = headers();
+async function origin() {
+  const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "simpliskool.com";
   const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") ? "http" : "https");
   return `${proto}://${host}`;
@@ -33,7 +33,7 @@ async function sendSignInLink(email: string) {
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key) return;
   const client = createPlainClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-  await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${origin()}/auth/callback` } }).catch(() => null);
+  await client.auth.signInWithOtp({ email, options: { shouldCreateUser: false, emailRedirectTo: `${await origin()}/auth/callback` } }).catch(() => null);
 }
 
 const inviteSchema = z.object({
@@ -62,7 +62,7 @@ export async function inviteStaff(_prev: ActionState, fd: FormData): Promise<Act
   if (!userId) {
     const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
       data: { full_name: d.name },
-      redirectTo: `${origin()}/auth/callback`,
+      redirectTo: `${await origin()}/auth/callback`,
     });
     userId = data?.user?.id ?? null;
     invited = !!userId;

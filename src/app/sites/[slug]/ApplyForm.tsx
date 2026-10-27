@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { applyForAdmission, type ApplyState } from "./actions";
 
 function Submit() {
@@ -15,7 +16,7 @@ function Submit() {
 const CLASSES = ["Creche", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6", "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3"];
 
 export function ApplyForm({ schoolId }: { schoolId: string }) {
-  const [state, action] = useFormState<ApplyState, FormData>(applyForAdmission, {});
+  const [state, action] = useActionState<ApplyState, FormData>(applyForAdmission, {});
   if (state.ok) {
     return (
       <div role="status" className="flex flex-col items-start gap-3">

@@ -32,7 +32,9 @@ function age(dob: string | null) {
   return a;
 }
 
-export default async function StudentProfile({ params, searchParams }: { params: { id: string }; searchParams: { added?: string } }) {
+export default async function StudentProfile(props: { params: Promise<{ id: string }>; searchParams: Promise<{ added?: string }> }) {
+  const params = await props.params;
+  const searchParams = await props.searchParams;
   const ctx = await requireAdminPage([...SETUP_ROLES, "bursar"]);
   const { supabase, school, membership } = ctx;
   const canEdit = SETUP_ROLES.includes(membership.role);

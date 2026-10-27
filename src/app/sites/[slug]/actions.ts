@@ -21,7 +21,7 @@ export async function applyForAdmission(_prev: ApplyState, formData: FormData): 
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
   const d = parsed.data;
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error } = await supabase.from("admission_applications").insert({
     school_id: d.school_id,
     child_name: d.child_name,

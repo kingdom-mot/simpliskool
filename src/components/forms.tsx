@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 
 export type ActionState = { ok?: boolean; error?: string | null; message?: string | null; at?: number };
 
@@ -50,7 +51,7 @@ export function ActionForm({
   /** Lets fields elsewhere on the page join this form with form="id". */
   id?: string;
 }) {
-  const [state, run] = useFormState(action, {});
+  const [state, run] = useActionState(action, {});
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state.ok && resetOnSuccess) ref.current?.reset();

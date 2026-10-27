@@ -53,10 +53,10 @@ export async function signInWithPin(_prev: PinState, formData: FormData): Promis
   const tokenHash = link?.properties?.hashed_token;
   if (linkError || !tokenHash) return { error: "We couldn't sign you in just now. Please try again in a minute." };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { error: verifyError } = await supabase.auth.verifyOtp({ type: "magiclink", token_hash: tokenHash });
   if (verifyError) return { error: "We couldn't sign you in just now. Please try again in a minute." };
 
-  cookies().set(SCHOOL_COOKIE, data.school_id, { httpOnly: true, sameSite: "lax", secure: true, path: "/", maxAge: 60 * 60 * 24 * 180 });
+  (await cookies()).set(SCHOOL_COOKIE, data.school_id, { httpOnly: true, sameSite: "lax", secure: true, path: "/", maxAge: 60 * 60 * 24 * 180 });
   redirect("/student");
 }

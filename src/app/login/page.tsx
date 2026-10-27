@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { signInWithPin, type PinState } from "./actions";
 
@@ -339,7 +340,7 @@ function ErrorText({ message }: { message: string }) {
 
 function PinForm() {
   const params = useSearchParams();
-  const [state, action] = useFormState<PinState, FormData>(signInWithPin, { error: null });
+  const [state, action] = useActionState<PinState, FormData>(signInWithPin, { error: null });
   return (
     <form action={action} className="space-y-4">
       <div>

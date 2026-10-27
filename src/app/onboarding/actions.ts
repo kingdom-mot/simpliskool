@@ -21,13 +21,13 @@ export async function createSchool(_prev: OnboardingState, formData: FormData): 
   const parsed = schema.safeParse({ name: formData.get("name"), slug: formData.get("slug") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
 
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: schoolId, error } = await supabase.rpc("create_school", { p_name: parsed.data.name, p_slug: parsed.data.slug });
   if (error) {
     if (error.code === "23505") return { error: "That web address is taken. Try another." };
     return { error: error.message };
   }
 
-  cookies().set(SCHOOL_COOKIE, schoolId as string, { httpOnly: true, sameSite: "lax", secure: true, path: "/", maxAge: 60 * 60 * 24 * 180 });
+  (await cookies()).set(SCHOOL_COOKIE, schoolId as string, { httpOnly: true, sameSite: "lax", secure: true, path: "/", maxAge: 60 * 60 * 24 * 180 });
   redirect("/admin");
 }

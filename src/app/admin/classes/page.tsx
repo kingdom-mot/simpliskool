@@ -21,7 +21,8 @@ type Subject = { id: string; name: string };
 type ClassSubject = { id: string; subject_id: string; teacher_id: string | null; subjects: { name: string } | null };
 type Person = { user_id: string; role: string; profiles: { full_name: string | null; email: string | null } | null };
 
-export default async function ClassesPage({ searchParams }: { searchParams: { class?: string } }) {
+export default async function ClassesPage(props: { searchParams: Promise<{ class?: string }> }) {
+  const searchParams = await props.searchParams;
   const ctx = await requireAdminPage();
   const { supabase, school } = ctx;
 

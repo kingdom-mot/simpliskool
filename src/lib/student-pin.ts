@@ -13,7 +13,7 @@ export type PinResult =
  * of the student's class). The PIN is returned once and never stored in plain text.
  */
 export async function resetStudentPin(studentId: string): Promise<PinResult> {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data, error } = await supabase
     .rpc("reset_student_pin", { p_student: studentId })
     .single<{ pin: string; student_id: string; school_id: string; user_id: string | null; admission_no: string; full_name: string }>();

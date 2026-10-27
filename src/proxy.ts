@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { schoolSlugFromHost } from "@/lib/tenant";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
   const slug = schoolSlugFromHost(request.headers.get("host"), rootDomain);
 

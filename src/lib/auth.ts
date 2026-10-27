@@ -40,9 +40,9 @@ export function homeForRole(role: Role): string {
 
 /** Signed-in user plus their school memberships. Redirects to /login when signed out. */
 export async function requireUser() {
-  cookies(); // signed-in pages are always rendered per request
+  await cookies(); // signed-in pages are always rendered per request
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) redirect("/login?error=setup");
-  const supabase = createClient();
+  const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -64,7 +64,7 @@ export async function requireUser() {
 /** The school the user is working in, checked against the roles allowed on this page. */
 export async function requireSchool(allowed: Role[]) {
   const ctx = await requireUser();
-  const selected = cookies().get(SCHOOL_COOKIE)?.value;
+  const selected = (await cookies()).get(SCHOOL_COOKIE)?.value;
   const inSchool = ctx.memberships.filter((m) => m.school_id === selected);
   const pool = inSchool.length ? inSchool : ctx.memberships;
   const membership = pool.find((m) => allowed.includes(m.role));

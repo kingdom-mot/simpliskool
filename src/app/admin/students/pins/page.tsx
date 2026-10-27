@@ -3,7 +3,8 @@ import { AdminPage, classLabel, requireAdminPage } from "@/components/admin";
 import { Empty } from "@/components/ui";
 import { PinSheet } from "./PinSheet";
 
-export default async function PinsPage({ searchParams }: { searchParams: { class?: string } }) {
+export default async function PinsPage(props: { searchParams: Promise<{ class?: string }> }) {
+  const searchParams = await props.searchParams;
   const ctx = await requireAdminPage();
   const { supabase, school } = ctx;
   const { data: classes } = await supabase.from("classes").select("id, name, arm").eq("school_id", school.id).order("level_order").order("name").order("arm");

@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   // One school and one role: go straight in.
   if (memberships.length === 1) {
     const only = memberships[0];
-    if (cookies().get(SCHOOL_COOKIE)?.value === only.school_id) redirect(homeForRole(only.role));
+    if ((await cookies()).get(SCHOOL_COOKIE)?.value === only.school_id) redirect(homeForRole(only.role));
   }
 
   return (

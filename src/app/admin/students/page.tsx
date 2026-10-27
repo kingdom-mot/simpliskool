@@ -17,7 +17,8 @@ type Row = {
 const PAGE = 50;
 const AVATAR = ["#CFF3EC", "#D9E7FF", "#FFEDC2", "#EADBFF", "#FFDDEB", "#D3F8E2"];
 
-export default async function StudentsPage({ searchParams }: { searchParams: { q?: string; class?: string; status?: string; page?: string } }) {
+export default async function StudentsPage(props: { searchParams: Promise<{ q?: string; class?: string; status?: string; page?: string }> }) {
+  const searchParams = await props.searchParams;
   const ctx = await requireAdminPage([...SETUP_ROLES, "bursar"]);
   const { supabase, school, membership } = ctx;
   const canEdit = SETUP_ROLES.includes(membership.role);

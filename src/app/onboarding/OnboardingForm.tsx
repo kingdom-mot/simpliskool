@@ -1,6 +1,7 @@
 "use client";
 
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import { useState } from "react";
 import { createSchool, type OnboardingState } from "./actions";
 
@@ -19,7 +20,7 @@ function Submit() {
 }
 
 export function OnboardingForm({ rootDomain }: { rootDomain: string }) {
-  const [state, action] = useFormState<OnboardingState, FormData>(createSchool, {});
+  const [state, action] = useActionState<OnboardingState, FormData>(createSchool, {});
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
