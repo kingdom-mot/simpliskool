@@ -10,6 +10,7 @@ export type School = {
   primary_color: string | null;
   secondary_color: string | null;
   about: string | null;
+  motto?: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
@@ -67,6 +68,7 @@ export function SchoolSiteView({ school, news }: { school: School; news: Post[] 
             <div className="flex flex-col gap-5">
               <span className="text-[13px] font-extrabold tracking-[0.08em] text-c2">WELCOME TO</span>
               <h1 className="text-[40px] leading-[1.08] !text-brand-slate md:text-[56px]">{school.name}</h1>
+              {school.motto && <p className="font-heading text-xl font-bold italic text-c1">&ldquo;{school.motto}&rdquo;</p>}
               <p className="max-w-[520px] whitespace-pre-line text-lg leading-relaxed text-[#4A5560]">
                 {school.about ?? "A caring school community where every child is known, supported and encouraged to do their best."}
               </p>

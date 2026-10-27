@@ -12,12 +12,11 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
 export default async function SchoolSite(props: { params: Promise<{ slug: string }> }) {
   const params = await props.params;
   const supabase = await createClient();
-  const { data: school } = await supabase
-    .from("schools")
-    .select("id, name, slug, logo_url, primary_color, secondary_color, about, address, phone, email")
-    .eq("slug", params.slug)
-    .eq("status", "active")
-    .maybeSingle<School>();
+  const cols = "id, name, slug, logo_url, primary_color, secondary_color, about, address, phone, email";
+  const find = (c: string) => supabase.from("schools").select(c).eq("slug", params.slug).eq("status", "active").maybeSingle<School>();
+  const first = await find(`${cols}, motto`);
+  // Before 0009_school_settings.sql is run there is no motto column; still show the site.
+  const school = first.error ? (await find(cols)).data : first.data;
   if (!school) notFound();
 
   const { data: news } = await supabase

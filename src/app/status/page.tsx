@@ -59,6 +59,9 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       db.push({ label: "0006 admin setup", ...(await fnExists(admin, "staff_list", { p_school: zero })) });
       const f7 = await fnExists(admin, "attendance_overview", { p_school: zero, p_date: "2026-01-01" });
       db.push({ label: "0007 attendance and notifications", ...f7 });
+      const { error: e9 } = await admin.from("schools").select("motto").limit(1);
+      const { error: b9 } = await admin.storage.getBucket("school-logos");
+      db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
   }
 

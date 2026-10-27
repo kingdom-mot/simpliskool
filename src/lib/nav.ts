@@ -46,7 +46,7 @@ const ADMIN: NavGroup[] = [
     label: "School",
     items: [
       { key: "sessions", label: "Sessions & terms", href: "/admin/sessions" },
-      { key: "settings", label: "Settings", href: null },
+      { key: "settings", label: "Settings", href: "/admin/settings" },
     ],
   },
 ];
