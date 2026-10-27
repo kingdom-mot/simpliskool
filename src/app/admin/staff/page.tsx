@@ -63,7 +63,7 @@ export default async function StaffPage() {
 
       <Panel id="list-h" title="Everyone on staff">
         {staff.length ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
             <table className="tbl min-w-[860px]">
               <caption className="sr-only">Staff and their roles</caption>
               <thead>

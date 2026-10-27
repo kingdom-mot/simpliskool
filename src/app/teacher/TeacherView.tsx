@@ -84,7 +84,7 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
             Today&apos;s lessons
           </h2>
           {lessons.length ? (
-            <ol className="flex gap-3 overflow-x-auto pb-1">
+            <ol className="flex gap-3 overflow-x-auto pb-1" tabIndex={0} aria-label="Today's lessons: scroll sideways to see more">
               {lessons.map((l) => (
                 <li
                   key={l.starts + l.class}

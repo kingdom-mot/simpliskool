@@ -58,3 +58,14 @@ select id from public.profiles where email = 'you@example.com';
 | teacher | /teacher | Attendance and scores for their classes and subjects |
 | parent | /parent | Their own children's records, released results and fees |
 | student | /student | Their own records |
+
+## Email (absence emails and register reminders)
+
+1. Create a free account at [resend.com](https://resend.com) and add the domain `simpliskool.com` under **Domains**. Add the DNS records it shows at your domain registrar and wait until it says *Verified*.
+2. Create an API key and add these to Vercel (Project → Settings → Environment Variables), then redeploy:
+   - `RESEND_API_KEY` = the key
+   - `EMAIL_FROM_ADDRESS` = `notifications@simpliskool.com`
+   - `NEXT_PUBLIC_SITE_URL` = `https://simpliskool.com`
+3. Until this is done, attendance works as normal and the attendance page says emails aren't switched on yet.
+
+Run `0007_attendance_notifications.sql` in Supabase before using the attendance page.

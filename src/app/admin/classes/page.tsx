@@ -148,7 +148,7 @@ export default async function ClassesPage(props: { searchParams: Promise<{ class
 
               <Panel id="sub-h" title={`Subjects and teachers (${cs.length})`}>
                 {cs.length ? (
-                  <div className="overflow-x-auto">
+                  <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
                     <table className="tbl min-w-[520px]">
                       <caption className="sr-only">Subjects for {classLabel(sel.name, sel.arm)} and who teaches them</caption>
                       <thead>

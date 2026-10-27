@@ -107,7 +107,7 @@ export default async function StudentsPage(props: { searchParams: Promise<{ q?: 
 
       <div className="overflow-hidden rounded-[18px] border border-[#E3EAF3] bg-white">
         {rows.length ? (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
             <table className="tbl min-w-[760px]">
               <caption className="sr-only">
                 Students, showing {rows.length} of {total}

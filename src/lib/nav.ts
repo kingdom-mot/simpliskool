@@ -21,7 +21,7 @@ const ADMIN: NavGroup[] = [
     items: [
       { key: "classes", label: "Classes & subjects", href: "/admin/classes" },
       { key: "timetable", label: "Timetable", href: null },
-      { key: "attendance", label: "Student attendance", href: null },
+      { key: "attendance", label: "Student attendance", href: "/admin/attendance" },
       { key: "lessonnotes", label: "Lesson note review", href: null },
       { key: "results", label: "Results", href: null },
       { key: "reportcards", label: "Report cards", href: null },

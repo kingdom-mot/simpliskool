@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { notifyAbsences } from "@/lib/notify";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -54,5 +55,19 @@ export async function POST(request: Request) {
   }
 
   const count = (s: string) => rows.filter((r) => r.status === s).length;
+
+  // Email parents of absent children once the teacher has their answer. Only for today
+  // or yesterday (a register saved offline overnight); older corrections don't email.
+  const yesterday = new Date(`${today}T12:00:00Z`);
+  yesterday.setUTCDate(yesterday.getUTCDate() - 1);
+  if (count("absent") && date >= yesterday.toISOString().slice(0, 10)) {
+    after(async () => {
+      try {
+        await notifyAbsences(cls.school_id, date, class_id);
+      } catch (e) {
+        console.error("Absence emails failed", e);
+      }
+    });
+  }
   return NextResponse.json({ ok: true, saved: rows.length, present: count("present"), absent: count("absent"), late: count("late"), skipped: marks.length - rows.length });
 }

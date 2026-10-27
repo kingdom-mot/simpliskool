@@ -172,7 +172,7 @@ export function ImportWizard({ classNames, schoolName }: { classNames: string[];
               Get our Excel template
             </h2>
             <p className="text-[15px] text-[#4A5A70]">Fill one row per student. Put the parent&apos;s name and phone on the same row and we&apos;ll create their sign-in and link them to the child.</p>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
               <table className="tbl min-w-[560px]">
                 <caption className="sr-only">Template columns</caption>
                 <thead>
@@ -326,7 +326,7 @@ export function ImportWizard({ classNames, schoolName }: { classNames: string[];
 
 function Problems({ problems, caption }: { problems: ImportProblem[]; caption: string }) {
   return (
-    <div className="max-h-[360px] overflow-auto rounded-xl border border-[#EEF3F9]">
+    <div className="max-h-[360px] overflow-auto rounded-xl border border-[#EEF3F9]" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
       <table className="tbl min-w-[560px]">
         <caption className="sr-only">{caption}</caption>
         <thead className="sticky top-0 bg-white">
