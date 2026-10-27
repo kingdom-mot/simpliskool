@@ -25,6 +25,8 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0004_school_colours.sql` (each school picks 0–2 colours from the 20-colour palette)
      - `0005_dashboards.sql` (the numbers on each portal home page)
      - `0006_admin_setup.sql` (sessions and terms, staff list, PIN slips)
+     - `0007_attendance_notifications.sql` (school-wide attendance, absence emails)
+     - `0008_grants.sql` (permissions for the app; run it last, and again after any new file)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.

@@ -40,7 +40,13 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
   }
   if (admin) {
     const { error: e1 } = await admin.from("schools").select("id", { head: true, count: "exact" });
-    db.push({ label: "0001 foundation (tables)", ok: !e1, detail: e1?.message });
+    const denied = (m?: string) => /permission denied/i.test(m ?? "");
+    db.push({
+      label: "0001 foundation (tables)",
+      ok: !e1,
+      detail: e1 ? `${e1.code ?? ""} ${e1.message || "No access to the tables"}`.trim() : undefined,
+      fix: e1 ? (denied(e1.message) || !e1.message ? "Run 0008_grants.sql in the Supabase SQL Editor (gives the app permission to use its tables)" : "Run 0001_foundation.sql") : undefined,
+    });
     if (!e1) {
       const { error: e2 } = await admin.from("memberships").select("id").eq("role", "principal").limit(1);
       db.push({ label: "0002 principal role", ok: !e2, detail: e2 ? "Missing: run 0002 on its own" : undefined });
@@ -68,6 +74,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       me.push({
         label: "Your schools",
         ok: !error,
+        fix: error && /permission denied/i.test(error.message) ? "Run 0008_grants.sql in the Supabase SQL Editor" : undefined,
         detail: error ? `Error reading your schools: ${error.message}` : data?.length ? data.map((m) => `${(m.schools as unknown as { name: string } | null)?.name ?? "?"} (${m.role})`).join(", ") : "None yet: create a school at /onboarding",
       });
     }
