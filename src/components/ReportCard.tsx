@@ -1,12 +1,13 @@
 import { Pill } from "@/components/ui";
 import { TERM_NAME } from "@/lib/format";
-import { fmtScore, gradeKind, ordinal, RATINGS, type StudentResult } from "@/lib/results";
+import { asParts, fmtScore, gradeKind, ordinal, RATINGS, type StudentResult } from "@/lib/results";
 import { initials, schoolThemeStyle } from "@/lib/theme";
 
 /** The printable report card. Uses the school's colours and logo. */
 export function ReportCard({ r }: { r: StudentResult }) {
   const term = `${TERM_NAME[r.term.term_no]} Report · ${r.term.session} session`;
   const ratings = r.ratings ?? {};
+  const parts = asParts(r.parts);
   return (
     <article style={schoolThemeStyle(r.school.primary_color, r.school.secondary_color)} className="print-area flex flex-col gap-4 rounded-[18px] border border-[#E3EAF3] bg-white p-6 text-brand-slate">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b-4 border-c1 pb-4">
@@ -50,9 +51,11 @@ export function ReportCard({ r }: { r: StudentResult }) {
           <thead>
             <tr>
               <th scope="col">Subject</th>
-              <th scope="col">CA 1 (20)</th>
-              <th scope="col">CA 2 (20)</th>
-              <th scope="col">Exam (60)</th>
+              {parts.map((p) => (
+                <th key={p.key} scope="col">
+                  {p.label} ({p.max})
+                </th>
+              ))}
               <th scope="col">Total</th>
               <th scope="col">Grade</th>
               <th scope="col">Position</th>
@@ -63,9 +66,9 @@ export function ReportCard({ r }: { r: StudentResult }) {
             {r.subjects.map((s) => (
               <tr key={s.name}>
                 <th scope="row">{s.name}</th>
-                <td>{fmtScore(s.ca1) || "—"}</td>
-                <td>{fmtScore(s.ca2) || "—"}</td>
-                <td>{fmtScore(s.exam) || "—"}</td>
+                {parts.map((p) => (
+                  <td key={p.key}>{fmtScore(s[p.key]) || "—"}</td>
+                ))}
                 <td className="font-extrabold">{fmtScore(s.total)}</td>
                 <td>{s.grade ? <Pill kind={gradeKind(s.grade, r.scale)}>{s.grade}</Pill> : "—"}</td>
                 <td>{ordinal(s.position)}</td>

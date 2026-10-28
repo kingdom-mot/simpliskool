@@ -1,8 +1,9 @@
-import { fmtScore, gradeOf, ordinal, shortSubject, type ClassResults, type ScaleRow } from "@/lib/results";
+import { asParts, fmtScore, gradeOf, ordinal, shortSubject, type ClassResults, type ScaleRow } from "@/lib/results";
 
 /** Class broadsheet: each subject's total out of 100, then average and position. */
 export function Broadsheet({ r, scale, caption }: { r: ClassResults; scale: ScaleRow[]; caption: string }) {
   const failMark = [...scale].sort((a, b) => a.min - b.min)[0];
+  const parts = asParts(r.parts);
   return (
     <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={`${caption}: scroll sideways to see more`}>
       <table className="tbl" style={{ minWidth: Math.max(640, 280 + r.subjects.length * 92) }}>
@@ -36,7 +37,7 @@ export function Broadsheet({ r, scale, caption }: { r: ClassResults; scale: Scal
                   <td key={s.id} className={fail ? "font-extrabold text-[#B42318]" : ""}>
                     {fmtScore(x.total)}
                     {fail ? ` ${g!.grade}` : ""}
-                    {(x.ca1 === null || x.ca2 === null || x.exam === null) && <span className="block text-[11px] font-semibold text-[#7A5300]">part</span>}
+                    {parts.some((p) => x[p.key] === null || x[p.key] === undefined) && <span className="block text-[11px] font-semibold text-[#7A5300]">part</span>}
                   </td>
                 );
               })}

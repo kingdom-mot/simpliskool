@@ -1,57 +1,101 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { Pill } from "@/components/ui";
 import { saveScores } from "@/lib/results-actions";
-import { PARTS, fmtScore, gradeKind, gradeOf, type PartKey, type ScaleRow } from "@/lib/results";
+import { fmtScore, gradeKind, gradeOf, type Part, type PartKey, type ScaleRow } from "@/lib/results";
 
-export type SheetStudent = { id: string; name: string; ca1: number | null; ca2: number | null; exam: number | null; locked: boolean };
-type Vals = Record<string, Record<PartKey, string>>;
+export type SheetStudent = { id: string; name: string; ca1: number | null; ca2: number | null; ca3: number | null; exam: number | null; locked: boolean };
+type Vals = Record<string, Partial<Record<PartKey, string>>>;
+type Draft = { vals: Vals; at: string };
 
-const NUM = /^\d{1,2}(\.\d{1,2})?$/;
+const NUM = /^\d{1,3}(\.\d{1,2})?$/;
+const DRAFT = (cs: string, term: string) => `sk-scores-draft:${cs}:${term}`;
 
-function problem(v: string, max: number): string | null {
-  if (v === "") return null;
+function readDraft(key: string): Draft | null {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? (JSON.parse(v) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+function writeDraft(key: string, d: Draft | null) {
+  try {
+    if (d) localStorage.setItem(key, JSON.stringify(d));
+    else localStorage.removeItem(key);
+  } catch {
+    /* storage blocked or full */
+  }
+}
+
+function problem(v: string | undefined, max: number): string | null {
+  if (!v) return null;
   if (!NUM.test(v)) return "Numbers only";
   if (Number(v) > max) return `Max is ${max}`;
   return null;
 }
 
-export function ScoreSheet({
-  csId,
-  termId,
-  title,
-  students,
-  scale,
-  submittedAt,
-  submitLabel = "Submit to class teacher",
-}: {
+const noop = () => () => {};
+const clock = () => new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }).replace(" ", "").toLowerCase();
+
+type Props = {
   csId: string;
   termId: string;
   title: string;
   students: SheetStudent[];
+  parts: Part[];
   scale: ScaleRow[];
   submittedAt: string | null;
   submitLabel?: string;
-}) {
-  const initial = useMemo<Vals>(() => Object.fromEntries(students.map((s) => [s.id, { ca1: fmtScore(s.ca1), ca2: fmtScore(s.ca2), exam: fmtScore(s.exam) }])), [students]);
-  const [vals, setVals] = useState<Vals>(initial);
-  const [dirty, setDirty] = useState(false);
-  const [status, setStatus] = useState<{ kind: "idle" | "saving" | "saved" | "error"; text: string }>({ kind: "idle", text: submittedAt ? "Submitted. You can still make changes." : "Changes save automatically." });
+};
+
+/** Reads scores saved on this device while offline, so it renders once running in the browser. */
+export function ScoreSheet(props: Props) {
+  const hydrated = useSyncExternalStore(noop, () => true, () => false);
+  if (!hydrated) {
+    return (
+      <p className="rounded-xl bg-brand-cloud px-4 py-3 text-sm text-[#4A5A70]" role="status">
+        Loading the score sheet…
+      </p>
+    );
+  }
+  return <Sheet {...props} />;
+}
+
+function Sheet({ csId, termId, title, students, parts, scale, submittedAt, submitLabel = "Submit to class teacher" }: Props) {
+  const key = DRAFT(csId, termId);
+  const editable = useMemo(() => students.filter((s) => !s.locked), [students]);
+  // Unsent scores saved on this device win over the server copy.
+  const [start] = useState(() => {
+    const server: Vals = Object.fromEntries(students.map((s) => [s.id, Object.fromEntries(parts.map((p) => [p.key, fmtScore(s[p.key])]))]));
+    const d = readDraft(key);
+    if (!d) return { vals: server, restored: false };
+    const merged = { ...server };
+    for (const s of editable) if (d.vals[s.id]) merged[s.id] = { ...server[s.id], ...d.vals[s.id] };
+    return { vals: merged, restored: true };
+  });
+  const [vals, setVals] = useState<Vals>(start.vals);
+  const [dirty, setDirty] = useState(start.restored);
+  const [status, setStatus] = useState<{ kind: "idle" | "saving" | "saved" | "error" | "offline"; text: string }>(
+    start.restored
+      ? { kind: "offline", text: "Scores saved on this device earlier were restored. Sending them now…" }
+      : { kind: "idle", text: submittedAt ? "Submitted. You can still make changes." : "Changes save automatically, even without internet." },
+  );
   const [submitted, setSubmitted] = useState(!!submittedAt);
-  const [pending, start] = useTransition();
+  const [pending, start2] = useTransition();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tableRef = useRef<HTMLTableElement>(null);
-  const editable = students.filter((s) => !s.locked);
 
   const errors = useMemo(() => {
-    const out: { id: string; name: string; part: (typeof PARTS)[number]; msg: string }[] = [];
-    for (const s of editable) for (const p of PARTS) {
-      const m = problem(vals[s.id][p.key], p.max);
-      if (m) out.push({ id: s.id, name: s.name, part: p, msg: m });
-    }
+    const out: { name: string; part: Part; msg: string }[] = [];
+    for (const s of editable)
+      for (const p of parts) {
+        const m = problem(vals[s.id]?.[p.key], p.max);
+        if (m) out.push({ name: s.name, part: p, msg: m });
+      }
     return out;
-  }, [vals, editable]);
+  }, [vals, editable, parts]);
 
   const save = useCallback(
     (submit: boolean) => {
@@ -59,23 +103,34 @@ export function ScoreSheet({
         setStatus({ kind: "error", text: `Not saved: ${errors.length} score${errors.length === 1 ? " needs" : "s need"} fixing.` });
         return;
       }
-      const rows = editable.map((s) => ({
-        student_id: s.id,
-        ca1: vals[s.id].ca1 === "" ? null : Number(vals[s.id].ca1),
-        ca2: vals[s.id].ca2 === "" ? null : Number(vals[s.id].ca2),
-        exam: vals[s.id].exam === "" ? null : Number(vals[s.id].exam),
-      }));
+      const rows = editable.map((s) => {
+        const v = vals[s.id] ?? {};
+        const num = (k: PartKey) => (v[k] ? Number(v[k]) : null);
+        return { student_id: s.id, ca1: num("ca1"), ca2: num("ca2"), ca3: num("ca3"), exam: num("exam") };
+      });
+      // Keep a copy on this device until the server has it.
+      writeDraft(key, { vals: Object.fromEntries(editable.map((s) => [s.id, vals[s.id]])), at: new Date().toISOString() });
+      if (typeof navigator !== "undefined" && !navigator.onLine) {
+        setStatus({ kind: "offline", text: `No internet. Saved on this device at ${clock()}; it will send when you're back online.` });
+        return;
+      }
       setStatus({ kind: "saving", text: "Saving…" });
-      start(async () => {
-        const r = await saveScores(csId, termId, rows, submit).catch(() => ({ ok: false, error: "We couldn't save. Check your connection and try again." }) as const);
+      start2(async () => {
+        let r: Awaited<ReturnType<typeof saveScores>>;
+        try {
+          r = await saveScores(csId, termId, rows, submit);
+        } catch {
+          setStatus({ kind: "offline", text: `Couldn't reach the school's server. Saved on this device at ${clock()}; it will send when the connection is back.` });
+          return;
+        }
         if (!r.ok) return setStatus({ kind: "error", text: r.error ?? "We couldn't save." });
+        writeDraft(key, null);
         setDirty(false);
         if (submit) setSubmitted(true);
-        const time = new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }).replace(" ", "").toLowerCase();
-        setStatus({ kind: "saved", text: submit ? `Submitted at ${time}. The class teacher and admin can see the scores.` : `All changes saved at ${time}.` });
+        setStatus({ kind: "saved", text: submit ? `Submitted at ${clock()}. The class teacher and admin can see the scores.` : `All changes saved at ${clock()}.` });
       });
     },
-    [errors.length, editable, vals, csId, termId],
+    [errors.length, editable, vals, csId, termId, key],
   );
 
   // Autosave two seconds after the last change.
@@ -87,16 +142,25 @@ export function ScoreSheet({
     };
   }, [dirty, errors.length, vals, save]);
 
+  // Send scores saved on this device when the connection comes back.
+  useEffect(() => {
+    const back = () => {
+      if (readDraft(key)) save(false);
+    };
+    window.addEventListener("online", back);
+    return () => window.removeEventListener("online", back);
+  }, [key, save]);
+
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => {
-      if (dirty) e.preventDefault();
+      if (dirty && navigator.onLine) e.preventDefault();
     };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
-  function set(id: string, key: PartKey, v: string) {
-    setVals((old) => ({ ...old, [id]: { ...old[id], [key]: v.trim() } }));
+  function set(id: string, k: PartKey, v: string) {
+    setVals((old) => ({ ...old, [id]: { ...old[id], [k]: v.trim() } }));
     setDirty(true);
     setStatus({ kind: "idle", text: "Unsaved changes…" });
   }
@@ -106,16 +170,15 @@ export function ScoreSheet({
     const text = e.clipboardData.getData("text");
     if (!/[\t\n]/.test(text.trim())) return;
     e.preventDefault();
-    const lines = text.replace(/\r/g, "").split("\n").filter((l, i, a) => l !== "" || i < a.length - 1);
+    const lines = text.replace(/\r/g, "").replace(/\n+$/, "").split("\n");
     setVals((old) => {
       const next = { ...old };
       lines.forEach((line, i) => {
         const s = editable[row + i];
         if (!s) return;
-        const cells = line.split("\t");
         next[s.id] = { ...next[s.id] };
-        cells.forEach((c, j) => {
-          const p = PARTS[col + j];
+        line.split("\t").forEach((c, j) => {
+          const p = parts[col + j];
           if (p) next[s.id][p.key] = c.trim();
         });
       });
@@ -128,11 +191,11 @@ export function ScoreSheet({
   function onKey(e: React.KeyboardEvent<HTMLInputElement>, row: number, col: number) {
     if (e.key !== "Enter") return;
     e.preventDefault();
-    const nextRow = e.shiftKey ? row - 1 : row + 1;
-    tableRef.current?.querySelector<HTMLInputElement>(`input[data-cell="${nextRow}-${col}"]`)?.focus();
+    tableRef.current?.querySelector<HTMLInputElement>(`input[data-cell="${e.shiftKey ? row - 1 : row + 1}-${col}"]`)?.focus();
   }
 
-  const complete = editable.filter((s) => PARTS.every((p) => vals[s.id][p.key] !== "")).length;
+  const complete = editable.filter((s) => parts.every((p) => vals[s.id]?.[p.key])).length;
+  const tone = { error: "text-[#912018]", saved: "text-[#0B6B5A]", offline: "text-[#7A5300]", idle: "text-[#4A5A70]", saving: "text-[#4A5A70]" }[status.kind];
 
   return (
     <div className="flex flex-col gap-3">
@@ -150,13 +213,13 @@ export function ScoreSheet({
         Type each score, or copy columns from Excel and paste into the first box. Press Enter to go down. Totals and grades work themselves out.
       </p>
       <div className="overflow-x-auto" tabIndex={0} role="region" aria-label={`${title}: scroll sideways to see more`}>
-        <table ref={tableRef} className="tbl min-w-[640px]">
+        <table ref={tableRef} className="tbl" style={{ minWidth: 300 + parts.length * 110 }}>
           <caption className="sr-only">{title}</caption>
           <thead>
             <tr>
               <th scope="col">Student</th>
-              {PARTS.map((p) => (
-                <th key={p.key} scope="col">
+              {parts.map((p) => (
+                <th key={p.key} scope="col" className="whitespace-nowrap">
                   {p.label} ({p.max})
                 </th>
               ))}
@@ -166,12 +229,12 @@ export function ScoreSheet({
           </thead>
           <tbody>
             {students.map((s) => {
-              const v = vals[s.id];
+              const v = vals[s.id] ?? {};
               const row = editable.indexOf(s);
-              const bad = PARTS.map((p) => problem(v[p.key], p.max));
-              const filled = PARTS.filter((p) => v[p.key] !== "");
-              const total = !bad.some(Boolean) && filled.length ? PARTS.reduce((a, p) => a + (v[p.key] === "" ? 0 : Number(v[p.key])), 0) : null;
-              const done = filled.length === PARTS.length && total !== null;
+              const bad = parts.map((p) => problem(v[p.key], p.max));
+              const filled = parts.filter((p) => v[p.key]);
+              const total = !bad.some(Boolean) && filled.length ? parts.reduce((a, p) => a + (v[p.key] ? Number(v[p.key]) : 0), 0) : null;
+              const done = filled.length === parts.length && total !== null;
               const g = done ? gradeOf(total, scale) : null;
               return (
                 <tr key={s.id}>
@@ -179,7 +242,7 @@ export function ScoreSheet({
                     {s.name}
                     {s.locked && <span className="block text-xs font-normal text-[#4A5A70]">Report card released</span>}
                   </th>
-                  {PARTS.map((p, j) => (
+                  {parts.map((p, j) => (
                     <td key={p.key}>
                       <input
                         className="sk-input w-[84px] py-2 text-center"
@@ -189,7 +252,7 @@ export function ScoreSheet({
                         aria-label={`${p.label} for ${s.name}`}
                         aria-invalid={bad[j] ? true : undefined}
                         aria-describedby={bad[j] ? `e-${s.id}-${p.key}` : undefined}
-                        value={v[p.key]}
+                        value={v[p.key] ?? ""}
                         disabled={s.locked}
                         onChange={(e) => set(s.id, p.key, e.target.value)}
                         onPaste={(e) => onPaste(e, row, j)}
@@ -211,7 +274,7 @@ export function ScoreSheet({
         </table>
       </div>
       <div className="flex flex-wrap items-center gap-3">
-        <span role="status" aria-live="polite" className={`text-sm font-semibold ${status.kind === "error" ? "text-[#912018]" : status.kind === "saved" ? "text-[#0B6B5A]" : "text-[#4A5A70]"}`}>
+        <span role="status" aria-live="polite" className={`text-sm font-semibold ${tone}`}>
           {status.text}
         </span>
         <span className="text-sm text-[#4A5A70]">
@@ -226,7 +289,8 @@ export function ScoreSheet({
             className="s-btn"
             disabled={pending}
             onClick={() => {
-              if (complete < editable.length && !window.confirm(`${editable.length - complete} student${editable.length - complete === 1 ? " is" : "s are"} missing a score. Submit anyway?`)) return;
+              const missing = editable.length - complete;
+              if (missing > 0 && !window.confirm(`${missing} student${missing === 1 ? " is" : "s are"} missing a score. Submit anyway?`)) return;
               save(true);
             }}
           >

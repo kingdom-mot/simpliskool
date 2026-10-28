@@ -33,7 +33,7 @@ export default async function AdminScores(props: { searchParams: Promise<{ cs?: 
       </p>
       <Panel id="sheet-h" title="Scores">
         {sheet.students.length ? (
-          <ScoreSheet csId={cs.id} termId={term.id} title={`${label} scores, ${termLabel(term)}`} students={sheet.students} scale={sheet.scale} submittedAt={sheet.submittedAt} submitLabel="Mark as complete" />
+          <ScoreSheet csId={cs.id} termId={term.id} title={`${label} scores, ${termLabel(term)}`} students={sheet.students} parts={sheet.parts} scale={sheet.scale} submittedAt={sheet.submittedAt} submitLabel="Mark as complete" />
         ) : (
           <Empty>No students in this class yet.</Empty>
         )}

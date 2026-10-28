@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { PortalShell } from "@/components/PortalShell";
 import { OfflineReady } from "@/components/OfflineReady";
-import { classLabel } from "@/components/admin";
+import { PageHero, classLabel } from "@/components/admin";
 import { Empty } from "@/components/ui";
 import { requireSchool } from "@/lib/auth";
 import { TEACHER_NAV } from "@/lib/nav";
@@ -90,15 +89,7 @@ export default async function RegisterPage(props: { searchParams: Promise<{ clas
     <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="register">
       <OfflineReady />
       <div className="flex flex-col gap-4">
-        <div>
-          <nav aria-label="Breadcrumb" className="text-sm text-[#4A5A70]">
-            <Link href="/teacher" className="s-link">
-              Today
-            </Link>{" "}
-            / Attendance
-          </nav>
-          <h1 className="mt-1 text-[30px] leading-tight !text-c1">Register{cls ? ` · ${classLabel(cls.name, cls.arm)}` : ""}</h1>
-        </div>
+        <PageHero sub="Attendance" title={`Register${cls ? ` · ${classLabel(cls.name, cls.arm)}` : ""}`} />
         {body}
       </div>
     </PortalShell>

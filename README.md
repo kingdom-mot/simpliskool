@@ -29,7 +29,8 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0009_school_settings.sql` (motto, principal's name, logo storage)
      - `0010_fees.sql` (fee setup, invoices, payments, receipts, defaulters)
      - `0011_results.sql` (score entry, broadsheet, comments, report cards)
-     - `0008_grants.sql` (permissions for the app; run it last, and again after any new file)
+     - `0008_grants.sql` (permissions for the app)
+     - `0012_timetable_announcements.sql` (timetable, announcements, mark split, approving results). From this file on, each file sets its own permissions, so 0008 doesn't need running again.
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -74,3 +75,7 @@ select id from public.profiles where email = 'you@example.com';
 3. Until this is done, attendance works as normal and the attendance page says emails aren't switched on yet.
 
 Run `0007_attendance_notifications.sql` in Supabase before using the attendance page.
+
+## AI comment suggestions (optional)
+
+Add `ANTHROPIC_API_KEY` (from console.anthropic.com) in Vercel and redeploy. Teachers and the principal then get **Suggest with AI** on report card comments; only the student's first name and results are sent. Without the key, the button fills in a starting comment built from the scores.

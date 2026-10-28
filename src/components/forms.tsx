@@ -43,6 +43,7 @@ export function ActionForm({
   className,
   resetOnSuccess = false,
   id,
+  onSuccess,
 }: {
   action: (prev: ActionState, data: FormData) => Promise<ActionState>;
   children: React.ReactNode;
@@ -50,11 +51,15 @@ export function ActionForm({
   resetOnSuccess?: boolean;
   /** Lets fields elsewhere on the page join this form with form="id". */
   id?: string;
+  /** Called after each successful save (e.g. to clear a form's own state). */
+  onSuccess?: () => void;
 }) {
   const [state, run] = useActionState(action, {});
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state.ok && resetOnSuccess) ref.current?.reset();
+    if (state.ok) onSuccess?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, resetOnSuccess]);
   return (
     <form ref={ref} id={id} action={run} className={className}>

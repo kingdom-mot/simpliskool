@@ -117,3 +117,27 @@ export async function removeLogo(): Promise<ActionState> {
   refresh();
   return { ok: true, message: "Logo removed. Your school's initials show instead.", at: Date.now() };
 }
+
+const partSchema = z.object({ key: z.enum(["ca1", "ca2", "ca3", "exam"]), label: z.string().trim().min(1, "Give each part a short name").max(20, "Keep part names under 20 letters"), max: z.number().positive().max(100) });
+
+export async function saveAssessment(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(SETTINGS_ROLES);
+  let raw: unknown;
+  try {
+    raw = JSON.parse(String(fd.get("parts") ?? "[]"));
+  } catch {
+    return { error: "Something went wrong. Refresh the page and try again." };
+  }
+  const p = z.array(partSchema).min(1).max(4).safeParse(raw);
+  if (!p.success) return { error: p.error.issues[0].message };
+  const sum = p.data.reduce((a, x) => a + x.max, 0);
+  if (Math.abs(sum - 100) > 0.001) return { error: `The parts add up to ${sum}. They must add up to 100.` };
+  const { error } = await supabase.rpc("set_assessment", { p_school: school.id, p_parts: p.data });
+  if (error) {
+    const m = error.message.match(/don't fit \((\d+) scores\)/);
+    if (m) return { error: `${m[1]} score${m[1] === "1" ? "" : "s"} already entered this term would no longer fit. Change the split before scores are entered, or at the start of a new term.` };
+    return { error: "We couldn't save the mark split. Please try again." };
+  }
+  revalidatePath("/", "layout");
+  return { ok: true, message: `Saved: ${p.data.map((x) => `${x.label} ${x.max}`).join(" + ")} = 100. Score sheets and report cards now use this split.`, at: Date.now() };
+}

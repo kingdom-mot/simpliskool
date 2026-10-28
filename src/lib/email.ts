@@ -57,3 +57,37 @@ ${bodyHtml}
 <tr><td style="padding:16px 24px;border-top:1px solid #EEF3F9;font-size:12px;color:#4A5A70">${footer}</td></tr>
 </table></td></tr></table></body></html>`;
 }
+
+/** Sends up to 100 emails per request (Resend batch API). Returns how many were accepted. */
+export async function sendEmailBatch(msgs: { to: string; subject: string; html: string; text: string; fromName?: string; replyTo?: string | null }[]): Promise<{ sent: number; failed: number; skipped: boolean }> {
+  const key = process.env.RESEND_API_KEY;
+  if (!key) return { sent: 0, failed: 0, skipped: true };
+  const fromAddress = process.env.EMAIL_FROM_ADDRESS ?? "notifications@simpliskool.com";
+  let sent = 0;
+  let failed = 0;
+  for (let i = 0; i < msgs.length; i += 100) {
+    const chunk = msgs.slice(i, i + 100);
+    try {
+      const res = await fetch(`${process.env.RESEND_API_URL ?? "https://api.resend.com"}/emails/batch`, {
+        method: "POST",
+        headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
+        body: JSON.stringify(
+          chunk.map((m) => ({
+            from: `${(m.fromName ? `${m.fromName} via Simpliskool` : "Simpliskool").replace(/["<>]/g, "")} <${fromAddress}>`,
+            to: [m.to],
+            subject: m.subject,
+            html: m.html,
+            text: m.text,
+            ...(m.replyTo ? { reply_to: m.replyTo } : {}),
+          })),
+        ),
+        signal: AbortSignal.timeout(20000),
+      });
+      if (res.ok) sent += chunk.length;
+      else failed += chunk.length;
+    } catch {
+      failed += chunk.length;
+    }
+  }
+  return { sent, failed, skipped: false };
+}

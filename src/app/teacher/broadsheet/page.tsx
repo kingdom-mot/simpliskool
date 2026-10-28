@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { PortalShell } from "@/components/PortalShell";
-import { classLabel } from "@/components/admin";
+import { PageHero, classLabel } from "@/components/admin";
 import { Broadsheet } from "@/components/Broadsheet";
 import { CommentBox } from "@/components/CommentBox";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -9,6 +9,7 @@ import { requireSchool } from "@/lib/auth";
 import { loadTerms, termLabel } from "@/lib/fees";
 import { TEACHER_NAV } from "@/lib/nav";
 import { saveClassComment } from "@/lib/results-actions";
+import { aiReady } from "@/lib/ai";
 import { DEFAULT_SCALE, RATINGS, fmtScore, ordinal, suggestComment, type ClassResults, type ScaleRow } from "@/lib/results";
 
 export const metadata = { title: "Class broadsheet and comments" };
@@ -146,6 +147,7 @@ export default async function TeacherBroadsheet(props: { searchParams: Promise<{
                     name="comment"
                     label="Class teacher's comment"
                     initial={cur.comment ?? ""}
+                    ai={aiReady() ? { student: cur.id, term: term.id, who: "teacher" } : null}
                     suggestion={suggestComment(cur.first_name, Object.entries(cur.scores).map(([id, x]) => ({ name: subjName.get(id) ?? "", total: Number(x.total) })), cur.average)}
                   />
                   <fieldset className="flex flex-col gap-2">
@@ -182,10 +184,7 @@ export default async function TeacherBroadsheet(props: { searchParams: Promise<{
   return (
     <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="broadsheet">
       <div className="flex flex-col gap-5">
-        <div>
-          <p className="text-sm text-[#4A5A70]">{term ? termLabel(term) : ""}</p>
-          <h1 className="mt-1 text-[30px] leading-tight !text-c1">{cls ? `${classLabel(cls.name, cls.arm)} report comments` : "Class broadsheet"}</h1>
-        </div>
+        <PageHero sub={term ? termLabel(term) : undefined} title={cls ? `${classLabel(cls.name, cls.arm)} report comments` : "Class broadsheet"} />
         {body}
       </div>
     </PortalShell>

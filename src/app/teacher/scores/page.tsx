@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { OfflineReady } from "@/components/OfflineReady";
 import { PortalShell } from "@/components/PortalShell";
-import { classLabel } from "@/components/admin";
+import { PageHero, classLabel } from "@/components/admin";
 import { ScoreSheet } from "@/components/ScoreSheet";
 import { Empty, Pill } from "@/components/ui";
 import { requireSchool } from "@/lib/auth";
@@ -69,7 +70,7 @@ export default async function TeacherScores(props: { searchParams: Promise<{ cs?
             {sheet.submittedAt ? <Pill kind="good">Submitted</Pill> : <Pill kind="warn">Not submitted</Pill>}
           </div>
           {sheet.students.length ? (
-            <ScoreSheet key={`${cs.id}-${term.id}`} csId={cs.id} termId={term.id} title={`${label(cs)} scores, ${termLabel(term)}`} students={sheet.students} scale={sheet.scale} submittedAt={sheet.submittedAt} />
+            <ScoreSheet key={`${cs.id}-${term.id}`} csId={cs.id} termId={term.id} title={`${label(cs)} scores, ${termLabel(term)}`} students={sheet.students} parts={sheet.parts} scale={sheet.scale} submittedAt={sheet.submittedAt} />
           ) : (
             <Empty>No students in this class yet.</Empty>
           )}
@@ -80,14 +81,12 @@ export default async function TeacherScores(props: { searchParams: Promise<{ cs?
 
   return (
     <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="scores">
+      <OfflineReady />
       <div className="flex flex-col gap-5">
-        <div>
-          <p className="text-sm text-[#4A5A70]">{term ? termLabel(term) : ""}</p>
-          <h1 className="mt-1 text-[30px] leading-tight !text-c1">Score entry</h1>
-        </div>
+        <PageHero sub={term ? termLabel(term) : undefined} title="Score entry" />
         {body}
         <p className="text-sm text-[#4A5A70]">
-          CA 1 and CA 2 are out of 20 each and the exam is out of 60. Once the school releases a student&apos;s report card, their scores are locked.{" "}
+          Once the school releases a student&apos;s report card, their scores are locked. Scores you type without internet are kept on this device and sent when you&apos;re back online.{" "}
           <Link className="s-link" href="/teacher/broadsheet">
             Class broadsheet and comments
           </Link>

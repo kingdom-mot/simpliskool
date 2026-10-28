@@ -4,6 +4,8 @@ import { initials } from "@/lib/theme";
 import { saveProfile } from "./actions";
 import { ColourPicker } from "./ColourPicker";
 import { LogoForm } from "./LogoForm";
+import { MarkSplit } from "./MarkSplit";
+import { asParts } from "@/lib/results";
 
 export const metadata = { title: "Settings" };
 
@@ -47,12 +49,15 @@ export default async function SettingsPage() {
     .single<SchoolRow>();
   const row = s ?? { ...school, motto: null, email: null, phone: null, address: null, principal_name: null, about: null };
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
+  const { data: partsRaw } = await supabase.rpc("assessment_parts", { p_school: school.id });
+  const parts = asParts(partsRaw);
 
   return (
     <AdminPage ctx={ctx} active="settings" crumb={[{ label: "Settings" }]} title="Settings">
       <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
         <a href="#profile" className="s-btn2">School profile</a>
         <a href="#brand" className="s-btn2">Logo and colours</a>
+        <a href="#marks" className="s-btn2">Marks</a>
       </nav>
 
       <Panel title="School profile" id="profile">
@@ -95,6 +100,10 @@ export default async function SettingsPage() {
         <LogoForm logoUrl={row.logo_url} initials={initials(row.name)} />
         <hr className="border-[#E3EAF3]" />
         <ColourPicker schoolName={row.name} initial={[row.primary_color, row.secondary_color].filter((c): c is string => !!c)} />
+      </Panel>
+
+      <Panel title="Marks: how the 100 marks are split" id="marks">
+        <MarkSplit initial={parts} />
       </Panel>
     </AdminPage>
   );

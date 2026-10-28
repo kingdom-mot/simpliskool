@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bar, Pill } from "@/components/ui";
 import { TERM_NAME } from "@/lib/format";
-import { fmtScore, gradeKind, ordinal, type StudentResult } from "@/lib/results";
+import { asParts, fmtScore, gradeKind, ordinal, type StudentResult } from "@/lib/results";
 
 export type ReleasedTerm = { id: string; term_no: number; session: string; average: number | null };
 
@@ -20,6 +20,7 @@ export function MobileResults({ r, terms, termId, termHref, studentId }: { r: St
   const counts = new Map<string, number>();
   for (const s of r.subjects) if (s.grade) counts.set(s.grade, (counts.get(s.grade) ?? 0) + 1);
   const grades = r.scale.filter((g) => counts.get(g.grade)).map((g) => `${counts.get(g.grade)} ${g.grade}`);
+  const parts = asParts(r.parts);
   const progress = [...terms].reverse().filter((t) => t.session === r.term.session);
   return (
     <>
@@ -77,7 +78,7 @@ export function MobileResults({ r, terms, termId, termHref, studentId }: { r: St
               </div>
               <Bar value={Math.min(100, Number(s.total))} fill="var(--c2,#0B7D6E)" label={`${s.name} total`} height={6} />
               <span className="text-xs text-[#4A5A70]">
-                CA {fmtScore(Number(s.ca1 ?? 0) + Number(s.ca2 ?? 0))} / 40 · Exam {fmtScore(s.exam) || "—"} / 60 · {ordinal(s.position)} in class
+                {parts.map((p) => `${p.label} ${fmtScore(s[p.key]) || "—"}/${p.max}`).join(" · ")} · {ordinal(s.position)} in class
               </span>
             </li>
           ))}

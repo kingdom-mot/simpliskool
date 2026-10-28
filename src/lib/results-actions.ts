@@ -12,7 +12,7 @@ import { classLabel } from "@/components/admin";
 
 const uuid = z.string().uuid();
 const scoreVal = z.union([z.number().min(0), z.null()]);
-const rowsSchema = z.array(z.object({ student_id: z.string().uuid(), ca1: scoreVal, ca2: scoreVal, exam: scoreVal })).max(300);
+const rowsSchema = z.array(z.object({ student_id: z.string().uuid(), ca1: scoreVal, ca2: scoreVal, ca3: scoreVal.optional(), exam: scoreVal })).max(300);
 
 export type SaveScoresResult = { ok: boolean; error?: string; saved?: number; locked?: number; at?: number };
 
@@ -22,11 +22,8 @@ export async function saveScores(csId: string, termId: string, rows: unknown, su
   if (!uuid.safeParse(csId).success || !uuid.safeParse(termId).success) return { ok: false, error: "Something went wrong. Refresh the page." };
   const p = rowsSchema.safeParse(rows);
   if (!p.success) return { ok: false, error: "Some scores aren't numbers. Check the boxes marked in red." };
-  for (const r of p.data) {
-    if ((r.ca1 ?? 0) > 20 || (r.ca2 ?? 0) > 20 || (r.exam ?? 0) > 60) return { ok: false, error: "Some scores are more than the maximum. Fix the boxes marked in red." };
-  }
   const { data, error } = await supabase.rpc("save_scores", { p_class_subject: csId, p_term: termId, p_rows: p.data, p_submit: submit });
-  if (error) return { ok: false, error: /not allowed/.test(error.message) ? "You can't enter scores for this subject." : "We couldn't save. Check your connection and try again." };
+  if (error) return { ok: false, error: /not allowed/.test(error.message) ? "You can't enter scores for this subject." : /range|does not use/.test(error.message) ? "Some scores are more than the maximum. Fix the boxes marked in red." : "We couldn't save. Please try again." };
   revalidatePath("/teacher/scores");
   revalidatePath("/admin/results");
   const r = data as { saved: number; locked: number };
@@ -73,7 +70,7 @@ export async function releaseResults(_prev: ActionState, fd: FormData): Promise<
   if (!cls.success || !term.success) return { error: "Something went wrong. Refresh the page and try again." };
   const release = fd.get("release") !== "0";
   const { data, error } = await supabase.rpc("release_results", { p_class: cls.data, p_term: term.data, p_release: release });
-  if (error) return { error: "We couldn't do that. Please try again." };
+  if (error) return { error: /Approve first/.test(error.message) ? "Approve the report cards first." : "We couldn't do that. Please try again." };
   revalidatePath("/admin/report-cards");
   revalidatePath("/admin/results");
   const n = Number(data) || 0;
@@ -112,4 +109,16 @@ export async function remindScoreTeachers(_prev: ActionState, fd: FormData): Pro
   const none = open.length - withEmail.length;
   const parts = [t.sent && `${t.sent} sent`, t.failed && `${t.failed} failed`].filter(Boolean).join(", ");
   return { ok: true, message: `${parts ? `Reminders: ${parts}.` : "These teachers already got a reminder today."}${none ? ` ${none} subject${none === 1 ? " has" : "s have"} no teacher with an email; set one under Classes and subjects.` : ""}`, at: Date.now() };
+}
+
+export async function approveResults(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase } = await requireSchool(RESULTS_ADMIN);
+  const cls = uuid.safeParse(fd.get("class"));
+  const term = uuid.safeParse(fd.get("term"));
+  if (!cls.success || !term.success) return { error: "Something went wrong. Refresh the page and try again." };
+  const approve = fd.get("approve") !== "0";
+  const { error } = await supabase.rpc("approve_results", { p_class: cls.data, p_term: term.data, p_approve: approve });
+  if (error) return { error: "We couldn't do that. Please try again." };
+  // The buttons change once approved, so the result is shown on the page.
+  redirect(`/admin/report-cards?${new URLSearchParams({ class: cls.data, term: term.data, done: approve ? "approved" : "unapproved" })}`);
 }

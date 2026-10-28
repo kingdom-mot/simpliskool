@@ -1,12 +1,28 @@
 import type { Role } from "@/lib/auth";
 
-/** Score parts and their maximum marks (same as the database check). */
-export const PARTS = [
+/** Score parts. Each school chooses its own split (Settings); this is the usual one. */
+export type PartKey = "ca1" | "ca2" | "ca3" | "exam";
+export type Part = { key: PartKey; label: string; max: number };
+export const DEFAULT_PARTS: Part[] = [
   { key: "ca1", label: "CA 1", max: 20 },
   { key: "ca2", label: "CA 2", max: 20 },
   { key: "exam", label: "Exam", max: 60 },
-] as const;
-export type PartKey = (typeof PARTS)[number]["key"];
+];
+/** Ready-made splits offered in Settings. */
+export const PART_PRESETS: { name: string; parts: Part[] }[] = [
+  { name: "CA 1 (20) + CA 2 (20) + Exam (60)", parts: DEFAULT_PARTS },
+  { name: "CA (30) + Exam (70)", parts: [{ key: "ca1", label: "CA", max: 30 }, { key: "exam", label: "Exam", max: 70 }] },
+  { name: "CA 1 (10) + CA 2 (10) + CA 3 (20) + Exam (60)", parts: [{ key: "ca1", label: "CA 1", max: 10 }, { key: "ca2", label: "CA 2", max: 10 }, { key: "ca3", label: "CA 3", max: 20 }, { key: "exam", label: "Exam", max: 60 }] },
+  { name: "Test (10) + Assignment (10) + Mid-term (20) + Exam (60)", parts: [{ key: "ca1", label: "Test", max: 10 }, { key: "ca2", label: "Assignment", max: 10 }, { key: "ca3", label: "Mid-term", max: 20 }, { key: "exam", label: "Exam", max: 60 }] },
+];
+export function asParts(v: unknown): Part[] {
+  if (!Array.isArray(v) || !v.length) return DEFAULT_PARTS;
+  return v.map((p) => ({ key: p.key as PartKey, label: String(p.label), max: Number(p.max) }));
+}
+/** "CA 1 and CA 2 are out of 20 each and the exam is out of 60" style description. */
+export function describeParts(parts: Part[]) {
+  return parts.map((p) => `${p.label} out of ${p.max}`).join(", ");
+}
 
 /** Roles that can open admin results pages (owner, admin, principal). */
 export const RESULTS_ADMIN: Role[] = ["owner", "admin", "principal"];
@@ -80,13 +96,15 @@ export function shortSubject(name: string) {
 
 export type ClassResults = {
   class_size: number;
+  parts: Part[];
+  approved_at: string | null;
   subjects: { id: string; name: string; teacher: string | null; teacher_email: string | null; submitted_at: string | null; scored: number; complete: number }[];
   students: {
     id: string;
     name: string;
     first_name: string;
     admission_no: string;
-    scores: Record<string, { ca1: number | null; ca2: number | null; exam: number | null; total: number }>;
+    scores: Record<string, { ca1: number | null; ca2: number | null; ca3: number | null; exam: number | null; total: number }>;
     average: number | null;
     position: number | null;
     subjects_scored: number;
@@ -103,7 +121,8 @@ export type StudentResult = {
   student: { id: string; name: string; first_name: string; admission_no: string; class: string; photo_url: string | null };
   term: { term_no: number; session: string; ends_on: string | null };
   school: { name: string; address: string | null; phone: string | null; email: string | null; logo_url: string | null; primary_color: string | null; secondary_color: string | null };
-  subjects: { name: string; ca1: number | null; ca2: number | null; exam: number | null; total: number; grade: string | null; remark: string | null; position: number; class_average: number; highest: number }[];
+  parts: Part[];
+  subjects: { name: string; ca1: number | null; ca2: number | null; ca3: number | null; exam: number | null; total: number; grade: string | null; remark: string | null; position: number; class_average: number; highest: number }[];
   average: number | null;
   position: number | null;
   class_size: number;

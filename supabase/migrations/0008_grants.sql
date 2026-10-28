@@ -30,7 +30,7 @@ begin
     where n.nspname = 'public' and p.prokind = 'f'
   loop
     execute format('grant execute on function %s to service_role', f.sig);
-    if f.proname = 'verify_student_pin' then
+    if f.proname in ('verify_student_pin', 'announcement_users') then
       execute format('revoke execute on function %s from public, anon, authenticated', f.sig);
     elsif f.proname not in ('handle_new_user', 'audit_row') then
       execute format('grant execute on function %s to authenticated', f.sig);

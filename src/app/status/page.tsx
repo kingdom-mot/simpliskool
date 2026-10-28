@@ -28,6 +28,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
     { label: "SUPABASE_SERVICE_ROLE_KEY (server only)", ok: !!process.env.SUPABASE_SERVICE_ROLE_KEY, fix: "Supabase → Project Settings → API → service_role key, then add it in Vercel" },
     { label: "NEXT_PUBLIC_ROOT_DOMAIN", ok: !!process.env.NEXT_PUBLIC_ROOT_DOMAIN, detail: process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "not set (defaults to simpliskool.com)" },
     { label: "RESEND_API_KEY (absence emails)", ok: !!process.env.RESEND_API_KEY, fix: "resend.com → API Keys, then add it in Vercel (the same key used for Supabase SMTP works)" },
+    { label: "ANTHROPIC_API_KEY (optional: AI comment suggestions)", ok: process.env.ANTHROPIC_API_KEY ? true : null, detail: process.env.ANTHROPIC_API_KEY ? "AI suggestions are on" : "Not set: teachers get suggestions built from the scores instead" },
     { label: "NEXT_PUBLIC_SITE_URL", ok: !!process.env.NEXT_PUBLIC_SITE_URL, detail: process.env.NEXT_PUBLIC_SITE_URL ?? "not set" },
   ];
 
@@ -63,6 +64,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       const { error: b9 } = await admin.storage.getBucket("school-logos");
       const f10 = await fnExists(admin, "fee_overview", { p_school: zero, p_term: zero, p_class: null });
       db.push({ label: "0010 fees and payments", ...f10 });
+      db.push({ label: "0012 timetable, announcements, mark split", ...(await fnExists(admin, "assessment_parts", { p_school: zero })) });
       db.push({ label: "0011 scores and results", ...(await fnExists(admin, "class_results", { p_class: zero, p_term: zero })) });
       db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
@@ -117,11 +119,11 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
                   {c.ok === null ? "–" : c.ok ? "✓" : "!"}
                 </span>
                 <span className="min-w-0">
-                  <span className="block font-bold text-brand-navy">
+                  <span className="block font-bold text-brand-navy [overflow-wrap:anywhere]">
                     {c.label}
                     <span className="sr-only">{c.ok === null ? ": not checked" : c.ok ? ": OK" : ": problem"}</span>
                   </span>
-                  {c.detail && <span className="block break-words text-sm text-[#4A5A70]">{c.detail}</span>}
+                  {c.detail && <span className="block text-sm text-[#4A5A70] [overflow-wrap:anywhere]">{c.detail}</span>}
                   {c.ok === false && c.fix && <span className="block text-sm text-[#912018]">Fix: {c.fix}</span>}
                 </span>
               </li>

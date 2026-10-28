@@ -42,7 +42,8 @@ h1, h2, h3, h4, h5, h6 {
   }
   /* Dropdown with a navy arrow 14px in from the right edge. */
   .sk-select,
-  select.input {
+  select.input,
+  select.sk-input {
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23173B70' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
@@ -83,8 +84,27 @@ h1, h2, h3, h4, h5, h6 {
   .tbl td {
     @apply border-b border-[#EEF3F9] px-3 py-3 align-middle;
   }
+  .tbl thead th {
+    @apply bg-[#F4F7FB] first:rounded-l-lg last:rounded-r-lg;
+  }
   .tbl th[scope="row"] {
     @apply text-sm text-c1;
+  }
+  /* Page header in the school's colours: buttons and labels flip to white. */
+  .page-hero .label {
+    @apply text-white;
+  }
+  .page-hero .s-btn {
+    @apply bg-white text-c1 hover:bg-white/90 hover:opacity-100;
+  }
+  .page-hero .s-btn2 {
+    @apply border-white bg-transparent text-white hover:bg-white/15;
+  }
+  .page-hero .s-link {
+    @apply text-white;
+  }
+  .page-hero :focus-visible {
+    outline-color: #ffffff;
   }
   .sk-skip {
     @apply absolute -left-[9999px] top-2 z-50 rounded-lg bg-brand-navy px-4 py-3 font-bold text-white focus:left-2;
