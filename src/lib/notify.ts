@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { schoolColours } from "@/lib/theme";
+import { optedOut } from "@/lib/optouts";
 
 type Admin = ReturnType<typeof createAdminClient>;
 type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice" | "report_card" | "score_reminder" | "payment_receipt";
@@ -62,22 +63,25 @@ export async function notifyAbsences(schoolId: string, date: string, classId: st
   const school = await loadSchool(admin, schoolId);
   if (!school?.notify_absence_email) return { sent: 0, failed: 0, skipped: 0 };
 
-  let q = admin
-    .from("attendance")
-    .select("student_id, students(first_name, last_name, classes(name, arm), guardians(user_id, profiles(full_name, email)))")
-    .eq("school_id", schoolId)
-    .eq("date", date)
-    .eq("status", "absent");
-  if (classId) q = q.eq("class_id", classId);
-  const { data: rows } = await q.returns<
+  const cols = "student_id, students(first_name, last_name, classes(name, arm), guardians(user_id, profiles(full_name, email)))";
+  const query = (withExcused: boolean) => {
+    let q = admin.from("attendance").select(withExcused ? `${cols}, excused` : cols).eq("school_id", schoolId).eq("date", date).eq("status", "absent");
+    if (classId) q = q.eq("class_id", classId);
+    // The parent already told the school about these: no email needed.
+    return withExcused ? q.eq("excused", false) : q;
+  };
+  let res = await query(true);
+  if (res.error) res = await query(false); // before database file 0016
+  const { data: rows } = res as unknown as { data: 
     {
       student_id: string;
       students: { first_name: string; last_name: string; classes: { name: string; arm: string } | null; guardians: { user_id: string; profiles: { full_name: string | null; email: string | null } | null }[] } | null;
-    }[]
-  >();
+    }[] | null;
+  };
 
   const { c1 } = schoolColours(school.primary_color, school.secondary_color);
   const tally = { sent: 0, failed: 0, skipped: 0 };
+  const off = await optedOut(admin, (rows ?? []).flatMap((r) => r.students?.guardians.map((g) => g.user_id) ?? []), "email");
   const contact = [school.phone, school.email].filter(Boolean).join(" or ");
 
   for (const r of rows ?? []) {
@@ -85,6 +89,7 @@ export async function notifyAbsences(schoolId: string, date: string, classId: st
     if (!st) continue;
     const child = st.first_name;
     for (const g of st.guardians) {
+      if (off.has(g.user_id)) continue;
       const to = g.profiles?.email?.trim().toLowerCase();
       if (!to || to.endsWith("@students.simpliskool.com")) continue;
       const id = await claim(admin, { school_id: schoolId, student_id: r.student_id, kind: "absence", recipient: to, about_date: date });

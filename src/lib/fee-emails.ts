@@ -5,6 +5,7 @@ import { naira, TERM_NAME } from "@/lib/format";
 import { METHOD_LABEL } from "@/lib/fees";
 import { claim, finish, siteUrl } from "@/lib/notify";
 import { schoolColours } from "@/lib/theme";
+import { optedOut } from "@/lib/optouts";
 
 type Admin = ReturnType<typeof createAdminClient>;
 type Tally = { sent: number; failed: number; skipped: number };
@@ -26,10 +27,12 @@ async function parentsOf(admin: Admin, studentIds: string[]) {
   if (!studentIds.length) return out;
   const { data } = await admin
     .from("guardians")
-    .select("student_id, profiles(full_name, email)")
+    .select("student_id, user_id, profiles(full_name, email)")
     .in("student_id", studentIds)
-    .returns<{ student_id: string; profiles: { full_name: string | null; email: string | null } | null }[]>();
+    .returns<{ student_id: string; user_id: string; profiles: { full_name: string | null; email: string | null } | null }[]>();
+  const off = await optedOut(admin, (data ?? []).map((g) => g.user_id), "email");
   for (const g of data ?? []) {
+    if (off.has(g.user_id)) continue;
     const email = g.profiles?.email?.trim().toLowerCase();
     if (!email || email.endsWith("@students.simpliskool.com")) continue;
     const list = out.get(g.student_id) ?? [];

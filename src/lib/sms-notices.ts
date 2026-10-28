@@ -67,13 +67,18 @@ export async function smsAbsences(schoolId: string, date: string, classId: strin
   const s = await smsSettings(admin, schoolId);
   if (!s.sms_enabled || !s.sms_absence) return t;
   const { data: school } = await admin.from("schools").select("name, phone").eq("id", schoolId).single<{ name: string; phone: string | null }>();
-  let q = admin.from("attendance").select("student_id, students(first_name)").eq("school_id", schoolId).eq("date", date).eq("status", "absent");
-  if (classId) q = q.eq("class_id", classId);
-  const { data: rows } = await q.returns<{ student_id: string; students: { first_name: string } | null }[]>();
-  const phones = await parentPhones(admin, (rows ?? []).map((r) => r.student_id));
+  const query = (withExcused: boolean) => {
+    let q = admin.from("attendance").select(withExcused ? "student_id, excused, students(first_name)" : "student_id, students(first_name)").eq("school_id", schoolId).eq("date", date).eq("status", "absent");
+    if (classId) q = q.eq("class_id", classId);
+    return withExcused ? q.eq("excused", false) : q; // reported in advance by the parent: no text
+  };
+  let res = await query(true);
+  if (res.error) res = await query(false);
+  const rows = (res.data ?? []) as unknown as { student_id: string; students: { first_name: string } | null }[];
+  const phones = await parentPhones(admin, rows.map((r) => r.student_id));
   const isToday = date === lagosToday();
   const when = isToday ? "today" : `on ${new Date(`${date}T12:00:00+01:00`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Lagos" })}`;
-  for (const r of rows ?? []) {
+  for (const r of rows) {
     const text = `${shortName(school?.name ?? "School")}: ${r.students?.first_name ?? "Your child"} was marked absent ${when}. If this is a mistake, please call the school${school?.phone ? ` on ${school.phone}` : ""}.`;
     for (const p of phones.get(r.student_id) ?? []) add(t, await sendLoggedSms(admin, { school_id: schoolId, student_id: r.student_id, kind: "absence", recipient: p, about_date: date }, text));
   }

@@ -2,6 +2,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/people";
 import { claim, finish } from "@/lib/notify";
+import { optedOut } from "@/lib/optouts";
 
 /**
  * Text messages through Termii (https://developers.termii.com).
@@ -90,8 +91,10 @@ export async function smsSettings(admin: Admin, schoolId: string): Promise<SmsSe
 export async function parentPhones(admin: Admin, studentIds: string[]) {
   const out = new Map<string, string[]>();
   if (!studentIds.length) return out;
-  const { data } = await admin.from("guardians").select("student_id, profiles(phone)").in("student_id", studentIds).returns<{ student_id: string; profiles: { phone: string | null } | null }[]>();
+  const { data } = await admin.from("guardians").select("student_id, user_id, profiles(phone)").in("student_id", studentIds).returns<{ student_id: string; user_id: string; profiles: { phone: string | null } | null }[]>();
+  const off = await optedOut(admin, (data ?? []).map((g) => g.user_id), "sms");
   for (const g of data ?? []) {
+    if (off.has(g.user_id)) continue;
     const p = normalizePhone(g.profiles?.phone);
     if (!p) continue;
     const list = out.get(g.student_id) ?? [];

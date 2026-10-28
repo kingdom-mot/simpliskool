@@ -20,16 +20,24 @@ export type KidHw = {
 };
 
 type Row = Omit<KidHw, "subject" | "teacher" | "sub" | "state"> & {
-  class_subjects: { subjects: { name: string } | null; profiles: { full_name: string | null } | null } | null;
+  class_subjects: { teacher_id: string | null; subjects: { name: string } | null } | null;
   homework_submissions: (NonNullable<KidHw["sub"]> & { student_id: string })[];
 };
 
-const SELECT = "id, title, kind, instructions, max_marks, due_at, submit_modes, allow_late, attachments, class_subjects(subjects(name), profiles(full_name)), homework_submissions(student_id, status, answer, files, note, submitted_at, late, score, feedback)";
+const SELECT = "id, title, kind, instructions, max_marks, due_at, submit_modes, allow_late, attachments, class_subjects(teacher_id, subjects(name)), homework_submissions(student_id, status, answer, files, note, submitted_at, late, score, feedback)";
 
-function shape(r: Row, studentId: string): KidHw {
+function shape(r: Row, studentId: string, names: Map<string, string | null>): KidHw {
   const sub = r.homework_submissions.find((s) => s.student_id === studentId) ?? null;
   const state = sub?.status === "marked" ? "marked" : sub?.status === "submitted" ? "done" : "todo";
-  return { ...r, subject: r.class_subjects?.subjects?.name ?? "", teacher: r.class_subjects?.profiles?.full_name ?? null, sub, state };
+  return { ...r, subject: r.class_subjects?.subjects?.name ?? "", teacher: names.get(r.class_subjects?.teacher_id ?? "") ?? null, sub, state };
+}
+
+/** Teachers' names (names only) for families; empty before database file 0016. */
+async function teacherNames(supabase: DB, rows: Row[]) {
+  const ids = [...new Set(rows.map((r) => r.class_subjects?.teacher_id).filter((x): x is string => !!x))];
+  if (!ids.length) return new Map<string, string | null>();
+  const { data } = await supabase.rpc("staff_names", { p_ids: ids });
+  return new Map(((data ?? []) as { id: string; full_name: string | null }[]).map((t) => [t.id, t.full_name]));
 }
 
 /** Homework for one student's class (the last 4 months), newest due first. */
@@ -40,12 +48,13 @@ export async function homeworkFor(supabase: DB, student: { id: string; class_id:
   if (!ids.length) return [];
   const since = new Date(Date.now() - 120 * 86400000).toISOString();
   const { data } = await supabase.from("homework").select(SELECT).in("class_subject_id", ids).gte("due_at", since).order("due_at", { ascending: false }).returns<Row[]>();
-  return (data ?? []).map((r) => shape(r, student.id));
+  const names = await teacherNames(supabase, data ?? []);
+  return (data ?? []).map((r) => shape(r, student.id, names));
 }
 
 export async function oneHomework(supabase: DB, id: string, studentId: string) {
   const { data } = await supabase.from("homework").select(SELECT).eq("id", id).maybeSingle<Row>();
-  return data ? shape(data, studentId) : null;
+  return data ? shape(data, studentId, await teacherNames(supabase, [data])) : null;
 }
 
 /** To do first (soonest due), then handed in, then marked. */

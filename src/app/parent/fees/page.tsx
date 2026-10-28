@@ -235,6 +235,9 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
             ) : (
               <p className="text-sm text-[#4A5A70]">No payments recorded yet.</p>
             )}
+            <Link className="text-sm font-bold text-c1 underline" href="/parent/documents">
+              All receipts and report cards
+            </Link>
           </section>
         </>
       )}

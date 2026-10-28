@@ -35,7 +35,12 @@ export function MobileShell({
             <SchoolBadge school={school} size={34} />
             <span className="truncate text-[15px] font-bold">{school.name}</span>
           </Link>
-          <SignOutButton className="min-h-[44px] rounded-xl bg-white/15 px-3 text-sm font-bold text-white hover:bg-white/25" />
+          <div className="flex flex-none items-center gap-2">
+            <Link href="/account" className="flex min-h-[44px] items-center rounded-xl bg-white/15 px-3 text-sm font-bold text-white hover:bg-white/25">
+              Account
+            </Link>
+            <SignOutButton className="min-h-[44px] rounded-xl bg-white/15 px-3 text-sm font-bold text-white hover:bg-white/25" />
+          </div>
         </div>
         <div className="mx-auto mt-4 max-w-[640px]">
           <h1 className="text-2xl !text-white">{title}</h1>

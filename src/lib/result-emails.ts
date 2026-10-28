@@ -1,4 +1,5 @@
 import "server-only";
+import { optedOut } from "@/lib/optouts";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { TERM_NAME } from "@/lib/format";
@@ -32,16 +33,18 @@ export async function sendReportCardEmails(schoolId: string, classId: string, te
   const termName = `${TERM_NAME[term.term_no]} ${term.academic_sessions?.name ?? ""}`.trim();
   const { data: cards } = await admin
     .from("report_cards")
-    .select("student_id, students(first_name, last_name, guardians(profiles(full_name, email)))")
+    .select("student_id, students(first_name, last_name, guardians(user_id, profiles(full_name, email)))")
     .eq("class_id", classId)
     .eq("term_id", termId)
     .not("released_at", "is", null)
-    .returns<{ student_id: string; students: { first_name: string; last_name: string; guardians: { profiles: { full_name: string | null; email: string | null } | null }[] } | null }[]>();
+    .returns<{ student_id: string; students: { first_name: string; last_name: string; guardians: { user_id: string; profiles: { full_name: string | null; email: string | null } | null }[] } | null }[]>();
+  const off = await optedOut(admin, (cards ?? []).flatMap((c) => c.students?.guardians.map((g) => g.user_id) ?? []), "email");
   const { c1 } = schoolColours(s.primary_color, s.secondary_color);
   for (const c of cards ?? []) {
     const st = c.students;
     if (!st) continue;
     const parents = st.guardians
+      .filter((g) => !off.has(g.user_id))
       .map((g) => ({ email: g.profiles?.email?.trim().toLowerCase() ?? "", first: g.profiles?.full_name?.trim().split(/\s+/)[0] || null }))
       .filter((p) => p.email && !p.email.endsWith("@students.simpliskool.com"));
     if (!parents.length) tally.noEmail++;

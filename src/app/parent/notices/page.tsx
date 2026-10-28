@@ -38,6 +38,14 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
 
   return (
     <MobileShell school={school} title="School" tabs={PARENT_TABS} active="school">
+      <div className="grid grid-cols-2 gap-2">
+        <Link href="/parent/contact" className="flex min-h-[48px] items-center justify-center rounded-[14px] border-[1.5px] border-[#DCE5F0] bg-white text-sm font-bold text-c1">
+          Contact the school
+        </Link>
+        <Link href="/parent/attendance" className="flex min-h-[48px] items-center justify-center rounded-[14px] border-[1.5px] border-[#DCE5F0] bg-white text-sm font-bold text-c1">
+          Attendance
+        </Link>
+      </div>
       <div className="flex flex-wrap gap-2">
         {s?.phone && (
           <a className="s-btn2" href={`tel:${s.phone.replace(/\s/g, "")}`}>

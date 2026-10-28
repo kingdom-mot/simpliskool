@@ -24,9 +24,11 @@ export type ParentData = {
   announcements: { title: string; body: string; at: string }[];
 };
 
+export type DueItem = { id: string; title: string; subject: string; due_at: string; state: "todo" | "done" | "marked"; score: number | null; max: number };
+
 const AVATAR = ["#3FD1B4", "#F4B740", "#93C5FD", "#F9A8D4", "#C4B5FD"];
 
-export function ParentView({ school, fullName, d, childId, basePath = "/parent" }: { school: ShellSchool; fullName: string; d: ParentData | null; childId?: string; basePath?: string }) {
+export function ParentView({ school, fullName, d, childId, basePath = "/parent", due = [] }: { school: ShellSchool; fullName: string; d: ParentData | null; childId?: string; basePath?: string; due?: DueItem[] }) {
   const kids = d?.children ?? [];
   const kid = kids.find((k) => k.id === childId) ?? kids[0];
   const termName = d?.term ? TERM_NAME[d.term.term_no] : "This term";
@@ -86,8 +88,52 @@ export function ParentView({ school, fullName, d, childId, basePath = "/parent" 
                 {kid.att_days ? `${pct(kid.att_present, kid.att_days)}%` : "—"}
               </span>
               <span className="text-[13px] text-[#34445A]">{kid.att_days ? `${kid.att_present} of ${kid.att_days} days this term` : "No registers yet this term"}</span>
+              <Link href={`/parent/attendance?child=${kid.id}`} className="text-[13px] font-bold text-[#34445A] underline underline-offset-2">
+                See every day
+              </Link>
             </div>
           </div>
+
+          {due.length > 0 && (
+            <section aria-labelledby="due-h" className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-[18px]">
+              <div className="flex items-center justify-between gap-2">
+                <h2 id="due-h" className="text-base !text-c1">
+                  Due this week
+                </h2>
+                <Link href={`/parent/learning?child=${kid.id}`} className="text-sm font-bold text-c1 underline">
+                  All<span className="sr-only"> homework</span>
+                </Link>
+              </div>
+              <ul className="flex flex-col">
+                {due.map((h) => (
+                  <li key={h.id}>
+                    <Link href={`/parent/learning/homework/${h.id}?child=${kid.id}`} className="flex min-h-[52px] items-center justify-between gap-2 border-b border-[#EEF3F9] py-1 text-sm last:border-0">
+                      <span className="min-w-0">
+                        <span className="block truncate font-bold text-brand-slate">{h.title}</span>
+                        <span className="text-[13px] text-[#4A5A70]">
+                          {h.subject} · {new Date(h.due_at).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "Africa/Lagos" })}
+                        </span>
+                      </span>
+                      <Pill kind={h.state === "marked" ? "good" : h.state === "done" ? "info" : "warn"}>{h.state === "marked" ? `${h.score ?? ""}/${h.max}` : h.state === "done" ? "Handed in" : "To do"}</Pill>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          <nav aria-label="Quick links" className="grid grid-cols-2 gap-2">
+            {[
+              [`/parent/contact?child=${kid.id}#report-h`, "Report absence"],
+              ["/parent/contact", "Contact school"],
+              [`/parent/learning?child=${kid.id}&tab=timetable`, "Timetable"],
+              ["/parent/documents?tab=reports", "Report cards and receipts"],
+            ].map(([href, label]) => (
+              <Link key={href} href={href} className="flex min-h-[52px] items-center justify-center rounded-[16px] border-[1.5px] border-[#DCE5F0] bg-white px-2 text-center text-sm font-bold text-c1 hover:border-c2">
+                {label}
+              </Link>
+            ))}
+          </nav>
         </>
       )}
 

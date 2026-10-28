@@ -108,6 +108,9 @@ export function PortalShell({
           <nav aria-label={`${roleLabel} menu`} className="mt-3">
             <NavList groups={groups} active={active} />
           </nav>
+          <Link href="/account" className="mt-3 flex min-h-[44px] items-center rounded-xl border border-white/30 px-3 text-sm font-bold text-white">
+            My account
+          </Link>
         </details>
 
         <nav aria-label={`${roleLabel} menu`} className="hidden md:block">
@@ -122,7 +125,10 @@ export function PortalShell({
             <span aria-hidden="true" className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-white text-xs font-extrabold text-c1">
               {personInitials(fullName)}
             </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold">{fullName}</span>
+            <Link href="/account" className="min-w-0 flex-1 truncate text-sm font-semibold underline-offset-2 hover:underline">
+              {fullName}
+              <span className="sr-only"> (your account)</span>
+            </Link>
             <SignOutButton className="min-h-[40px] rounded-lg px-2 text-sm font-bold text-white underline-offset-2 hover:underline" />
           </div>
         </div>

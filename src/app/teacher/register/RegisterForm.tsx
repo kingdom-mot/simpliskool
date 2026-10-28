@@ -5,7 +5,7 @@ import { enqueue, flushQueue, getDraft, isQueued, saveDraft, upload, type Mark }
 import { personInitials } from "@/lib/format";
 
 type Status = Mark["status"];
-type Student = { id: string; name: string };
+type Student = { id: string; name: string; reported?: string | null };
 
 const OPTS: { id: Status; label: string; on: string }[] = [
   { id: "present", label: "Present", on: "var(--c2,#0B7D6E)" },
@@ -112,7 +112,8 @@ function Register({
     };
   }, [sync]);
 
-  const value = (id: string): Status => marks[id] ?? "present";
+  // Children whose parents reported an absence start as absent.
+  const value = (id: string): Status => marks[id] ?? (students.find((s) => s.id === id)?.reported ? "absent" : "present");
   const counts = useMemo(() => {
     const c = { present: 0, absent: 0, late: 0 };
     for (const s of students) c[value(s.id)]++;
@@ -181,7 +182,10 @@ function Register({
                 <span aria-hidden="true" className="flex h-10 w-10 flex-none items-center justify-center rounded-full text-xs font-extrabold text-[#1B2433]" style={{ background: AVATAR[i % AVATAR.length] }}>
                   {personInitials(s.name)}
                 </span>
-                <span className="font-bold text-c1">{s.name}</span>
+                <span className="flex min-w-0 flex-col">
+                  <span className="font-bold text-c1">{s.name}</span>
+                  {s.reported && <span className="text-xs font-semibold text-[#173B70]">Parent reported: {s.reported}</span>}
+                </span>
               </span>
               <span role="group" aria-label={s.name} className="flex gap-1.5">
                 {OPTS.map((o) => {

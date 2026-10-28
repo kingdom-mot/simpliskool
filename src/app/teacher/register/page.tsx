@@ -42,6 +42,12 @@ export default async function RegisterPage(props: { searchParams: Promise<{ clas
       supabase.from("students").select("id, first_name, last_name").eq("class_id", cls.id).eq("status", "active").order("last_name").order("first_name"),
       supabase.from("attendance").select("student_id, status").eq("class_id", cls.id).eq("date", date),
     ]);
+    // Absences parents reported in advance for this day.
+    const { data: reports } = students?.length
+      ? await supabase.from("absence_reports").select("student_id, reason").in("student_id", students.map((s) => s.id)).lte("from_date", date).gte("to_date", date).returns<{ student_id: string; reason: string }[]>()
+      : { data: [] as { student_id: string; reason: string }[] };
+    const REASON: Record<string, string> = { unwell: "unwell", family: "family event", travel: "travel", other: "other reason" };
+    const reported = new Map((reports ?? []).map((r) => [r.student_id, REASON[r.reason] ?? r.reason]));
     const saved: Record<string, Status> = {};
     for (const m of marks ?? []) saved[m.student_id] = m.status as Status;
     const label = classLabel(cls.name, cls.arm);
@@ -75,7 +81,7 @@ export default async function RegisterPage(props: { searchParams: Promise<{ clas
             className={label}
             date={date}
             dateChosen={dateChosen}
-            students={students.map((s) => ({ id: s.id, name: `${s.first_name} ${s.last_name}` }))}
+            students={students.map((s) => ({ id: s.id, name: `${s.first_name} ${s.last_name}`, reported: reported.get(s.id) ?? null }))}
             saved={saved}
           />
         ) : (
