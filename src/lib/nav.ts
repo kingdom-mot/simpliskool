@@ -23,8 +23,8 @@ const ADMIN: NavGroup[] = [
       { key: "timetable", label: "Timetable", href: null },
       { key: "attendance", label: "Student attendance", href: "/admin/attendance" },
       { key: "lessonnotes", label: "Lesson note review", href: null },
-      { key: "results", label: "Results", href: null },
-      { key: "reportcards", label: "Report cards", href: null },
+      { key: "results", label: "Results", href: "/admin/results" },
+      { key: "reportcards", label: "Report cards", href: "/admin/report-cards" },
     ],
   },
   {
@@ -77,8 +77,8 @@ export const TEACHER_NAV: NavGroup[] = [
     label: "Attendance and results",
     items: [
       { key: "register", label: "Register", href: "/teacher/register" },
-      { key: "scores", label: "Score entry", href: null },
-      { key: "broadsheet", label: "Class broadsheet", href: null },
+      { key: "scores", label: "Score entry", href: "/teacher/scores" },
+      { key: "broadsheet", label: "Class broadsheet", href: "/teacher/broadsheet" },
     ],
   },
   {
@@ -105,7 +105,7 @@ export type Tab = { key: string; label: string; href: string | null; icon: strin
 export const PARENT_TABS: Tab[] = [
   { key: "home", label: "Home", href: "/parent", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
   { key: "learning", label: "Learning", href: null, icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
-  { key: "results", label: "Results", href: null, icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
+  { key: "results", label: "Results", href: "/parent/results", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { key: "fees", label: "Fees", href: "/parent/fees", icon: "M2 7h20v12H2zM2 11h20M6 15h4" },
   { key: "school", label: "School", href: null, icon: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" },
 ];
@@ -115,5 +115,5 @@ export const STUDENT_TABS: Tab[] = [
   { key: "timetable", label: "Timetable", href: null, icon: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" },
   { key: "notes", label: "Notes", href: null, icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
   { key: "homework", label: "Homework", href: null, icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
-  { key: "results", label: "Results", href: null, icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
+  { key: "results", label: "Results", href: "/student/results", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
 ];

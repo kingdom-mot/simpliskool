@@ -110,9 +110,14 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
 
         <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
           <Card labelledBy="todo-h" className="flex flex-col gap-2.5">
-            <h2 id="todo-h" className="text-lg !text-c1">
-              Score entry this term
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h2 id="todo-h" className="text-lg !text-c1">
+                Score entry this term
+              </h2>
+              <Link href="/teacher/scores" className="text-sm font-bold text-c2 underline underline-offset-2">
+                Enter scores
+              </Link>
+            </div>
             {d?.scores.length ? (
               d.scores.map((s, i) => {
                 const t = TONES[TONE_CYCLE[(i + 4) % TONE_CYCLE.length]];

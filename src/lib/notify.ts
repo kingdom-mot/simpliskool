@@ -4,7 +4,7 @@ import { emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { schoolColours } from "@/lib/theme";
 
 type Admin = ReturnType<typeof createAdminClient>;
-type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice";
+type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice" | "report_card" | "score_reminder";
 
 export function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com"}`;

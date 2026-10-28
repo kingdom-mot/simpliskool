@@ -70,7 +70,13 @@ export function ParentView({ school, fullName, d, childId, basePath = "/parent" 
               <span className="font-heading text-2xl font-black" style={{ color: TONES.purple.fg }}>
                 {kid.average ?? "—"}
               </span>
-              <span className="text-[13px] text-[#34445A]">{kid.average ? "Released results" : "Shows when results are released"}</span>
+              {kid.average ? (
+                <Link href={`/parent/results?child=${kid.id}`} className="text-[13px] font-bold text-[#34445A] underline underline-offset-2">
+                  See results
+                </Link>
+              ) : (
+                <span className="text-[13px] text-[#34445A]">Shows when results are released</span>
+              )}
             </div>
             <div className="flex flex-col gap-1 rounded-[18px] border p-4" style={{ background: TONES.blue.bg, borderColor: TONES.blue.border }}>
               <span className="text-[13px] font-bold" style={{ color: TONES.blue.fg }}>
