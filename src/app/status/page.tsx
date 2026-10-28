@@ -30,6 +30,14 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
     { label: "RESEND_API_KEY (absence emails)", ok: !!process.env.RESEND_API_KEY, fix: "resend.com → API Keys, then add it in Vercel (the same key used for Supabase SMTP works)" },
     { label: "ANTHROPIC_API_KEY (optional: AI comment suggestions)", ok: process.env.ANTHROPIC_API_KEY ? true : null, detail: process.env.ANTHROPIC_API_KEY ? "AI suggestions are on" : "Not set: teachers get suggestions built from the scores instead" },
     { label: "NEXT_PUBLIC_SITE_URL", ok: !!process.env.NEXT_PUBLIC_SITE_URL, detail: process.env.NEXT_PUBLIC_SITE_URL ?? "not set" },
+    {
+      label: "PAYSTACK_SECRET_KEY (online fee payments)",
+      ok: !!process.env.PAYSTACK_SECRET_KEY,
+      detail: process.env.PAYSTACK_SECRET_KEY ? (process.env.PAYSTACK_SECRET_KEY.startsWith("sk_live_") ? "Live mode: real payments" : "Test mode: no real money moves") : undefined,
+      fix: "Paystack → Settings → API Keys & Webhooks → Secret key, then add it in Vercel. Also set the webhook URL there to https://www.simpliskool.com/api/paystack/webhook",
+    },
+    { label: "TERMII_API_KEY (SMS)", ok: process.env.TERMII_API_KEY ? true : null, detail: process.env.TERMII_API_KEY ? `Sender name: ${process.env.TERMII_SENDER_ID ?? "Simpliskool (default)"}` : "Not set: no texts are sent" },
+    { label: "CRON_SECRET (daily job for scheduled announcements)", ok: !!process.env.CRON_SECRET, fix: "Add any long random text as CRON_SECRET in Vercel, then redeploy" },
   ];
 
   const db: Check[] = [];
@@ -67,6 +75,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       db.push({ label: "0013 admissions, parents, staff attendance, lesson notes, payroll, website", ...(await fnExists(admin, "parent_list", { p_school: zero })) });
       db.push({ label: "0012 timetable, announcements, mark split", ...(await fnExists(admin, "assessment_parts", { p_school: zero })) });
       db.push({ label: "0011 scores and results", ...(await fnExists(admin, "class_results", { p_class: zero, p_term: zero })) });
+      db.push({ label: "0014 online payments, SMS, scheduled announcements", ...(await fnExists(admin, "online_payments_ready", { p_school: zero })) });
       db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
   }

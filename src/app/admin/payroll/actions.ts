@@ -174,7 +174,7 @@ export async function approvePayroll(_prev: ActionState, fd: FormData): Promise<
   const { data, error } = await supabase.from("payroll_runs").update({ status: "approved", approved_by: user.id, approved_at: new Date().toISOString() }).eq("id", id.data).eq("school_id", school.id).eq("status", "draft").select("id, month");
   if (error || !data?.length) return { error: "We couldn't approve the payroll." };
   revalidatePath("/admin/payroll");
-  await setFlash("Payroll approved. Pay staff from the bank schedule, then mark it as paid.");
+  await setFlash("Payroll approved. Pay staff from the bank schedule, then mark it as paid.", "/admin/payroll");
   redirect(`/admin/payroll?month=${String(data[0].month).slice(0, 7)}`);
 }
 
@@ -206,6 +206,6 @@ export async function markPaid(_prev: ActionState, fd: FormData): Promise<Action
     }
   }
   revalidatePath("/admin/payroll");
-  await setFlash(`Marked as paid.${sent ? ` Payslips emailed to ${sent} staff.` : ""}`);
+  await setFlash(`Marked as paid.${sent ? ` Payslips emailed to ${sent} staff.` : ""}`, "/admin/payroll");
   redirect(`/admin/payroll?month=${String(data[0].month).slice(0, 7)}`);
 }

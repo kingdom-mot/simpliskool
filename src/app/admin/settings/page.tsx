@@ -6,9 +6,12 @@ import { ColourPicker } from "./ColourPicker";
 import { LogoForm } from "./LogoForm";
 import { MarkSplit } from "./MarkSplit";
 import { GradingScale } from "./GradingScale";
-import { savePayout } from "./actions";
+import { pauseOnlinePayments, savePayout, saveSms } from "./actions";
+import { listBanks, paystackReady, paystackTestMode } from "@/lib/paystack";
+import { smsReady } from "@/lib/sms";
 import { changeRole, inviteStaff, removeStaff } from "@/app/admin/staff/actions";
 import { Pill } from "@/components/ui";
+import { Flash } from "@/components/Flash";
 import { asParts } from "@/lib/results";
 
 export const metadata = { title: "Settings" };
@@ -57,21 +60,32 @@ export default async function SettingsPage() {
     supabase.rpc("assessment_parts", { p_school: school.id }),
     supabase.from("grading_scales").select("grade, min_score, remark").eq("school_id", school.id).order("min_score", { ascending: false }).returns<{ grade: string; min_score: number; remark: string | null }[]>(),
     supabase.rpc("staff_list", { p_school: school.id }),
-    supabase.from("school_payouts").select("bank_name, account_no, account_name, verified_at").eq("school_id", school.id).maybeSingle<{ bank_name: string; account_no: string; account_name: string; verified_at: string | null }>(),
+    supabase.from("school_payouts").select("*").eq("school_id", school.id).maybeSingle<{ bank_name: string; bank_code?: string | null; account_no: string; account_name: string; verified_at: string | null; paystack_subaccount?: string | null }>(),
     supabase.from("students").select("id", { count: "exact", head: true }).eq("school_id", school.id).eq("status", "active"),
   ]);
   const parts = asParts(partsRaw);
+  const psReady = paystackReady();
+  const banks = psReady ? await listBanks() : [];
+  const [{ data: smsRow }, { data: usage }] = await Promise.all([
+    supabase.from("schools").select("sms_enabled, sms_absence, sms_fees, sms_receipts").eq("id", school.id).maybeSingle<{ sms_enabled: boolean; sms_absence: boolean; sms_fees: boolean; sms_receipts: boolean }>(),
+    supabase.rpc("sms_usage", { p_school: school.id }),
+  ]);
+  const sms = smsRow ?? { sms_enabled: false, sms_absence: true, sms_fees: true, sms_receipts: true };
+  const smsUse = (usage as { month: number; failed: number; parents: number } | null) ?? { month: 0, failed: 0, parents: 0 };
+  const onlineOn = !!payout?.paystack_subaccount;
   const leaders = ((staff as { user_id: string; full_name: string | null; email: string | null; roles: string[]; joined: boolean }[] | null) ?? []).filter((m) => m.roles.some((r) => ["owner", "admin", "principal", "bursar"].includes(r)));
   const ROLE_NAME: Record<string, string> = { owner: "Owner", admin: "Admin", principal: "Principal / Head teacher", bursar: "Bursar" };
 
   return (
     <AdminPage ctx={ctx} active="settings" crumb={[{ label: "Settings" }]} title="Settings">
+      <Flash />
       <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
         <a href="#profile" className="s-btn2">School profile</a>
         <a href="#brand" className="s-btn2">Logo and colours</a>
         <a href="#marks" className="s-btn2">Marks and grades</a>
         <a href="#admins" className="s-btn2">Admins and roles</a>
-        <a href="#payouts" className="s-btn2">Fee payouts</a>
+        <a href="#payouts" className="s-btn2">Online fee payments</a>
+        <a href="#sms" className="s-btn2">SMS</a>
         <a href="#plan" className="s-btn2">Plan</a>
       </nav>
 
@@ -242,42 +256,136 @@ export default async function SettingsPage() {
         </div>
       </Panel>
 
-      <Panel title="Where your fees are paid out" id="payouts">
-        <p className="text-sm text-brand-slate">When online payment is switched on, parents pay through Simpliskool and each payment goes straight to this bank account, usually the next working day.</p>
-        <ActionForm action={savePayout} className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-3">
-          <div>
-            <label className="label" htmlFor="po-bank">
-              Bank
-            </label>
-            <input id="po-bank" name="bank_name" className="sk-input" list="po-banks" required defaultValue={payout?.bank_name ?? ""} />
-            <datalist id="po-banks">
-              {["Access Bank", "Ecobank", "Fidelity Bank", "First Bank", "FCMB", "GTBank", "Keystone Bank", "Moniepoint", "OPay", "Polaris Bank", "Providus Bank", "Stanbic IBTC", "Sterling Bank", "UBA", "Union Bank", "Wema Bank", "Zenith Bank"].map((b) => (
-                <option key={b} value={b} />
-              ))}
-            </datalist>
-          </div>
-          <div>
-            <label className="label" htmlFor="po-acct">
-              Account number
-            </label>
-            <input id="po-acct" name="account_no" className="sk-input" inputMode="numeric" maxLength={10} required defaultValue={payout?.account_no ?? ""} />
-          </div>
-          <div>
-            <label className="label" htmlFor="po-name">
-              Account name
-            </label>
-            <input id="po-name" name="account_name" className="sk-input" required maxLength={120} defaultValue={payout?.account_name ?? ""} />
-          </div>
-          <div className="sm:col-span-3">
-            <SubmitButton>Save payout account</SubmitButton>
-          </div>
-        </ActionForm>
+      <Panel title="Online fee payments" id="payouts">
+        <div className="flex flex-wrap items-center gap-2">
+          {onlineOn ? <Pill kind="good">On: parents can pay online</Pill> : <Pill kind="warn">Off</Pill>}
+          {psReady && paystackTestMode() && <Pill kind="info">Test mode: no real money moves</Pill>}
+        </div>
+        <p className="text-sm text-brand-slate">Parents pay by card, bank transfer or USSD through Paystack. Each payment goes straight into this bank account, usually the next working day, and the receipt is issued automatically. Paystack&apos;s charge (1.5%, capped at ₦2,000) is taken from each payment.</p>
+        {psReady ? (
+          <ActionForm action={savePayout} className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-3">
+            <div>
+              <label className="label" htmlFor="po-bank">
+                Bank
+              </label>
+              <select id="po-bank" name="bank_code" className="sk-input" required defaultValue={payout?.bank_code ?? ""}>
+                <option value="" disabled>
+                  Choose the bank
+                </option>
+                {banks.map((b) => (
+                  <option key={b.code} value={b.code}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="label" htmlFor="po-acct">
+                Account number
+              </label>
+              <input id="po-acct" name="account_no" className="sk-input" inputMode="numeric" pattern="\d{10}" maxLength={10} required defaultValue={payout?.account_no ?? ""} aria-describedby="po-acct-h" />
+              <span id="po-acct-h" className="mt-1 block text-[13px] text-[#4A5A70]">
+                10 digits. We check the name with the bank.
+              </span>
+            </div>
+            {paystackTestMode() ? (
+              <div>
+                <label className="label" htmlFor="po-name">
+                  Account name (test mode only)
+                </label>
+                <input id="po-name" name="account_name" className="sk-input" maxLength={120} defaultValue={payout?.account_name ?? ""} aria-describedby="po-name-h" />
+                <span id="po-name-h" className="mt-1 block text-[13px] text-[#4A5A70]">
+                  Used if the test bank can&apos;t look the account up.
+                </span>
+              </div>
+            ) : (
+              <div />
+            )}
+            <div className="sm:col-span-3">
+              <SubmitButton pending="Checking with the bank…">{onlineOn ? "Update account" : "Check account and switch on"}</SubmitButton>
+            </div>
+          </ActionForm>
+        ) : (
+          <>
+            <ActionForm action={savePayout} className="grid grid-cols-[minmax(0,1fr)] items-end gap-3 sm:grid-cols-3">
+              <div>
+                <label className="label" htmlFor="po-bank">
+                  Bank
+                </label>
+                <input id="po-bank" name="bank_name" className="sk-input" list="po-banks" required defaultValue={payout?.bank_name ?? ""} />
+                <datalist id="po-banks">
+                  {["Access Bank", "Ecobank", "Fidelity Bank", "First Bank", "FCMB", "GTBank", "Keystone Bank", "Moniepoint", "OPay", "Polaris Bank", "Providus Bank", "Stanbic IBTC", "Sterling Bank", "UBA", "Union Bank", "Wema Bank", "Zenith Bank"].map((b) => (
+                    <option key={b} value={b} />
+                  ))}
+                </datalist>
+              </div>
+              <div>
+                <label className="label" htmlFor="po-acct">
+                  Account number
+                </label>
+                <input id="po-acct" name="account_no" className="sk-input" inputMode="numeric" maxLength={10} required defaultValue={payout?.account_no ?? ""} />
+              </div>
+              <div>
+                <label className="label" htmlFor="po-name">
+                  Account name
+                </label>
+                <input id="po-name" name="account_name" className="sk-input" required maxLength={120} defaultValue={payout?.account_name ?? ""} />
+              </div>
+              <div className="sm:col-span-3">
+                <SubmitButton>Save payout account</SubmitButton>
+              </div>
+            </ActionForm>
+            <p className="rounded-xl bg-[#FFF6E3] px-4 py-3 text-sm font-semibold text-[#5C4310]">Online payment isn&apos;t connected to Paystack yet. Your account is saved and will be checked with the bank once it is.</p>
+          </>
+        )}
         {payout && (
-          <p className={`rounded-xl px-4 py-3 text-sm font-semibold ${payout.verified_at ? "bg-[#E7F6F2] text-[#0B6B5A]" : "bg-[#FFF6E3] text-[#5C4310]"}`}>
-            {payout.verified_at ? "Account verified with the bank." : "This account will be checked with the bank when online payments start."}
-          </p>
+          <div className="flex flex-col gap-1 rounded-xl bg-brand-cloud px-4 py-3 text-sm">
+            <span>
+              <strong>{payout.account_name}</strong> · {payout.bank_name} · {payout.account_no}
+            </span>
+            <span className="text-[#4A5A70]">{payout.verified_at ? "Name confirmed with the bank." : "Name not confirmed with the bank yet."}</span>
+          </div>
+        )}
+        {onlineOn && (
+          <ActionForm action={pauseOnlinePayments} className="flex flex-col gap-2">
+            <div>
+              <SubmitButton className="s-btn-danger" pending="Switching off…">
+                Switch off online payment
+              </SubmitButton>
+            </div>
+          </ActionForm>
         )}
         <p className="text-[13px] text-[#4A5A70]">Only the school owner can see or change this account, and every change is kept in the activity log.</p>
+      </Panel>
+
+      <Panel title="SMS to parents" id="sms">
+        <p className="text-sm text-brand-slate">Texts reach parents who don&apos;t read email. Each text costs a few naira, so SMS stays off until you switch it on. {smsUse.parents} parent{smsUse.parents === 1 ? " has" : "s have"} a phone number on Simpliskool.</p>
+        {!smsReady() && <p className="rounded-xl bg-[#FFF6E3] px-4 py-3 text-sm font-semibold text-[#5C4310]">SMS isn&apos;t connected yet, so no texts will go out even when switched on.</p>}
+        <ActionForm action={saveSms} className="flex flex-col gap-2">
+          <label className="flex min-h-[44px] items-center gap-3 text-sm font-bold text-brand-slate">
+            <input type="checkbox" name="sms_enabled" value="1" defaultChecked={sms.sms_enabled} className="h-5 w-5" /> Send SMS to parents
+          </label>
+          <fieldset className="ml-2 flex flex-col gap-1 border-l-2 border-[#E3EAF3] pl-4">
+            <legend className="label">Send a text for</legend>
+            <label className="flex min-h-[44px] items-center gap-3 text-sm text-brand-slate">
+              <input type="checkbox" name="sms_absence" value="1" defaultChecked={sms.sms_absence} className="h-5 w-5" /> A child marked absent
+            </label>
+            <label className="flex min-h-[44px] items-center gap-3 text-sm text-brand-slate">
+              <input type="checkbox" name="sms_fees" value="1" defaultChecked={sms.sms_fees} className="h-5 w-5" /> Fee reminders
+            </label>
+            <label className="flex min-h-[44px] items-center gap-3 text-sm text-brand-slate">
+              <input type="checkbox" name="sms_receipts" value="1" defaultChecked={sms.sms_receipts} className="h-5 w-5" /> Payment received (receipt number and balance)
+            </label>
+          </fieldset>
+          <p className="text-[13px] text-[#4A5A70]">Announcements: you choose &quot;SMS&quot; each time you send one.</p>
+          <div>
+            <SubmitButton>Save SMS settings</SubmitButton>
+          </div>
+        </ActionForm>
+        <p className="text-sm text-brand-slate">
+          Texts sent this month: <strong>{smsUse.month}</strong>
+          {smsUse.failed > 0 && <span className="text-[#912018]"> · {smsUse.failed} failed in the last 7 days (usually a wrong number)</span>}
+        </p>
       </Panel>
 
       <Panel title="Plan" id="plan">

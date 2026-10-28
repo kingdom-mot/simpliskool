@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Flash } from "@/components/Flash";
 import { MobileShell } from "@/components/MobileShell";
 import { classLabel } from "@/components/admin";
 import { Bar, Empty, Pill } from "@/components/ui";
@@ -6,6 +7,8 @@ import { requireSchool } from "@/lib/auth";
 import { METHOD_LABEL } from "@/lib/fees";
 import { naira, pct, TERM_NAME } from "@/lib/format";
 import { PARENT_TABS } from "@/lib/nav";
+import { paystackReady } from "@/lib/paystack";
+import { PayOnline } from "./PayOnline";
 
 export const metadata = { title: "Fees" };
 
@@ -22,6 +25,7 @@ type Invoice = {
 type Kid = { id: string; first_name: string; last_name: string; classes: { name: string; arm: string } | null; invoices: Invoice[] };
 
 const TZ = "Africa/Lagos";
+const hoursAgo = (h: number) => new Date(Date.now() - h * 3600000).toISOString();
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: TZ });
 const termName = (i: Invoice) => (i.terms ? `${TERM_NAME[i.terms.term_no]} ${i.terms.academic_sessions?.name ?? ""}`.trim() : "Fees");
 const termKey = (i: Invoice) => `${i.terms?.academic_sessions?.name ?? ""}-${i.terms?.term_no ?? 0}`;
@@ -29,7 +33,7 @@ const termKey = (i: Invoice) => `${i.terms?.academic_sessions?.name ?? ""}-${i.t
 export default async function ParentFees(props: { searchParams: Promise<{ child?: string }> }) {
   const sp = await props.searchParams;
   const { supabase, school, user } = await requireSchool(["parent"]);
-  const [{ data: rows }, { data: s }] = await Promise.all([
+  const [{ data: rows }, { data: s }, { data: ready }, { data: started }] = await Promise.all([
     supabase
       .from("guardians")
       .select("students(id, first_name, last_name, classes(name, arm), invoices(id, term_id, total_kobo, paid_kobo, balance_kobo, terms(term_no, is_current, academic_sessions(name)), invoice_lines(name, amount_kobo, position), payments(id, amount_kobo, method, receipt_no, paid_at, created_at, status)))")
@@ -37,7 +41,19 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
       .eq("user_id", user.id)
       .returns<{ students: Kid | null }[]>(),
     supabase.from("schools").select("payment_instructions, phone, email").eq("id", school.id).maybeSingle<{ payment_instructions: string | null; phone: string | null; email: string | null }>(),
+    supabase.rpc("online_payments_ready", { p_school: school.id }),
+    supabase
+      .from("payment_intents")
+      .select("reference, amount_kobo, created_at")
+      .eq("school_id", school.id)
+      .eq("created_by", user.id)
+      .eq("status", "started")
+      .gte("created_at", hoursAgo(24))
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .returns<{ reference: string; amount_kobo: number; created_at: string }[]>(),
   ]);
+  const online = paystackReady() && ready === true;
   const kids = (rows ?? []).map((r) => r.students).filter((k): k is Kid => !!k).sort((a, b) => a.first_name.localeCompare(b.first_name));
   const kid = kids.find((k) => k.id === sp.child) ?? null;
   const shown = kid ? [kid] : kids;
@@ -46,6 +62,7 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
   const curTermIds = [...new Set(current.map(({ i }) => i.term_id))];
   const { data: dues } = curTermIds.length ? await supabase.from("fee_terms").select("term_id, due_on, allow_part").in("term_id", curTermIds) : { data: [] };
   const due = (dues ?? [])[0] as { due_on: string | null; allow_part: boolean } | undefined;
+  const allowPart = (termId: string) => ((dues ?? []) as { term_id: string; allow_part: boolean }[]).find((d) => d.term_id === termId)?.allow_part !== false;
   const curKey = current[0] ? termKey(current[0].i) : null;
   const left = current.reduce((a, { i }) => a + Math.max(i.balance_kobo, 0), 0);
   const earlier = all.filter(({ i }) => !i.terms?.is_current && i.balance_kobo > 0 && (!curKey || termKey(i) < curKey));
@@ -58,6 +75,7 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
 
   return (
     <MobileShell school={school} title="Fees" tabs={PARENT_TABS} active="fees">
+      <Flash />
       {kids.length === 0 ? (
         <Empty>No children are linked to your account yet. Please contact the school.</Empty>
       ) : (
@@ -102,8 +120,10 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
               <h2 id="how-h" className="text-base !text-c1">
                 How to pay
               </h2>
-              {s?.payment_instructions ? <p className="whitespace-pre-line text-sm text-brand-slate">{s.payment_instructions}</p> : <p className="text-sm text-brand-slate">Pay the school directly{contact ? ` (contact ${contact})` : ""}.</p>}
-              <p className="text-[13px] text-[#4A5A70]">The school records your payment and you get a receipt here{contact ? "" : ""}. Paying online with a card is coming soon.</p>
+              {online && <p className="text-sm font-semibold text-brand-slate">Pay online with the button under each child&apos;s bill. Your receipt shows here straight away.</p>}
+              {online && s?.payment_instructions && <p className="text-sm text-brand-slate">Or pay the school directly:</p>}
+              {s?.payment_instructions ? <p className="whitespace-pre-line text-sm text-brand-slate">{s.payment_instructions}</p> : <p className="text-sm text-brand-slate">{online ? "Or pay" : "Pay"} the school directly{contact ? ` (contact ${contact})` : ""}.</p>}
+              <p className="text-[13px] text-[#4A5A70]">{online ? "When you pay the school directly, the school records it and your receipt shows here." : "The school records your payment and you get a receipt here."}</p>
             </section>
           )}
 
@@ -145,6 +165,7 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
                     </tr>
                   </tbody>
                 </table>
+                {online && i.balance_kobo > 0 && <PayOnline invoiceId={i.id} balanceKobo={i.balance_kobo} allowPart={allowPart(i.term_id)} child={k.first_name} />}
               </section>
             );
           })}
@@ -156,11 +177,35 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
               </h2>
               <ul className="flex flex-col">
                 {earlier.map(({ k, i }) => (
-                  <li key={i.id} className="flex min-h-[44px] items-center justify-between gap-2 border-b border-[#EEF3F9] text-sm last:border-0">
+                  <li key={i.id} className="flex flex-col gap-2 border-b border-[#EEF3F9] py-2 text-sm last:border-0">
+                    <div className="flex min-h-[44px] items-center justify-between gap-2">
+                      <span>
+                        {k.first_name} · {termName(i)}
+                      </span>
+                      <strong className="text-[#912018]">{naira(i.balance_kobo)}</strong>
+                    </div>
+                    {online && <PayOnline invoiceId={i.id} balanceKobo={i.balance_kobo} allowPart child={`${k.first_name}, ${termName(i)}`} />}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {(started ?? []).length > 0 && (
+            <section aria-labelledby="chk-h" className="flex flex-col gap-2 rounded-[18px] border border-[#F2D99B] bg-[#FFFBF0] p-[18px]">
+              <h2 id="chk-h" className="text-base !text-[#5C4310]">
+                Online payment not confirmed yet
+              </h2>
+              <p className="text-sm text-[#5C4310]">If you finished paying but it isn&apos;t in &quot;Payments made&quot;, check it here. If you stopped before paying, you can ignore this.</p>
+              <ul className="flex flex-col">
+                {(started ?? []).map((t) => (
+                  <li key={t.reference} className="flex min-h-[44px] items-center justify-between gap-2 border-b border-[#F2E6C4] text-sm last:border-0">
                     <span>
-                      {k.first_name} · {termName(i)}
+                      {naira(t.amount_kobo)} · {day(t.created_at)}
                     </span>
-                    <strong className="text-[#912018]">{naira(i.balance_kobo)}</strong>
+                    <a className="s-btn2 flex-none" href={`/pay/return?reference=${encodeURIComponent(t.reference)}`}>
+                      Check payment<span className="sr-only"> of {naira(t.amount_kobo)}</span>
+                    </a>
                   </li>
                 ))}
               </ul>

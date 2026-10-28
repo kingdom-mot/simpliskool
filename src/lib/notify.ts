@@ -4,7 +4,7 @@ import { emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { schoolColours } from "@/lib/theme";
 
 type Admin = ReturnType<typeof createAdminClient>;
-type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice" | "report_card" | "score_reminder";
+type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice" | "report_card" | "score_reminder" | "payment_receipt";
 
 export function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com"}`;
@@ -19,16 +19,17 @@ function niceDate(iso: string) {
  * message was already sent (or is being sent right now by another request).
  * A message that failed before is tried again.
  */
-export async function claim(admin: Admin, row: { school_id: string; student_id: string | null; kind: Kind; recipient: string; about_date: string }) {
+export async function claim(admin: Admin, input: { school_id: string; student_id: string | null; kind: Kind; recipient: string; about_date: string; channel?: "email" | "sms" }) {
+  const { channel = "email", ...row } = input;
   const { data } = await admin
     .from("notifications")
-    .upsert({ ...row, channel: "email", status: "failed", error: "sending" }, { onConflict: "kind,channel,recipient,about_date,student_id", ignoreDuplicates: true })
+    .upsert({ ...row, channel, status: "failed", error: "sending" }, { onConflict: "kind,channel,recipient,about_date,student_id", ignoreDuplicates: true })
     .select("id");
   if (data?.length) return data[0].id as string;
   const { data: retry } = await admin
     .from("notifications")
     .update({ status: "failed", error: "sending", created_at: new Date().toISOString() })
-    .match({ kind: row.kind, channel: "email", recipient: row.recipient, about_date: row.about_date })
+    .match({ kind: row.kind, channel, recipient: row.recipient, about_date: row.about_date })
     .filter("student_id", row.student_id ? "eq" : "is", row.student_id ?? "null")
     .eq("status", "failed")
     // Try again after a failure, or if an earlier attempt stopped half-way 10+ minutes ago.
@@ -37,7 +38,7 @@ export async function claim(admin: Admin, row: { school_id: string; student_id: 
   return retry?.length ? (retry[0].id as string) : null;
 }
 
-export async function finish(admin: Admin, id: string, res: Awaited<ReturnType<typeof sendEmail>>) {
+export async function finish(admin: Admin, id: string, res: { ok: true; id: string } | { ok: false; skipped: boolean; error: string }) {
   await admin
     .from("notifications")
     .update(res.ok ? { status: "sent", error: null, provider_id: res.id } : { status: res.skipped ? "skipped" : "failed", error: res.error })

@@ -32,6 +32,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0008_grants.sql` (permissions for the app)
      - `0012_timetable_announcements.sql` (timetable, announcements, mark split, approving results). From this file on, each file sets its own permissions, so 0008 doesn't need running again.
      - `0013_school_admin.sql` (admissions, parents, staff attendance, lesson notes, payroll, website editor, grading scale, payout account)
+     - `0014_payments_sms_schedule.sql` (online fee payments, SMS settings, scheduled announcements; also switches on pg_cron to release scheduled announcements every minute)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -76,6 +77,29 @@ select id from public.profiles where email = 'you@example.com';
 3. Until this is done, attendance works as normal and the attendance page says emails aren't switched on yet.
 
 Run `0007_attendance_notifications.sql` in Supabase before using the attendance page.
+
+## Online fee payments (Paystack)
+
+1. Vercel → Environment Variables: `PAYSTACK_SECRET_KEY` (start with the test key `sk_test_...`; switch to `sk_live_...` when ready).
+2. Paystack → Settings → API Keys & Webhooks → Webhook URL: `https://www.simpliskool.com/api/paystack/webhook`.
+3. Each school owner opens **Settings → Online fee payments**, picks the bank and enters the account number. Simpliskool checks the name with the bank and creates a Paystack subaccount, so parents' payments go straight to the school. The school bears Paystack's charge; `PLATFORM_FEE_PERCENT` (default 0) is Simpliskool's share.
+
+Payments are recorded when the parent comes back from Paystack or when the webhook arrives, whichever is first (never twice), with a receipt number, email and (if on) a text.
+
+## SMS (Termii)
+
+Vercel: `TERMII_API_KEY`, `TERMII_SENDER_ID` (your approved sender name, e.g. `Simpliskool`), optionally `TERMII_BASE_URL` (the base URL in your Termii dashboard; default `https://v3.api.termii.com`) and `TERMII_CHANNEL` (`generic`, or `dnd` once Termii approves it, to reach numbers on Do-Not-Disturb). Each school switches SMS on under **Settings → SMS to parents** (off by default because texts cost money): absences, fee reminders, payment receipts, and announcements when ticked.
+
+## Scheduled announcements
+
+Admins can schedule an announcement for later. It stays hidden until then. With pg_cron (switched on by 0014), the database releases it on the minute; the app also releases due ones whenever someone opens Simpliskool, and a daily Vercel Cron job (`vercel.json`, needs `CRON_SECRET`) catches anything left. Emails and texts go out when it's released.
+
+For exact-time emails and texts on schools that are quiet at night, you can also have Supabase call the app every 5 minutes (Database → Extensions: enable `pg_net`, then run once, with your secret):
+
+```sql
+select cron.schedule('simpliskool-dispatch', '*/5 * * * *',
+  $$select net.http_get('https://www.simpliskool.com/api/cron/dispatch', headers := '{"Authorization": "Bearer YOUR_CRON_SECRET"}'::jsonb)$$);
+```
 
 ## AI comment suggestions (optional)
 

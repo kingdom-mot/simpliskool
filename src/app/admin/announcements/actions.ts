@@ -5,11 +5,9 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requireSchool } from "@/lib/auth";
 import type { ActionState } from "@/components/forms";
-import { emailLayout, escapeHtml, sendEmailBatch } from "@/lib/email";
-import { siteUrl } from "@/lib/notify";
+import { deliverAnnouncement } from "@/lib/announce";
+import { setFlash } from "@/lib/flash";
 import { RESULTS_ADMIN } from "@/lib/results";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { schoolColours } from "@/lib/theme";
 
 const uuid = z.string().uuid();
 const schema = z.object({
@@ -32,41 +30,56 @@ export async function sendAnnouncement(_prev: ActionState, fd: FormData): Promis
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !/^\d{2}:\d{2}$/.test(t)) return { error: "Choose the event's date and time." };
     eventAt = new Date(`${d}T${t}:00+01:00`).toISOString();
   }
-  const { data: reach } = await supabase.rpc("announcement_reach", { p_school: school.id, p_audience: p.data.audience, p_classes: p.data.audience === "class" ? classIds : null });
+  const sendEmail = fd.get("email") === "1";
+  const sendSms = fd.get("sms") === "1";
+  const base = { school_id: school.id, title: p.data.title, body: p.data.body, audience: p.data.audience, class_ids: p.data.audience === "class" ? classIds : null, kind: p.data.kind, event_at: eventAt, created_by: user.id, send_email: sendEmail, send_sms: sendSms };
+
+  // Later: kept out of sight until its time comes.
+  if (fd.get("when") === "later") {
+    const d = String(fd.get("publish_date") ?? "");
+    const t = String(fd.get("publish_time") ?? "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || !/^\d{2}:\d{2}$/.test(t)) return { error: "Choose the date and time to send it." };
+    const at = new Date(`${d}T${t}:00+01:00`);
+    if (at.getTime() < Date.now() + 60000) return { error: "Choose a time in the future, or send it now." };
+    if (at.getTime() > Date.now() + 120 * 86400000) return { error: "You can schedule up to 4 months ahead." };
+    if (eventAt && at.toISOString() > eventAt) return { error: "Send it before the event starts." };
+    const { error } = await supabase.from("scheduled_announcements").insert({ ...base, publish_at: at.toISOString() });
+    if (error) return { error: /relation|column/i.test(error.message) ? "Run database file 0014_payments_sms_schedule.sql in Supabase first." : "We couldn't schedule the announcement. Please try again." };
+    revalidatePath("/admin/announcements");
+    const nice = at.toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" });
+    const how = [sendEmail && "email", sendSms && "SMS"].filter(Boolean).join(" and ");
+    return { ok: true, message: `Scheduled for ${nice}. It appears in the app then${how ? `, and goes out by ${how} at the same time` : ""}. You can cancel it under "Waiting to send" below.`, at: Date.now() };
+  }
+
+  const { data: reach } = await supabase.rpc("announcement_reach", { p_school: school.id, p_audience: p.data.audience, p_classes: base.class_ids });
+  const n = Number(reach) || 0;
   const { data: row, error } = await supabase
     .from("announcements")
-    .insert({ school_id: school.id, title: p.data.title, body: p.data.body, audience: p.data.audience, class_ids: p.data.audience === "class" ? classIds : null, kind: p.data.kind, event_at: eventAt, created_by: user.id, reach: Number(reach) || 0 })
+    .insert({ ...base, reach: n, dispatched_at: sendEmail || sendSms ? null : new Date().toISOString() })
     .select("id")
     .single<{ id: string }>();
-  if (error || !row) return { error: "We couldn't send the announcement. Please try again." };
+  if (error || !row) return { error: error && /column/i.test(error.message) ? "Run database file 0014_payments_sms_schedule.sql in Supabase first." : "We couldn't send the announcement. Please try again." };
 
-  let mail = "";
-  if (fd.get("email") === "1") {
-    const admin = createAdminClient();
-    const { data: ids } = await admin.rpc("announcement_users", { p_school: school.id, p_audience: p.data.audience, p_classes: p.data.audience === "class" ? classIds : null });
-    const userIds = ((ids ?? []) as { user_id: string }[]).map((x) => x.user_id);
-    const { data: people } = userIds.length ? await admin.from("profiles").select("email, full_name").in("id", userIds) : { data: [] as { email: string | null; full_name: string | null }[] };
-    const { data: s } = await admin.from("schools").select("name, email, primary_color, secondary_color").eq("id", school.id).single<{ name: string; email: string | null; primary_color: string | null; secondary_color: string | null }>();
-    const { c1 } = schoolColours(s?.primary_color, s?.secondary_color);
-    const when = eventAt ? new Date(eventAt).toLocaleString("en-GB", { weekday: "long", day: "numeric", month: "long", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" }) : null;
-    const to = [...new Set((people ?? []).map((x) => x.email?.trim().toLowerCase()).filter((e): e is string => !!e && !e.endsWith("@students.simpliskool.com")))];
-    const body = escapeHtml(p.data.body).replace(/\n/g, "<br>");
-    const html = emailLayout({
-      schoolName: s?.name ?? school.name,
-      colour: c1,
-      heading: p.data.title,
-      bodyHtml:
-        (when ? `<p style="margin:0 0 12px;font-size:15px"><strong>When:</strong> ${escapeHtml(when)}</p>` : "") +
-        `<p style="margin:0 0 12px;font-size:15px;line-height:1.55">${body}</p>` +
-        `<p style="margin:16px 0 0"><a href="${siteUrl()}/login" style="display:inline-block;background:${c1};color:#FFFFFF;text-decoration:none;font-weight:bold;padding:12px 18px;border-radius:10px">Open Simpliskool</a></p>`,
-      footer: `Sent by ${escapeHtml(s?.name ?? school.name)} with Simpliskool.`,
-    });
-    const r = await sendEmailBatch(to.map((email) => ({ to: email, subject: `${p.data.title} · ${s?.name ?? school.name}`, html, text: `${p.data.title}\n\n${when ? `When: ${when}\n\n` : ""}${p.data.body}`, fromName: s?.name ?? school.name, replyTo: s?.email })));
-    await admin.from("announcements").update({ emailed: r.sent }).eq("id", row.id);
-    mail = r.skipped ? " Emails weren't sent: email isn't set up yet." : ` Emailed ${r.sent} ${r.sent === 1 ? "person" : "people"}${r.failed ? ` (${r.failed} failed)` : ""}.`;
+  let extra = "";
+  if (sendEmail || sendSms) {
+    const d = await deliverAnnouncement(row.id);
+    if (d && sendEmail) extra += d.emailSkipped ? " Emails weren't sent: email isn't set up yet." : ` Emailed ${d.emailed} ${d.emailed === 1 ? "person" : "people"}${d.emailFailed ? ` (${d.emailFailed} failed)` : ""}.`;
+    if (d && sendSms) extra += d.smsSkipped ? " Texts weren't sent: SMS is off in Settings." : ` Texted ${d.texted} ${d.texted === 1 ? "phone" : "phones"}${d.smsFailed ? ` (${d.smsFailed} failed)` : ""}.`;
   }
   revalidatePath("/admin/announcements");
-  return { ok: true, message: `Sent to ${Number(reach) || 0} ${Number(reach) === 1 ? "person" : "people"} in the app.${mail} You'll see who has read it below.`, at: Date.now() };
+  return { ok: true, message: `Sent to ${n} ${n === 1 ? "person" : "people"} in the app.${extra} You'll see who has read it below.`, at: Date.now() };
+}
+
+export async function cancelScheduled(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(RESULTS_ADMIN);
+  const id = uuid.safeParse(fd.get("id"));
+  if (!id.success) return { error: "Something went wrong." };
+  const { data, error } = await supabase.from("scheduled_announcements").delete().eq("id", id.data).eq("school_id", school.id).select("title");
+  if (error) return { error: "We couldn't cancel it. Please try again." };
+  if (!data?.length) return { error: "It has already been sent, so it can't be cancelled. You can delete it from the list instead." };
+  revalidatePath("/admin/announcements");
+  await setFlash(`Cancelled: "${data[0].title}" won't be sent.`, "/admin/announcements");
+  redirect("/admin/announcements");
 }
 
 export async function deleteAnnouncement(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -77,5 +90,6 @@ export async function deleteAnnouncement(_prev: ActionState, fd: FormData): Prom
   if (error || !data?.length) return { error: "We couldn't delete it. Please try again." };
   revalidatePath("/admin/announcements");
   // The deleted row disappears, so the confirmation is shown on the page.
-  redirect("/admin/announcements?deleted=1");
+  await setFlash("Announcement deleted. People can no longer see it.", "/admin/announcements");
+  redirect("/admin/announcements");
 }

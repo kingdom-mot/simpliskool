@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { setFlash } from "@/lib/flash";
 import { z } from "zod";
 import { requireSchool, type Role } from "@/lib/auth";
 import type { ActionState } from "@/components/forms";
 import { normalizeEmail, normalizePhone } from "@/lib/people";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { listBanks, paystackReady, paystackTestMode, resolveAccount, upsertSubaccount } from "@/lib/paystack";
 import { SCHOOL_PALETTE } from "@/lib/theme";
 
 /** Only the school owner changes settings (same rule as the design). */
@@ -166,14 +169,62 @@ export async function saveGradingScale(_prev: ActionState, fd: FormData): Promis
 
 export async function savePayout(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase, school, user } = await requireSchool(SETTINGS_ROLES);
-  const bank = String(fd.get("bank_name") ?? "").trim();
   const acct = String(fd.get("account_no") ?? "").replace(/\s/g, "");
-  const name = String(fd.get("account_name") ?? "").trim();
-  if (bank.length < 2) return { error: "Choose the bank." };
+  const typedName = String(fd.get("account_name") ?? "").trim();
   if (!/^\d{10}$/.test(acct)) return { error: "Account numbers have 10 digits." };
-  if (name.length < 2) return { error: "Enter the account name exactly as the bank has it." };
-  const { error } = await supabase.from("school_payouts").upsert({ school_id: school.id, bank_name: bank.slice(0, 60), account_no: acct, account_name: name.slice(0, 120), verified_at: null, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "school_id" });
-  if (error) return { error: "We couldn't save the account." };
+
+  // Without Paystack, just keep the details for later.
+  if (!paystackReady()) {
+    const bank = String(fd.get("bank_name") ?? "").trim();
+    if (bank.length < 2) return { error: "Choose the bank." };
+    if (typedName.length < 2) return { error: "Enter the account name exactly as the bank has it." };
+    const { error } = await supabase.from("school_payouts").upsert({ school_id: school.id, bank_name: bank.slice(0, 60), account_no: acct, account_name: typedName.slice(0, 120), verified_at: null, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "school_id" });
+    if (error) return { error: "We couldn't save the account." };
+    revalidatePath("/admin/settings");
+    return { ok: true, message: "Payout account saved. It will be checked with the bank when online payments are switched on.", at: Date.now() };
+  }
+
+  const code = String(fd.get("bank_code") ?? "").trim();
+  const bank = (await listBanks()).find((b) => b.code === code);
+  if (!bank) return { error: "Choose the bank from the list." };
+  const found = await resolveAccount(acct, code);
+  let name = found.ok ? found.data.account_name : null;
+  if (!name) {
+    // Paystack's test mode can only look up a few accounts; let the owner type the name while testing.
+    if (paystackTestMode() && typedName.length >= 2) name = typedName;
+    else return { error: `${bank.name} couldn't find account ${acct}. Check the number and the bank.` };
+  }
+  const { data: cur } = await supabase.from("school_payouts").select("paystack_subaccount").eq("school_id", school.id).maybeSingle<{ paystack_subaccount: string | null }>();
+  const { data: sch } = await supabase.from("schools").select("name, email").eq("id", school.id).single<{ name: string; email: string | null }>();
+  const sub = await upsertSubaccount({ existing: cur?.paystack_subaccount ?? null, schoolName: sch?.name ?? school.name, bankCode: code, accountNo: acct, email: sch?.email ?? null });
+  if (!sub.ok) return { error: `Paystack couldn't set up the account: ${sub.error}` };
+  const { error } = await supabase.from("school_payouts").upsert(
+    { school_id: school.id, bank_name: bank.name.slice(0, 60), bank_code: code, account_no: acct, account_name: name.slice(0, 120), verified_at: found.ok ? new Date().toISOString() : null, paystack_subaccount: sub.code, updated_by: user.id, updated_at: new Date().toISOString() },
+    { onConflict: "school_id" },
+  );
+  if (error) return { error: /column/i.test(error.message) ? "Run database file 0014_payments_sms_schedule.sql in Supabase first." : "We couldn't save the account." };
   revalidatePath("/admin/settings");
-  return { ok: true, message: "Payout account saved. It will be checked with the bank when online payments are switched on.", at: Date.now() };
+  return { ok: true, message: `Saved: ${name}, ${bank.name}. Online payment is now on, so parents see a "Pay online" button on their fees page.`, at: Date.now() };
+}
+
+export async function pauseOnlinePayments(): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(SETTINGS_ROLES);
+  const { error } = await supabase.from("school_payouts").update({ paystack_subaccount: null, updated_at: new Date().toISOString() }).eq("school_id", school.id);
+  if (error) return { error: "We couldn't switch online payment off." };
+  revalidatePath("/admin/settings");
+  // The button disappears once it's off, so the confirmation is shown on the page.
+  await setFlash("Online payment is off. Parents now see your pay-the-school instructions only. Save the account again to switch it back on.", "/admin/settings");
+  redirect("/admin/settings#payouts");
+}
+
+export async function saveSms(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(SETTINGS_ROLES);
+  const on = (k: string) => fd.get(k) === "1";
+  const row = { sms_enabled: on("sms_enabled"), sms_absence: on("sms_absence"), sms_fees: on("sms_fees"), sms_receipts: on("sms_receipts") };
+  const { error } = await supabase.from("schools").update(row).eq("id", school.id);
+  if (error) return { error: /column/i.test(error.message) ? "Run database file 0014_payments_sms_schedule.sql in Supabase first." : "We couldn't save the SMS settings." };
+  revalidatePath("/admin/settings");
+  if (!row.sms_enabled) return { ok: true, message: "SMS is off. Parents get emails and app messages only.", at: Date.now() };
+  const uses = [row.sms_absence && "absences", row.sms_fees && "fee reminders", row.sms_receipts && "payment receipts"].filter(Boolean) as string[];
+  return { ok: true, message: `SMS is on${uses.length ? ` for ${uses.join(", ").replace(/, ([^,]*)$/, " and $1")}` : ""}. You can also text announcements when you send them.`, at: Date.now() };
 }

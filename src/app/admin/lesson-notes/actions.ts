@@ -23,7 +23,7 @@ export async function reviewNote(_prev: ActionState, fd: FormData): Promise<Acti
   if (!approve && comment.length < 3) return { error: "Tell the teacher what to change." };
   const { error } = await supabase.rpc("review_lesson_note", { p_id: id.data, p_approve: approve, p_score: score >= 1 && score <= 10 ? score : null, p_comment: comment });
   if (error) return { error: "We couldn't save the review. Please try again." };
-  await setFlash(approve ? "Approved and archived. The teacher can now share it with the class." : "Returned to the teacher with your comment.");
+  await setFlash(approve ? "Approved and archived. The teacher can now share it with the class." : "Returned to the teacher with your comment.", "/admin/lesson-notes");
   revalidatePath("/admin/lesson-notes");
   redirect(`/admin/lesson-notes?tab=${approve ? "approved" : "returned"}&note=${id.data}`);
 }
@@ -92,7 +92,7 @@ export async function revokeInspectorLink(_prev: ActionState, fd: FormData): Pro
   if (!id.success) return { error: "Something went wrong." };
   const { error } = await supabase.from("inspector_links").update({ revoked_at: new Date().toISOString() }).eq("id", id.data).eq("school_id", school.id);
   if (error) return { error: "We couldn't cancel the link." };
-  await setFlash("Inspector link cancelled. It no longer works.");
+  await setFlash("Inspector link cancelled. It no longer works.", "/admin/lesson-notes/archive");
   revalidatePath("/admin/lesson-notes/archive");
   redirect("/admin/lesson-notes/archive");
 }

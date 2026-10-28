@@ -1,11 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireSchool } from "@/lib/auth";
 import type { ActionState } from "@/components/forms";
 import { SETUP_ROLES } from "@/components/admin";
 import { emailReady } from "@/lib/email";
 import { notifyAbsences, remindTeachers } from "@/lib/notify";
+import { smsAbsences } from "@/lib/sms-notices";
+import { setFlash } from "@/lib/flash";
 
 type Overview = { classes: { id: string; name: string; teacher: string | null; teacher_email: string | null; students: number; marked: number }[] };
 
@@ -40,7 +43,9 @@ export async function sendAbsenceEmails(_prev: ActionState, fd: FormData): Promi
   if (!emailReady()) return { error: "Email isn't set up yet. Ask Simpliskool support to switch it on." };
   const t = await notifyAbsences(school.id, date, null);
   revalidatePath("/admin/attendance");
-  return { ok: true, message: `Absence emails: ${summary(t, "absence emails")}`, at: Date.now() };
+  // The button goes once everyone is emailed, so the result is shown on the page.
+  await setFlash(`Absence emails: ${summary(t, "absence emails")}`, "/admin/attendance");
+  redirect(`/admin/attendance?date=${date}`);
 }
 
 export async function setAbsenceEmails(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -51,4 +56,15 @@ export async function setAbsenceEmails(_prev: ActionState, fd: FormData): Promis
   if (error) return { error: "Couldn't save. Please try again." };
   revalidatePath("/admin/attendance");
   return { ok: true, message: on ? "Parents will get an email when their child is marked absent." : "Absence emails are off.", at: Date.now() };
+}
+
+export async function sendAbsenceTexts(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { school } = await requireSchool(SETUP_ROLES);
+  const date = String(fd.get("date") ?? "");
+  if (!okDate(date)) return { error: "Something went wrong. Refresh and try again." };
+  const t = await smsAbsences(school.id, date, null);
+  revalidatePath("/admin/attendance");
+  if (!t.sent && !t.failed) return { ok: true, message: "No texts to send: parents were already texted, or have no phone number on file.", at: Date.now() };
+  await setFlash(`Absence texts: ${t.sent} sent${t.failed ? `, ${t.failed} failed (check the phone numbers)` : ""}.`, "/admin/attendance", t.failed ? "warn" : "ok");
+  redirect(`/admin/attendance?date=${date}`);
 }

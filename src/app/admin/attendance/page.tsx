@@ -4,7 +4,9 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import { Empty, ICONS, Pill, StatCard } from "@/components/ui";
 import { emailReady } from "@/lib/email";
 import { pct } from "@/lib/format";
-import { remindMissingRegisters, sendAbsenceEmails, setAbsenceEmails } from "./actions";
+import { remindMissingRegisters, sendAbsenceEmails, sendAbsenceTexts, setAbsenceEmails } from "./actions";
+import { smsReady } from "@/lib/sms";
+import { Flash } from "@/components/Flash";
 
 type Overview = {
   date: string;
@@ -40,6 +42,16 @@ export default async function AttendancePage(props: { searchParams: Promise<{ da
   const marked = (o?.present ?? 0) + (o?.absent ?? 0) + (o?.late ?? 0);
   const absent = (o?.missing ?? []).filter((m) => m.status === "absent");
   const notEmailed = absent.filter((m) => m.parents_with_email > m.emailed).length;
+  // Texts: only when the school has SMS absence alerts on.
+  let notTexted = 0;
+  if (smsReady() && absent.length) {
+    const [{ data: sms }, { data: sent }] = await Promise.all([
+      supabase.from("schools").select("sms_enabled, sms_absence").eq("id", school.id).maybeSingle<{ sms_enabled: boolean; sms_absence: boolean }>(),
+      supabase.from("notifications").select("student_id").eq("school_id", school.id).eq("kind", "absence").eq("channel", "sms").eq("about_date", date).eq("status", "sent").returns<{ student_id: string }[]>(),
+    ]);
+    const texted = new Set((sent ?? []).map((r) => r.student_id));
+    if (sms?.sms_enabled && sms.sms_absence) notTexted = absent.filter((m) => !texted.has(m.id)).length;
+  }
   const longDate = new Date(`${date}T12:00:00+01:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "Africa/Lagos" });
 
   return (
@@ -59,6 +71,7 @@ export default async function AttendancePage(props: { searchParams: Promise<{ da
       }
     >
       <p className="-mt-2 text-sm text-[#4A5A70]">{longDate}{date === today ? " · today" : ""}</p>
+      <Flash />
 
       {!ready && (
         <p role="status" className="rounded-xl bg-[#FFF6E3] px-4 py-3 text-sm text-[#5C4310]">
@@ -136,13 +149,25 @@ export default async function AttendancePage(props: { searchParams: Promise<{ da
           id="ab-h"
           title={`Absent and late (${o?.missing.length ?? 0})`}
           actions={
-            ready && o?.notify_absence_email && notEmailed > 0 ? (
-              <ActionForm action={sendAbsenceEmails} className="flex flex-col items-end gap-2">
-                <input type="hidden" name="date" value={date} />
-                <SubmitButton className="s-btn2" pending="Sending…">
-                  Email {notEmailed} parent{notEmailed === 1 ? "" : "s"} now
-                </SubmitButton>
-              </ActionForm>
+            (ready && o?.notify_absence_email && notEmailed > 0) || notTexted > 0 ? (
+              <div className="flex flex-wrap justify-end gap-2">
+                {ready && o?.notify_absence_email && notEmailed > 0 && (
+                  <ActionForm action={sendAbsenceEmails} className="flex flex-col items-end gap-2">
+                    <input type="hidden" name="date" value={date} />
+                    <SubmitButton className="s-btn2" pending="Sending…">
+                      Email {notEmailed} parent{notEmailed === 1 ? "" : "s"} now
+                    </SubmitButton>
+                  </ActionForm>
+                )}
+                {notTexted > 0 && (
+                  <ActionForm action={sendAbsenceTexts} className="flex flex-col items-end gap-2">
+                    <input type="hidden" name="date" value={date} />
+                    <SubmitButton className="s-btn2" pending="Texting…">
+                      Text parents of {notTexted} child{notTexted === 1 ? "" : "ren"}
+                    </SubmitButton>
+                  </ActionForm>
+                )}
+              </div>
             ) : null
           }
         >

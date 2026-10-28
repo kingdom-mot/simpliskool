@@ -7,6 +7,8 @@ import { FINANCE_ROLES, METHOD_LABEL, loadTerms, termLabel } from "@/lib/fees";
 import { naira, pct } from "@/lib/format";
 import { levelOrder } from "@/lib/nigeria";
 import { recordPayment, resendReceipt, sendReminders, voidPayment } from "./actions";
+import { parentPhones, smsReady, smsSettings } from "@/lib/sms";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const metadata = { title: "Payments and defaulters" };
 
@@ -57,6 +59,16 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
   const owingInvoices = (o?.invoice_list ?? []).filter((i) => i.balance > 0);
   const canVoid = membership.role !== "bursar";
   const ready = emailReady();
+  // Parents reachable by text (only matters when the school has SMS fee reminders on).
+  const withPhone = new Set<string>();
+  let smsOn = false;
+  if (tab === "defaulters" && smsReady() && o?.defaulters.length) {
+    const admin = createAdminClient();
+    const s = await smsSettings(admin, school.id);
+    smsOn = s.sms_enabled && s.sms_fees;
+    if (smsOn) for (const [id, list] of await parentPhones(admin, o.defaulters.map((d) => d.id))) if (list.length) withPhone.add(id);
+  }
+  const reachable = (d: { id: string; parents_with_email: number }) => (ready && d.parents_with_email > 0) || withPhone.has(d.id);
   const periodName = `${termLabel(term)}${classId ? `, ${classLabel(classes.find((c) => c.id === classId)!.name, classes.find((c) => c.id === classId)!.arm)}` : ""}`;
   const base = { term: term.id, ...(classId ? { class: classId } : {}) };
   const href = (o2: Record<string, string>) => `/admin/payments?${new URLSearchParams({ ...base, ...o2 })}`;
@@ -238,8 +250,8 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                   </p>
                   <SubmitButton pending="Sending…">Send payment reminders</SubmitButton>
                 </div>
-                {!ready && <p className="text-[13px] text-[#4A5A70]">Emails aren&apos;t switched on yet, so reminders can&apos;t be sent.</p>}
-                <p className="text-[13px] text-[#4A5A70]">Tick the students whose parents should get an email with their full balance. Each parent gets at most one reminder per child a day.</p>
+                {!ready && !smsOn && <p className="text-[13px] text-[#4A5A70]">Emails aren&apos;t switched on yet, so reminders can&apos;t be sent.</p>}
+                <p className="text-[13px] text-[#4A5A70]">Tick the students whose parents should get their full balance by email{smsOn ? " and text" : ""}. Each parent gets at most one reminder per child a day.</p>
                 <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Defaulters table: scroll sideways to see more">
                   <table className="tbl min-w-[860px]">
                     <caption className="sr-only">Students owing for {periodName}</caption>
@@ -265,15 +277,16 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                               type="checkbox"
                               name="student"
                               value={d.id}
-                              defaultChecked={d.parents_with_email > 0}
-                              disabled={d.parents_with_email === 0}
+                              defaultChecked={reachable(d)}
+                              disabled={!reachable(d)}
                               aria-label={`Send a reminder to ${d.name}'s parents`}
                               className="h-5 w-5"
                             />
                           </td>
                           <th scope="row">
                             {d.name}
-                            {d.parents_with_email === 0 && <span className="block text-xs font-normal text-[#4A5A70]">No parent email</span>}
+                            {!reachable(d) && <span className="block text-xs font-normal text-[#4A5A70]">{smsOn ? "No parent email or phone" : "No parent email"}</span>}
+                            {reachable(d) && d.parents_with_email === 0 && <span className="block text-xs font-normal text-[#4A5A70]">By text only</span>}
                           </th>
                           <td>{d.class ?? "—"}</td>
                           <td>{d.cur ? naira(d.cur) : "—"}</td>
@@ -384,7 +397,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                 <input type="checkbox" name="email" value="1" defaultChecked={ready} disabled={!ready} className="h-5 w-5" />
                 Email the receipt to the parent
               </label>
-              <p className="text-[13px] text-[#4A5A70]">Every payment gets a receipt number you can print or share. Online payments will be recorded automatically once they are switched on.</p>
+              <p className="text-[13px] text-[#4A5A70]">Every payment gets a receipt number you can print or share. Payments parents make online are recorded here automatically.</p>
               <div>
                 <SubmitButton>Save payment</SubmitButton>
               </div>

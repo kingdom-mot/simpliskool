@@ -6,6 +6,7 @@ import { requireSchool } from "@/lib/auth";
 import type { ActionState } from "@/components/forms";
 import { emailReady } from "@/lib/email";
 import { sendFeeReminders, sendReceiptEmail } from "@/lib/fee-emails";
+import { smsFeeReminders, smsReceipt } from "@/lib/sms-notices";
 import { FINANCE_ROLES, toKobo } from "@/lib/fees";
 import { naira } from "@/lib/format";
 
@@ -45,6 +46,8 @@ export async function recordPayment(_prev: ActionState, fd: FormData): Promise<A
     const t = await sendReceiptEmail(r.id);
     mail = t.sent ? " Receipt emailed to the parent." : t.noEmail ? " No parent email on file, so print or share the receipt." : t.skipped ? " Email isn't set up yet, so print or share the receipt." : " The receipt email didn't send; you can try again from the payments list.";
   }
+  const sms = await smsReceipt(r.id).catch(() => null);
+  if (sms?.sent) mail += ` Texted to ${sms.sent === 1 ? "the parent" : `${sms.sent} parents`}.`;
   refresh();
   return { ok: true, message: `${naira(kobo)} saved. Receipt ${r.receipt_no}.${mail}`, at: Date.now() };
 }
@@ -79,10 +82,17 @@ export async function sendReminders(_prev: ActionState, fd: FormData): Promise<A
   const { school } = await requireSchool(FINANCE_ROLES);
   const ids = [...new Set(fd.getAll("student").map(String))].filter((s) => uuid.safeParse(s).success);
   if (!ids.length) return { error: "Tick the students whose parents should get a reminder." };
-  if (!emailReady()) return { error: "Email isn't set up yet, so reminders can't be sent." };
-  const t = await sendFeeReminders(school.id, ids);
+  const sms = await smsFeeReminders(school.id, ids);
+  if (!emailReady() && sms.off) return { error: "Email and SMS aren't set up yet, so reminders can't be sent." };
+  const t = emailReady() ? await sendFeeReminders(school.id, ids) : { sent: 0, failed: 0, skipped: 0, noEmail: 0 };
   refresh();
-  const parts = [t.sent && `${t.sent} sent`, t.failed && `${t.failed} failed`, t.noEmail && `${t.noEmail} student${t.noEmail === 1 ? " has" : "s have"} no parent email`].filter(Boolean);
-  if (!t.sent && !t.failed && !t.noEmail) return { ok: true, message: "These parents already got a reminder today.", at: Date.now() };
+  const parts = [
+    t.sent && `${t.sent} email${t.sent === 1 ? "" : "s"} sent`,
+    sms.sent && `${sms.sent} text${sms.sent === 1 ? "" : "s"} sent`,
+    (t.failed || sms.failed) && `${t.failed + sms.failed} failed`,
+    t.noEmail && `${t.noEmail} student${t.noEmail === 1 ? " has" : "s have"} no parent email`,
+    !sms.off && sms.noPhone && `${sms.noPhone} no parent phone`,
+  ].filter(Boolean);
+  if (!parts.length) return { ok: true, message: "These parents already got a reminder today.", at: Date.now() };
   return { ok: true, message: `Reminders: ${parts.join(", ")}.`, at: Date.now() };
 }

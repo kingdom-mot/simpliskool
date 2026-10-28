@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { notifyAbsences } from "@/lib/notify";
+import { smsAbsences } from "@/lib/sms-notices";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -66,6 +67,11 @@ export async function POST(request: Request) {
         await notifyAbsences(cls.school_id, date, class_id);
       } catch (e) {
         console.error("Absence emails failed", e);
+      }
+      try {
+        await smsAbsences(cls.school_id, date, class_id);
+      } catch (e) {
+        console.error("Absence texts failed", e);
       }
     });
   }

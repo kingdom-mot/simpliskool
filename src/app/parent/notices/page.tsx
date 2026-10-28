@@ -2,6 +2,7 @@ import Link from "next/link";
 import { MobileShell } from "@/components/MobileShell";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Empty, Pill } from "@/components/ui";
+import { releaseDueSoon } from "@/lib/announce";
 import { requireSchool } from "@/lib/auth";
 import { PARENT_TABS } from "@/lib/nav";
 import { rsvp } from "./actions";
@@ -15,6 +16,7 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
   const sp = await props.searchParams;
   const tab = sp.tab === "calendar" ? "calendar" : "notices";
   const { supabase, school, user } = await requireSchool(["parent"]);
+  await releaseDueSoon();
   const [{ data }, { data: mine }, { data: s }] = await Promise.all([
     supabase.from("announcements").select("id, title, body, kind, event_at, created_at").eq("school_id", school.id).order("created_at", { ascending: false }).limit(50).returns<Notice[]>(),
     supabase.from("announcement_rsvps").select("announcement_id, going").eq("user_id", user.id).returns<{ announcement_id: string; going: boolean }[]>(),

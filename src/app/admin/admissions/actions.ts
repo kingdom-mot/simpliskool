@@ -29,7 +29,7 @@ async function tell(schoolId: string, app: App, heading: string, paragraphs: str
 }
 
 async function done(id: string, tab: string, message: string): Promise<never> {
-  await setFlash(message);
+  await setFlash(message, "/admin/admissions");
   revalidatePath("/admin/admissions");
   revalidatePath("/admin");
   redirect(`/admin/admissions?${new URLSearchParams({ tab, app: id })}`);

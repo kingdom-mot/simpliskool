@@ -6,7 +6,16 @@ import { sendAnnouncement } from "./actions";
 
 type Audience = "school" | "parents" | "class" | "staff";
 
-export function AnnouncementForm({ schoolName, classes, reach, emailReady }: { schoolName: string; classes: { id: string; label: string; reach: number }[]; reach: Record<"school" | "parents" | "staff", number>; emailReady: boolean }) {
+const lagos = (offsetMin: number) => {
+  const d = new Date(Date.now() + offsetMin * 60000);
+  const f = (o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos", ...o }).format(d);
+  return { date: f({ year: "numeric", month: "2-digit", day: "2-digit" }), time: f({ hour: "2-digit", minute: "2-digit", hourCycle: "h23" }) };
+};
+
+export function AnnouncementForm({ schoolName, classes, reach, emailReady, sms }: { schoolName: string; classes: { id: string; label: string; reach: number }[]; reach: Record<"school" | "parents" | "staff", number>; emailReady: boolean; sms: "on" | "off" | "not-connected" }) {
+  const [when, setWhen] = useState<"now" | "later">("now");
+  // Tomorrow morning at 7am (Lagos time) is a sensible first suggestion.
+  const [tomorrow] = useState(() => lagos(24 * 60).date);
   const [aud, setAud] = useState<Audience>("parents");
   const [picked, setPicked] = useState<string[]>([]);
   const [kind, setKind] = useState<"notice" | "event">("notice");
@@ -32,6 +41,7 @@ export function AnnouncementForm({ schoolName, classes, reach, emailReady }: { s
           setBody("");
           setPicked([]);
           setKind("notice");
+          setWhen("now");
         }}
         className="flex flex-col gap-4 rounded-[18px] border border-[#E3EAF3] bg-white p-[22px]">
         <h2 className="text-lg !text-c1">New announcement</h2>
@@ -107,13 +117,53 @@ export function AnnouncementForm({ schoolName, classes, reach, emailReady }: { s
           <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-slate">
             <input type="checkbox" name="email" value="1" defaultChecked={emailReady} disabled={!emailReady} className="h-5 w-5" /> Email
           </label>
-          <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-[#4A5A70]">
-            <input type="checkbox" disabled className="h-5 w-5" /> SMS and WhatsApp (coming in a later release)
+          <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-slate">
+            <input type="checkbox" name="sms" value="1" disabled={sms !== "on"} className="h-5 w-5" aria-describedby={sms !== "on" ? "sms-h" : undefined} /> SMS (to parents and staff with a phone number)
           </label>
           {!emailReady && <span className="text-[13px] text-[#4A5A70]">Email isn&apos;t switched on yet, so this goes to the app only.</span>}
+          {sms !== "on" && (
+            <span id="sms-h" className="text-[13px] text-[#4A5A70]">
+              {sms === "off" ? (
+                <>
+                  To text announcements, switch on SMS in <a className="font-bold text-c1 underline" href="/admin/settings#sms">Settings</a>.
+                </>
+              ) : (
+                "SMS isn't connected yet."
+              )}
+            </span>
+          )}
+        </fieldset>
+        <fieldset className="flex flex-col gap-2">
+          <legend className="label">When</legend>
+          <div className="flex flex-wrap gap-2">
+            {(["now", "later"] as const).map((w) => (
+              <label key={w} className="flex min-h-[44px] cursor-pointer items-center gap-2 rounded-xl border-[1.5px] border-[#DCE5F0] px-4 text-sm font-bold has-[:checked]:border-c2 has-[:checked]:bg-[#F3FBF9] has-[:focus-visible]:outline has-[:focus-visible]:outline-[3px] has-[:focus-visible]:outline-c2">
+                <input type="radio" name="when" value={w} checked={when === w} onChange={() => setWhen(w)} className="h-4 w-4" />
+                {w === "now" ? "Send now" : "Schedule for later"}
+              </label>
+            ))}
+          </div>
+          {when === "later" && (
+            <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
+              <div>
+                <label className="label" htmlFor="a-pdate">
+                  Send on
+                </label>
+                <input id="a-pdate" name="publish_date" type="date" className="sk-input" required defaultValue={tomorrow} />
+              </div>
+              <div>
+                <label className="label" htmlFor="a-ptime">
+                  At (Lagos time)
+                </label>
+                <input id="a-ptime" name="publish_time" type="time" className="sk-input" required defaultValue="07:00" />
+              </div>
+            </div>
+          )}
         </fieldset>
         <div>
-          <SubmitButton pending="Sending…">Send to {cur.id === "class" && !picked.length ? "selected classes" : `${count} ${count === 1 ? "person" : "people"}`}</SubmitButton>
+          <SubmitButton pending={when === "later" ? "Scheduling…" : "Sending…"}>
+            {when === "later" ? "Schedule for" : "Send to"} {cur.id === "class" && !picked.length ? "selected classes" : `${count} ${count === 1 ? "person" : "people"}`}
+          </SubmitButton>
         </div>
       </ActionForm>
 

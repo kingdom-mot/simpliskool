@@ -138,6 +138,6 @@ export async function deletePost(_prev: ActionState, fd: FormData): Promise<Acti
   revalidatePath("/admin/website");
   revalidatePath(`/sites/${ctx.school.slug}`);
   // The deleted item disappears from the list, so the confirmation is shown on the page.
-  await setFlash(data[0].kind === "gallery" ? "Photo deleted." : "Post deleted.");
+  await setFlash(data[0].kind === "gallery" ? "Photo deleted." : "Post deleted.", "/admin/website");
   redirect(`/admin/website?page=${data[0].kind === "gallery" ? "gallery" : "news"}`);
 }
