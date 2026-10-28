@@ -32,7 +32,7 @@ export default async function ArchivePage(props: { searchParams: Promise<{ term?
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "simpliskool.com";
   const origin = `${host.startsWith("localhost") ? "http" : "https"}://${host}`;
   const now = new Date().toISOString();
-  const active = (links ?? []).filter((l) => !l.revoked_at && l.expires_at > now);
+  const active = (links ?? []).filter((l) => !l.revoked_at && Date.parse(l.expires_at) > Date.parse(now));
   const qs = new URLSearchParams(Object.entries({ term: term?.id ?? "", teacher: sp.teacher ?? "", subject: sp.subject ?? "", class: sp.class ?? "" }).filter(([, v]) => v));
   const curSession = sessions?.find((s) => s.name === term?.session);
 

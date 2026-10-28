@@ -27,7 +27,7 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
   if (notices.length) await supabase.rpc("mark_announcements_read", { p_ids: notices.map((n) => n.id) });
   const answer = new Map((mine ?? []).map((r) => [r.announcement_id, r.going]));
   const now = new Date().toISOString();
-  const events = notices.filter((n) => n.kind === "event" && n.event_at && n.event_at >= now).sort((a, b) => a.event_at!.localeCompare(b.event_at!));
+  const events = notices.filter((n) => n.kind === "event" && n.event_at && Date.parse(n.event_at) >= Date.parse(now)).sort((a, b) => a.event_at!.localeCompare(b.event_at!));
   const ago = (iso: string) => {
     const d = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(iso));
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());

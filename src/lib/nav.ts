@@ -69,7 +69,7 @@ export const TEACHER_NAV: NavGroup[] = [
     label: "My day",
     items: [
       { key: "today", label: "Today", href: "/teacher" },
-      { key: "classes", label: "My classes", href: null },
+      { key: "classes", label: "My classes", href: "/teacher/classes" },
       { key: "timetable", label: "My timetable", href: "/teacher/timetable" },
     ],
   },
@@ -85,16 +85,16 @@ export const TEACHER_NAV: NavGroup[] = [
     label: "Teaching",
     items: [
       { key: "notes", label: "Lesson notes", href: "/teacher/notes" },
-      { key: "homework", label: "Homework", href: null },
-      { key: "marking", label: "Marking", href: null },
+      { key: "homework", label: "Homework", href: "/teacher/homework" },
+      { key: "marking", label: "Marking", href: "/teacher/marking" },
     ],
   },
   {
     label: "CBT and AI",
     items: [
-      { key: "questions", label: "Question bank", href: null },
-      { key: "cbt", label: "CBT tests", href: null },
-      { key: "ai", label: "AI assistant", href: null },
+      { key: "questions", label: "Question bank", href: "/teacher/questions" },
+      { key: "cbt", label: "CBT tests", href: "/teacher/cbt" },
+      { key: "ai", label: "AI assistant", href: "/teacher/ai" },
     ],
   },
 ];
@@ -104,7 +104,7 @@ export type Tab = { key: string; label: string; href: string | null; icon: strin
 
 export const PARENT_TABS: Tab[] = [
   { key: "home", label: "Home", href: "/parent", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
-  { key: "learning", label: "Learning", href: null, icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
+  { key: "learning", label: "Learning", href: "/parent/learning", icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
   { key: "results", label: "Results", href: "/parent/results", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
   { key: "fees", label: "Fees", href: "/parent/fees", icon: "M2 7h20v12H2zM2 11h20M6 15h4" },
   { key: "school", label: "School", href: "/parent/notices", icon: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" },
@@ -113,7 +113,7 @@ export const PARENT_TABS: Tab[] = [
 export const STUDENT_TABS: Tab[] = [
   { key: "home", label: "Home", href: "/student", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
   { key: "timetable", label: "Timetable", href: "/student/timetable", icon: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18" },
-  { key: "notes", label: "Notes", href: null, icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
-  { key: "homework", label: "Homework", href: null, icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
+  { key: "notes", label: "Notes", href: "/student/notes", icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
+  { key: "homework", label: "Homework", href: "/student/homework", icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
   { key: "results", label: "Results", href: "/student/results", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
 ];

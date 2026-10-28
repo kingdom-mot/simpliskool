@@ -33,6 +33,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0012_timetable_announcements.sql` (timetable, announcements, mark split, approving results). From this file on, each file sets its own permissions, so 0008 doesn't need running again.
      - `0013_school_admin.sql` (admissions, parents, staff attendance, lesson notes, payroll, website editor, grading scale, payout account)
      - `0014_payments_sms_schedule.sql` (online fee payments, SMS settings, scheduled announcements; also switches on pg_cron to release scheduled announcements every minute)
+     - `0015_teaching.sql` (homework and marking, question bank, CBT tests, AI assistant allowance, My classes; private "learning" file storage)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -101,6 +102,6 @@ select cron.schedule('simpliskool-dispatch', '*/5 * * * *',
   $$select net.http_get('https://www.simpliskool.com/api/cron/dispatch', headers := '{"Authorization": "Bearer YOUR_CRON_SECRET"}'::jsonb)$$);
 ```
 
-## AI comment suggestions (optional)
+## AI comment suggestions and the AI assistant (optional)
 
-Add `ANTHROPIC_API_KEY` (from console.anthropic.com) in Vercel and redeploy. Teachers and the principal then get **Suggest with AI** on report card comments; only the student's first name and results are sent. Without the key, the button fills in a starting comment built from the scores.
+Add `ANTHROPIC_API_KEY` (from console.anthropic.com) in Vercel and redeploy. Teachers and the principal then get **Suggest with AI** on report card comments; only the student's first name and results are sent. Without the key, the button fills in a starting comment built from the scores. With it, teachers also get the AI teaching assistant (lesson notes, quiz questions for the bank, simpler explanations, homework ideas), up to `AI_TEACHER_MONTHLY_LIMIT` requests each a month (default 200).

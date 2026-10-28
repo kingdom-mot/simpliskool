@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { createContext, startTransition, useContext, useEffect, useRef } from "react";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 
 export type ActionState = { ok?: boolean; error?: string | null; message?: string | null; at?: number };
 
+/** Set by ActionForm (which submits without React's automatic form reset). */
+const Pending = createContext<boolean | null>(null);
+
 export function SubmitButton({ children, pending, className = "s-btn" }: { children: React.ReactNode; pending?: string; className?: string }) {
-  const { pending: busy } = useFormStatus();
+  const fromForm = useContext(Pending);
+  const { pending: status } = useFormStatus();
+  const busy = fromForm ?? status;
   return (
     <button className={className} disabled={busy} aria-disabled={busy}>
       {busy ? (pending ?? "Saving…") : children}
@@ -54,7 +59,7 @@ export function ActionForm({
   /** Called after each successful save (e.g. to clear a form's own state). */
   onSuccess?: () => void;
 }) {
-  const [state, run] = useActionState(action, {});
+  const [state, run, busy] = useActionState(action, {});
   const ref = useRef<HTMLFormElement>(null);
   useEffect(() => {
     if (state.ok && resetOnSuccess) ref.current?.reset();
@@ -62,8 +67,20 @@ export function ActionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, resetOnSuccess]);
   return (
-    <form ref={ref} id={id} action={run} className={className}>
-      {children}
+    // Submitted by hand rather than with action={...}: React would otherwise clear every
+    // field after each submit, so a typo in one field would wipe the whole form.
+    <form
+      ref={ref}
+      id={id}
+      className={className}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (busy) return;
+        const data = new FormData(e.currentTarget, (e.nativeEvent as SubmitEvent).submitter);
+        startTransition(() => run(data));
+      }}
+    >
+      <Pending.Provider value={busy}>{children}</Pending.Provider>
       <FormMessage state={state} />
     </form>
   );

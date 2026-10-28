@@ -16,7 +16,7 @@ export type StudentData = {
   announcements: { title: string; at: string }[];
 };
 
-export function StudentView({ school, fullName, d, now: nowOverride }: { school: ShellSchool; fullName: string; d: StudentData | null; now?: string }) {
+export function StudentView({ school, fullName, d, now: nowOverride, todo }: { school: ShellSchool; fullName: string; d: StudentData | null; now?: string; todo?: { homework: number; tests: number } }) {
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
   const name = d?.first_name ?? fullName.split(" ")[0];
 
@@ -49,6 +49,26 @@ export function StudentView({ school, fullName, d, now: nowOverride }: { school:
           </>
         )}
       </section>
+
+      {todo && (todo.homework > 0 || todo.tests > 0) && (
+        <section aria-labelledby="todo-h" className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-[18px]">
+          <h2 id="todo-h" className="text-[17px] !text-c1">
+            To do
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {todo.homework > 0 && (
+              <a href="/student/homework" className="s-btn2">
+                {todo.homework} homework to hand in
+              </a>
+            )}
+            {todo.tests > 0 && (
+              <a href="/student/cbt" className="s-btn">
+                {todo.tests} test{todo.tests === 1 ? "" : "s"} open now
+              </a>
+            )}
+          </div>
+        </section>
+      )}
 
       {lessons.length > 0 && (
         <section aria-labelledby="tt-h" className="flex flex-col gap-2.5 rounded-[18px] border border-[#E3EAF3] bg-white p-[18px]">
