@@ -1,6 +1,7 @@
 -- School groups: one proprietor, several branches. Each branch is a normal school
 -- (its own principal, staff, classes and fees); the group sees them side by side.
 -- Safe to run more than once. Run after 0016.
+-- Paste this file on its own into an empty SQL editor tab.
 
 alter table public.school_groups add column if not exists created_by uuid references public.profiles (id) on delete set null;
 alter table public.schools add column if not exists capacity int check (capacity is null or capacity between 1 and 20000);
@@ -18,9 +19,9 @@ create table if not exists public.group_members (
 alter table public.group_members enable row level security;
 -- Looked up outside the policy, so the policy doesn't read its own table.
 create or replace function public.is_group_proprietor(p_group uuid)
-returns boolean language sql stable security definer set search_path = public as $$
+returns boolean language sql stable security definer set search_path = public as $fn$
   select exists (select 1 from group_members where group_id = p_group and user_id = auth.uid() and role = 'proprietor');
-$$;
+$fn$;
 drop policy if exists group_members_read on public.group_members;
 create policy group_members_read on public.group_members for select using (user_id = auth.uid() or public.is_group_proprietor(group_id));
 -- Written by the server only.
@@ -32,7 +33,7 @@ create policy school_groups_read on public.school_groups for select using (
 
 -- An owner turns their school into the first branch of a new group.
 create or replace function public.create_group(p_school uuid, p_name text)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public as $fn$
 declare v_group uuid;
 begin
   if not public.has_role(p_school, array['owner']::public.app_role[]) then raise exception 'not allowed' using errcode = '42501'; end if;
@@ -42,12 +43,12 @@ begin
   update schools set group_id = v_group where id = p_school;
   insert into group_members (group_id, user_id, role) values (v_group, auth.uid(), 'proprietor');
   return v_group;
-end $$;
+end $fn$;
 
 -- A new branch, optionally set up like an existing one (classes, subjects, bell
 -- times, grading, mark split, colours). Students, staff and fees are never copied.
 create or replace function public.add_branch(p_group uuid, p_name text, p_slug text, p_copy_from uuid)
-returns uuid language plpgsql security definer set search_path = public as $$
+returns uuid language plpgsql security definer set search_path = public as $fn$
 declare v_school uuid; v_src record;
 begin
   if not public.is_group_proprietor(p_group) then raise exception 'not allowed' using errcode = '42501'; end if;
@@ -78,14 +79,14 @@ begin
       select v_school, label, kind, starts_at, ends_at from school_periods where school_id = p_copy_from;
   end if;
   return v_school;
-end $$;
+end $fn$;
 
 -- ===========================================================================
 -- Permissions (same as 0016), so 0008 doesn't need to be run again.
 -- ===========================================================================
 grant select, insert, update, delete on all tables in schema public to authenticated, service_role;
 grant usage, select on all sequences in schema public to authenticated, service_role;
-do $$
+do $grants$
 declare f record;
 begin
   for f in
@@ -100,6 +101,6 @@ begin
       execute format('grant execute on function %s to authenticated', f.sig);
     end if;
   end loop;
-end $$;
+end $grants$;
 grant execute on function public.admissions_open(uuid) to anon;
 grant execute on function public.is_school_admin(uuid) to anon;
