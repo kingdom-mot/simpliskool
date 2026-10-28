@@ -78,6 +78,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       db.push({ label: "0014 online payments, SMS, scheduled announcements", ...(await fnExists(admin, "online_payments_ready", { p_school: zero })) });
       db.push({ label: "0015 homework, question bank, CBT tests, AI assistant", ...(await fnExists(admin, "class_roster", { p_class: zero, p_class_subject: null, p_term: zero })) });
       db.push({ label: "0016 absence reports, message choices", ...(await fnExists(admin, "attendance_month", { p_student: zero, p_month: "2026-01-01" })) });
+      db.push({ label: "0017 school groups (branches)", ...(await fnExists(admin, "is_group_proprietor", { p_group: zero })) });
       db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
   }

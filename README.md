@@ -35,6 +35,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0014_payments_sms_schedule.sql` (online fee payments, SMS settings, scheduled announcements; also switches on pg_cron to release scheduled announcements every minute)
      - `0015_teaching.sql` (homework and marking, question bank, CBT tests, AI assistant allowance, My classes; private "learning" file storage)
      - `0016_family.sql` (parents report absences in advance, excused absences, everyone's email/text choices, teachers' names for families)
+     - `0017_groups.sql` (school groups: one proprietor, several branches, group team)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.

@@ -7,6 +7,7 @@ import { LogoForm } from "./LogoForm";
 import { MarkSplit } from "./MarkSplit";
 import { GradingScale } from "./GradingScale";
 import { pauseOnlinePayments, savePayout, saveSms } from "./actions";
+import { createGroup } from "@/app/group/actions";
 import { listBanks, paystackReady, paystackTestMode } from "@/lib/paystack";
 import { smsReady } from "@/lib/sms";
 import { changeRole, inviteStaff, removeStaff } from "@/app/admin/staff/actions";
@@ -73,6 +74,7 @@ export default async function SettingsPage() {
   const sms = smsRow ?? { sms_enabled: false, sms_absence: true, sms_fees: true, sms_receipts: true };
   const smsUse = (usage as { month: number; failed: number; parents: number } | null) ?? { month: 0, failed: 0, parents: 0 };
   const onlineOn = !!payout?.paystack_subaccount;
+  const { data: grp } = await supabase.from("schools").select("group_id, school_groups(name)").eq("id", school.id).maybeSingle<{ group_id: string | null; school_groups: { name: string } | null }>();
   const leaders = ((staff as { user_id: string; full_name: string | null; email: string | null; roles: string[]; joined: boolean }[] | null) ?? []).filter((m) => m.roles.some((r) => ["owner", "admin", "principal", "bursar"].includes(r)));
   const ROLE_NAME: Record<string, string> = { owner: "Owner", admin: "Admin", principal: "Principal / Head teacher", bursar: "Bursar" };
 
@@ -86,6 +88,7 @@ export default async function SettingsPage() {
         <a href="#admins" className="s-btn2">Admins and roles</a>
         <a href="#payouts" className="s-btn2">Online fee payments</a>
         <a href="#sms" className="s-btn2">SMS</a>
+        <a href="#group" className="s-btn2">Branches</a>
         <a href="#plan" className="s-btn2">Plan</a>
       </nav>
 
@@ -386,6 +389,32 @@ export default async function SettingsPage() {
           Texts sent this month: <strong>{smsUse.month}</strong>
           {smsUse.failed > 0 && <span className="text-[#912018]"> · {smsUse.failed} failed in the last 7 days (usually a wrong number)</span>}
         </p>
+      </Panel>
+
+      <Panel title="More than one branch?" id="group">
+        {grp?.group_id ? (
+          <>
+            <p className="text-sm text-brand-slate">
+              {school.name} is a branch of <strong>{grp.school_groups?.name ?? "a school group"}</strong>. See every branch side by side on the group dashboard.
+            </p>
+            <a className="s-btn2 self-start" href="/dashboard">
+              Open the group dashboard
+            </a>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-brand-slate">If you run several campuses, make this school the first branch of a group. You&apos;ll get one dashboard for all branches: fees, attendance, results, payroll and staff, plus shared settings. Each branch keeps its own principal, staff and fees.</p>
+            <ActionForm action={createGroup} className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[240px] flex-1">
+                <label className="label" htmlFor="grp-name">
+                  Group name
+                </label>
+                <input id="grp-name" name="group_name" required minLength={3} maxLength={120} placeholder="e.g. Bright Stars Group" className="sk-input" />
+              </div>
+              <SubmitButton pending="Creating…">Create a school group</SubmitButton>
+            </ActionForm>
+          </>
+        )}
       </Panel>
 
       <Panel title="Plan" id="plan">
