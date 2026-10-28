@@ -188,6 +188,10 @@ const editSchema = z.object({
   class_id: z.string().uuid().or(z.literal("")),
   admission_no: z.string().trim().min(1, "Enter the admission number"),
   status: z.enum(["active", "graduated", "withdrawn"]),
+  admitted_on: z.string().regex(/^(\d{4}-\d{2}-\d{2})?$/).optional(),
+  state_of_origin: z.string().trim().max(40).optional(),
+  blood_group: z.enum(["", "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]).optional(),
+  address: z.string().trim().max(300).optional(),
 });
 
 export async function updateStudent(_prev: ActionState, fd: FormData): Promise<ActionState> {
@@ -199,7 +203,7 @@ export async function updateStudent(_prev: ActionState, fd: FormData): Promise<A
   if (dob === null) return { error: "Date of birth isn't a valid date." };
   const { error } = await supabase
     .from("students")
-    .update({ first_name: d.first_name, last_name: d.last_name, other_names: d.other_names || null, gender: d.gender || null, date_of_birth: dob || null, class_id: d.class_id || null, admission_no: d.admission_no, status: d.status })
+    .update({ first_name: d.first_name, last_name: d.last_name, other_names: d.other_names || null, gender: d.gender || null, date_of_birth: dob || null, class_id: d.class_id || null, admission_no: d.admission_no, status: d.status, admitted_on: d.admitted_on || null, state_of_origin: d.state_of_origin || null, blood_group: d.blood_group || null, address: d.address || null })
     .eq("id", d.id)
     .eq("school_id", school.id);
   if (error) return { error: error.code === "23505" ? "Another student already has that admission number." : oops };

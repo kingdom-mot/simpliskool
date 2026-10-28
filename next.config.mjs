@@ -1,8 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   agentRules: false,
-  // Logo uploads go through a server action (1 MB limit, checked again in the action).
-  experimental: { serverActions: { bodySizeLimit: "2mb" } },
+  // Logo and website photo uploads go through server actions (1 MB and 3 MB, checked in the actions).
+  experimental: { serverActions: { bodySizeLimit: "4mb" } },
   images: {
     remotePatterns: [{ protocol: "https", hostname: "*.supabase.co" }],
   },

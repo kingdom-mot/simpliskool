@@ -15,7 +15,8 @@ function Submit() {
 
 const CLASSES = ["Creche", "Nursery 1", "Nursery 2", "Primary 1", "Primary 2", "Primary 3", "Primary 4", "Primary 5", "Primary 6", "JSS 1", "JSS 2", "JSS 3", "SS 1", "SS 2", "SS 3"];
 
-export function ApplyForm({ schoolId }: { schoolId: string }) {
+export function ApplyForm({ schoolId, classes }: { schoolId: string; classes?: string[] }) {
+  const options = classes?.length ? classes : CLASSES;
   const [state, action] = useActionState<ApplyState, FormData>(applyForAdmission, {});
   if (state.ok) {
     return (
@@ -47,10 +48,22 @@ export function ApplyForm({ schoolId }: { schoolId: string }) {
           <option value="" disabled>
             Choose a class
           </option>
-          {CLASSES.map((c) => (
+          {options.map((c) => (
             <option key={c}>{c}</option>
           ))}
         </select>
+      </div>
+      <div>
+        <label htmlFor="gender" className="label">Gender</label>
+        <select id="gender" name="gender" className="sk-input sk-select" defaultValue="">
+          <option value="">Prefer not to say</option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+        </select>
+      </div>
+      <div>
+        <label htmlFor="previous_school" className="label">Current school (optional)</label>
+        <input id="previous_school" name="previous_school" maxLength={120} autoComplete="off" className="sk-input" />
       </div>
       <div className="sm:col-span-2">
         <label htmlFor="parent_name" className="label">Parent&apos;s full name</label>

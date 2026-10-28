@@ -10,10 +10,10 @@ const ADMIN: NavGroup[] = [
     label: "People",
     items: [
       { key: "students", label: "Students", href: "/admin/students" },
-      { key: "parents", label: "Parents", href: null },
+      { key: "parents", label: "Parents", href: "/admin/parents" },
       { key: "staff", label: "Staff", href: "/admin/staff" },
-      { key: "staffatt", label: "Staff attendance", href: null },
-      { key: "admissions", label: "Admissions", href: null },
+      { key: "staffatt", label: "Staff attendance", href: "/admin/staff-attendance" },
+      { key: "admissions", label: "Admissions", href: "/admin/admissions" },
     ],
   },
   {
@@ -22,7 +22,7 @@ const ADMIN: NavGroup[] = [
       { key: "classes", label: "Classes & subjects", href: "/admin/classes" },
       { key: "timetable", label: "Timetable", href: "/admin/timetable" },
       { key: "attendance", label: "Student attendance", href: "/admin/attendance" },
-      { key: "lessonnotes", label: "Lesson note review", href: null },
+      { key: "lessonnotes", label: "Lesson note review", href: "/admin/lesson-notes" },
       { key: "results", label: "Results", href: "/admin/results" },
       { key: "reportcards", label: "Report cards", href: "/admin/report-cards" },
     ],
@@ -32,14 +32,14 @@ const ADMIN: NavGroup[] = [
     items: [
       { key: "fees", label: "Fee setup", href: "/admin/fees" },
       { key: "payments", label: "Payments & defaulters", href: "/admin/payments" },
-      { key: "payroll", label: "Payroll", href: null },
+      { key: "payroll", label: "Payroll", href: "/admin/payroll" },
     ],
   },
   {
     label: "Communication",
     items: [
       { key: "announcements", label: "Announcements", href: "/admin/announcements" },
-      { key: "website", label: "School website", href: null },
+      { key: "website", label: "School website", href: "/admin/website" },
     ],
   },
   {
@@ -84,7 +84,7 @@ export const TEACHER_NAV: NavGroup[] = [
   {
     label: "Teaching",
     items: [
-      { key: "notes", label: "Lesson notes", href: null },
+      { key: "notes", label: "Lesson notes", href: "/teacher/notes" },
       { key: "homework", label: "Homework", href: null },
       { key: "marking", label: "Marking", href: null },
     ],

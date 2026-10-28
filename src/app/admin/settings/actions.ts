@@ -141,3 +141,39 @@ export async function saveAssessment(_prev: ActionState, fd: FormData): Promise<
   revalidatePath("/", "layout");
   return { ok: true, message: `Saved: ${p.data.map((x) => `${x.label} ${x.max}`).join(" + ")} = 100. Score sheets and report cards now use this split.`, at: Date.now() };
 }
+
+export async function saveGradingScale(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(SETTINGS_ROLES);
+  let rows: { grade: string; min: number; remark: string }[];
+  try {
+    rows = JSON.parse(String(fd.get("rows") ?? "[]"));
+  } catch {
+    return { error: "Something went wrong. Refresh the page and try again." };
+  }
+  if (!Array.isArray(rows) || rows.length < 2 || rows.length > 12) return { error: "Use between 2 and 12 grades." };
+  const clean = rows.map((r) => ({ grade: String(r.grade ?? "").trim().slice(0, 3), min: Number(r.min), remark: String(r.remark ?? "").trim().slice(0, 40) }));
+  if (clean.some((r) => !r.grade)) return { error: "Give every grade a letter, like A." };
+  if (clean.some((r) => !Number.isFinite(r.min) || r.min < 0 || r.min > 100)) return { error: "Minimum marks must be between 0 and 100." };
+  clean.sort((a, b) => b.min - a.min);
+  if (new Set(clean.map((r) => r.min)).size !== clean.length) return { error: "Two grades can't start at the same mark." };
+  if (clean[clean.length - 1].min !== 0) return { error: "The lowest grade must start at 0." };
+  if (new Set(clean.map((r) => r.grade.toUpperCase())).size !== clean.length) return { error: "Each grade needs a different letter." };
+  const { error } = await supabase.rpc("set_grading_scale", { p_school: school.id, p_rows: clean });
+  if (error) return { error: "We couldn't save the grading scale." };
+  revalidatePath("/", "layout");
+  return { ok: true, message: `Grading scale saved: ${clean.map((r) => `${r.grade} from ${r.min}`).join(", ")}. Report cards use it straight away.`, at: Date.now() };
+}
+
+export async function savePayout(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school, user } = await requireSchool(SETTINGS_ROLES);
+  const bank = String(fd.get("bank_name") ?? "").trim();
+  const acct = String(fd.get("account_no") ?? "").replace(/\s/g, "");
+  const name = String(fd.get("account_name") ?? "").trim();
+  if (bank.length < 2) return { error: "Choose the bank." };
+  if (!/^\d{10}$/.test(acct)) return { error: "Account numbers have 10 digits." };
+  if (name.length < 2) return { error: "Enter the account name exactly as the bank has it." };
+  const { error } = await supabase.from("school_payouts").upsert({ school_id: school.id, bank_name: bank.slice(0, 60), account_no: acct, account_name: name.slice(0, 120), verified_at: null, updated_by: user.id, updated_at: new Date().toISOString() }, { onConflict: "school_id" });
+  if (error) return { error: "We couldn't save the account." };
+  revalidatePath("/admin/settings");
+  return { ok: true, message: "Payout account saved. It will be checked with the bank when online payments are switched on.", at: Date.now() };
+}

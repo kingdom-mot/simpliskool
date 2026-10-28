@@ -15,8 +15,10 @@ export async function requireAdminPage(roles: Role[] = SETUP_ROLES) {
 export function PageHero({ crumb, title, count, actions, sub }: { crumb?: { label: string; href?: string }[]; title: string; count?: number; actions?: React.ReactNode; sub?: React.ReactNode }) {
   return (
     <div className="page-hero relative overflow-hidden rounded-[22px] px-[22px] py-5 text-white" style={{ background: SCHOOL_GRADIENT }}>
-      <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-14 h-44 w-44 rounded-full bg-white/10" />
-      <span aria-hidden="true" className="pointer-events-none absolute -bottom-16 right-32 h-36 w-36 rounded-full bg-white/[0.07]" />
+      <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[22px] [contain:paint]">
+        <span className="absolute -right-10 -top-14 h-44 w-44 rounded-full bg-white/10" />
+        <span className="absolute -bottom-16 right-32 h-36 w-36 rounded-full bg-white/[0.07]" />
+      </span>
       <div className="relative flex flex-wrap items-end justify-between gap-3">
         <div className="min-w-0">
           {crumb && (

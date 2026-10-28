@@ -5,6 +5,9 @@ import { Pill } from "@/components/ui";
 import { personInitials } from "@/lib/format";
 import { addGuardian, removeGuardian, updateStudent } from "../actions";
 import { SignInPanel } from "./SignInPanel";
+import { ProfileTab } from "./ProfileTabs";
+import Link from "next/link";
+import { naira } from "@/lib/format";
 
 type Student = {
   id: string;
@@ -18,7 +21,11 @@ type Student = {
   status: "active" | "graduated" | "withdrawn";
   signin_method: "pin" | "own";
   created_at: string;
-  classes: { name: string; arm: string } | null;
+  state_of_origin: string | null;
+  blood_group: string | null;
+  address: string | null;
+  admitted_on: string | null;
+  classes: { name: string; arm: string; profiles: { full_name: string | null } | null } | null;
   profiles: { email: string | null; phone: string | null } | null;
   guardians: { id: string; relationship: string | null; user_id: string; profiles: { full_name: string | null; phone: string | null; email: string | null } | null }[];
 };
@@ -32,7 +39,7 @@ function age(dob: string | null) {
   return a;
 }
 
-export default async function StudentProfile(props: { params: Promise<{ id: string }>; searchParams: Promise<{ added?: string }> }) {
+export default async function StudentProfile(props: { params: Promise<{ id: string }>; searchParams: Promise<{ added?: string; tab?: string; term?: string }> }) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const ctx = await requireAdminPage([...SETUP_ROLES, "bursar"]);
@@ -43,7 +50,7 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
   const [{ data: s }, { data: classes }, { data: pin }] = await Promise.all([
     supabase
       .from("students")
-      .select("id, first_name, last_name, other_names, admission_no, gender, date_of_birth, class_id, status, signin_method, created_at, classes(name, arm), profiles(email, phone), guardians(id, relationship, user_id, profiles(full_name, phone, email))")
+      .select("id, first_name, last_name, other_names, admission_no, gender, date_of_birth, class_id, status, signin_method, created_at, state_of_origin, blood_group, address, admitted_on, classes(name, arm, profiles:class_teacher_id(full_name)), profiles(email, phone), guardians(id, relationship, user_id, profiles(full_name, phone, email))")
       .eq("id", params.id)
       .eq("school_id", school.id)
       .maybeSingle<Student>(),
@@ -56,6 +63,13 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
   const cls = s.classes ? classLabel(s.classes.name, s.classes.arm) : "No class";
   const years = age(s.date_of_birth);
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
+  const tab = ["overview", "results", "attendance", "fees", "docs"].includes(searchParams.tab ?? "") ? searchParams.tab! : "overview";
+  const [{ data: dash }, { data: lastCard }] = await Promise.all([
+    supabase.from("invoices").select("balance_kobo").eq("student_id", s.id).returns<{ balance_kobo: number }[]>(),
+    supabase.from("report_cards").select("term_id, released_at").eq("student_id", s.id).not("released_at", "is", null).order("released_at", { ascending: false }).limit(1).maybeSingle<{ term_id: string; released_at: string }>(),
+  ]);
+  const owed = (dash ?? []).reduce((a, i) => a + Math.max(0, Number(i.balance_kobo)), 0);
+  const parentEmail = s.guardians.map((g) => g.profiles?.email).find((e) => e && !e.endsWith("@students.simpliskool.com"));
   const own = s.signin_method === "own" ? (s.profiles?.email && !s.profiles.email.endsWith("@students.simpliskool.com") ? s.profiles.email : s.profiles?.phone ? `+${s.profiles.phone.replace(/^\+/, "")}` : null) : null;
 
   return (
@@ -76,9 +90,40 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
           <div className="flex flex-wrap gap-2">
             <Pill kind={s.status === "active" ? "good" : "info"}>{s.status === "active" ? "Active" : s.status === "graduated" ? "Graduated" : "Left school"}</Pill>
             <Pill kind={s.guardians.length ? "good" : "warn"}>{s.guardians.length ? `${s.guardians.length} parent${s.guardians.length === 1 ? "" : "s"} linked` : "No parent linked"}</Pill>
+            {(dash ?? []).length > 0 && <Pill kind={owed > 0 ? "bad" : "good"}>{owed > 0 ? `Owes ${naira(owed)}` : "Fees paid"}</Pill>}
           </div>
         </div>
+        <div className="ml-auto flex flex-wrap gap-2">
+          {parentEmail && (
+            <a className="s-btn2" href={`mailto:${parentEmail}`}>
+              Message parent
+            </a>
+          )}
+          {lastCard && (
+            <Link className="s-btn2" href={`/report/${s.id}/${lastCard.term_id}`}>
+              Latest report card
+            </Link>
+          )}
+        </div>
       </section>
+
+      <nav aria-label="Student record" className="flex flex-wrap gap-2">
+        {[
+          ["overview", "Overview"],
+          ["results", "Results"],
+          ["attendance", "Attendance"],
+          ["fees", "Fees"],
+          ["docs", "Report cards"],
+        ].map(([k, l]) => (
+          <Link key={k} href={`/admin/students/${s.id}?tab=${k}`} aria-current={tab === k ? "page" : undefined} className={`flex min-h-[44px] items-center rounded-xl border-[1.5px] px-4 text-sm font-bold ${tab === k ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}>
+            {l}
+          </Link>
+        ))}
+      </nav>
+
+      {tab !== "overview" ? (
+        <ProfileTab tab={tab} db={supabase} schoolId={school.id} studentId={s.id} firstName={s.first_name} termWanted={searchParams.term} canRecord={["owner", "admin", "bursar"].includes(membership.role)} />
+      ) : (
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-2">
         <div className="flex flex-col gap-4">
@@ -111,6 +156,20 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
                     </select>
                   </div>
                   <In id="date_of_birth" label="Date of birth" value={s.date_of_birth ?? ""} type="date" />
+                  <In id="admitted_on" label="Date admitted" value={s.admitted_on ?? ""} type="date" />
+                  <In id="state_of_origin" label="State of origin" value={s.state_of_origin ?? ""} />
+                  <div>
+                    <label className="label" htmlFor="blood_group">Blood group</label>
+                    <select className="sk-input sk-select" id="blood_group" name="blood_group" defaultValue={s.blood_group ?? ""}>
+                      <option value="">Not given</option>
+                      {["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"].map((b) => (
+                        <option key={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <In id="address" label="Home address" value={s.address ?? ""} />
+                  </div>
                   <div>
                     <label className="label" htmlFor="status">Status</label>
                     <select className="sk-input sk-select" id="status" name="status" defaultValue={s.status}>
@@ -128,6 +187,8 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
               <dl className="grid grid-cols-2 gap-3 text-sm">
                 <div><dt className="text-[#4A5A70]">Date of birth</dt><dd className="font-bold text-c1">{s.date_of_birth ?? "—"}</dd></div>
                 <div><dt className="text-[#4A5A70]">Class</dt><dd className="font-bold text-c1">{cls}</dd></div>
+                <div><dt className="text-[#4A5A70]">Class teacher</dt><dd className="font-bold text-c1">{s.classes?.profiles?.full_name ?? "—"}</dd></div>
+                <div><dt className="text-[#4A5A70]">Home address</dt><dd className="font-bold text-c1">{s.address ?? "—"}</dd></div>
               </dl>
             )}
           </Panel>
@@ -211,6 +272,7 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
           )}
         </div>
       </div>
+      )}
     </AdminPage>
   );
 }

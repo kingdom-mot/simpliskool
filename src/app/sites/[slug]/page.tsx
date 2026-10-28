@@ -14,21 +14,15 @@ export default async function SchoolSite(props: { params: Promise<{ slug: string
   const supabase = await createClient();
   const cols = "id, name, slug, logo_url, primary_color, secondary_color, about, address, phone, email";
   const find = (c: string) => supabase.from("schools").select(c).eq("slug", params.slug).eq("status", "active").maybeSingle<School>();
-  const first = await find(`${cols}, motto`);
-  // Before 0009_school_settings.sql is run there is no motto column; still show the site.
+  const first = await find(`${cols}, motto, website`);
+  // Before the newer database files are run, those columns are missing; still show the site.
   const school = first.error ? (await find(cols)).data : first.data;
   if (!school) notFound();
 
-  const { data: news } = await supabase
-    .from("website_posts")
-    .select("id, title, body, image_url, published_at")
-    .eq("school_id", school.id)
-    .eq("kind", "news")
-    .not("published_at", "is", null)
-    .order("published_at", { ascending: false })
-    .limit(3)
-    .returns<Post[]>();
+  const posts = (kind: string, n: number) =>
+    supabase.from("website_posts").select("*").eq("school_id", school.id).eq("kind", kind).not("published_at", "is", null).order("published_at", { ascending: false }).limit(n).returns<Post[]>();
+  const [{ data: news }, { data: gallery }] = await Promise.all([posts("news", 6), posts("gallery", 12)]);
 
-  return <SchoolSiteView school={school} news={news ?? []} />;
+  return <SchoolSiteView school={school} news={news ?? []} gallery={gallery ?? []} />;
 }
 

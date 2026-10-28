@@ -1,5 +1,8 @@
 "use client";
 
+import { ActionForm, SubmitButton } from "@/components/forms";
+import { inviteAllParents } from "@/app/admin/parents/actions";
+
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { Bar } from "@/components/ui";
@@ -308,6 +311,12 @@ export function ImportWizard({ classNames, schoolName }: { classNames: string[];
               {result.parents ? `We linked ${result.parents} parent${result.parents === 1 ? "" : "s"}. They can sign in at simpliskool.com with the phone number or email you gave.` : "No parents were linked. You can add them from each student's page."}{" "}
               Next, print PIN slips so younger students can sign in.
             </p>
+            {result.parents > 0 && (
+              <ActionForm action={inviteAllParents} className="flex flex-wrap items-center gap-3 rounded-xl bg-brand-cloud p-4">
+                <p className="text-sm text-brand-slate">Send the parents their invites now, so they can see results and pay fees.</p>
+                <SubmitButton pending="Sending…">Invite parents</SubmitButton>
+              </ActionForm>
+            )}
             {result.problems.length > 0 && <Problems problems={result.problems} caption="Rows not added, or added with a note" />}
             <div className="flex flex-wrap justify-end gap-2.5">
               <Link className="s-btn2" href="/admin/students/import" onClick={() => location.reload()}>
