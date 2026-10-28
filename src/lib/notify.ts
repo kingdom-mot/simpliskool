@@ -4,9 +4,9 @@ import { emailLayout, escapeHtml, sendEmail } from "@/lib/email";
 import { schoolColours } from "@/lib/theme";
 
 type Admin = ReturnType<typeof createAdminClient>;
-type Kind = "absence" | "register_reminder";
+type Kind = "absence" | "register_reminder" | "fee_reminder" | "fee_invoice";
 
-function siteUrl() {
+export function siteUrl() {
   return process.env.NEXT_PUBLIC_SITE_URL ?? `https://${process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com"}`;
 }
 
@@ -19,7 +19,7 @@ function niceDate(iso: string) {
  * message was already sent (or is being sent right now by another request).
  * A message that failed before is tried again.
  */
-async function claim(admin: Admin, row: { school_id: string; student_id: string | null; kind: Kind; recipient: string; about_date: string }) {
+export async function claim(admin: Admin, row: { school_id: string; student_id: string | null; kind: Kind; recipient: string; about_date: string }) {
   const { data } = await admin
     .from("notifications")
     .upsert({ ...row, channel: "email", status: "failed", error: "sending" }, { onConflict: "kind,channel,recipient,about_date,student_id", ignoreDuplicates: true })
@@ -37,7 +37,7 @@ async function claim(admin: Admin, row: { school_id: string; student_id: string 
   return retry?.length ? (retry[0].id as string) : null;
 }
 
-async function finish(admin: Admin, id: string, res: Awaited<ReturnType<typeof sendEmail>>) {
+export async function finish(admin: Admin, id: string, res: Awaited<ReturnType<typeof sendEmail>>) {
   await admin
     .from("notifications")
     .update(res.ok ? { status: "sent", error: null, provider_id: res.id } : { status: res.skipped ? "skipped" : "failed", error: res.error })

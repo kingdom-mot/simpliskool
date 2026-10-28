@@ -142,7 +142,9 @@ function FeeCard({ kid, termName }: { kid: Child; termName: string }) {
             {naira(Math.max(balance, 0))} <span className="font-sans text-sm font-semibold text-[#4A5A70]">{balance <= 0 ? "Paid in full" : `left of ${naira(total)}`}</span>
           </div>
           <Bar value={p} fill="var(--c2,#0B7D6E)" label="Fees paid" />
-          {balance > 0 && <p className="text-sm text-[#4A5A70]">Online payment is coming soon. For now, pay the school directly and they will record it.</p>}
+          <Link className="s-link text-sm" href="/parent/fees">
+            {balance > 0 ? "See the bill and how to pay" : "See the bill and receipts"}
+          </Link>
         </>
       )}
     </section>

@@ -30,8 +30,8 @@ const ADMIN: NavGroup[] = [
   {
     label: "Finance",
     items: [
-      { key: "fees", label: "Fee setup", href: null },
-      { key: "payments", label: "Payments & defaulters", href: null },
+      { key: "fees", label: "Fee setup", href: "/admin/fees" },
+      { key: "payments", label: "Payments & defaulters", href: "/admin/payments" },
       { key: "payroll", label: "Payroll", href: null },
     ],
   },
@@ -51,10 +51,10 @@ const ADMIN: NavGroup[] = [
   },
 ];
 
-// Same rules as the design: principals don't see payroll or settings; admins see less;
+// Same rules as the design: principals don't see money screens or settings; admins see less;
 // bursars only see money screens.
 const HIDE: Partial<Record<Role, string[]>> = {
-  principal: ["payroll", "settings"],
+  principal: ["payroll", "settings", "fees", "payments"],
   admin: ["payroll", "settings", "staffatt", "lessonnotes", "reportcards"],
 };
 const BURSAR_KEEP = ["dashboard", "students", "fees", "payments", "payroll"];
@@ -106,7 +106,7 @@ export const PARENT_TABS: Tab[] = [
   { key: "home", label: "Home", href: "/parent", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
   { key: "learning", label: "Learning", href: null, icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
   { key: "results", label: "Results", href: null, icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
-  { key: "fees", label: "Fees", href: null, icon: "M2 7h20v12H2zM2 11h20M6 15h4" },
+  { key: "fees", label: "Fees", href: "/parent/fees", icon: "M2 7h20v12H2zM2 11h20M6 15h4" },
   { key: "school", label: "School", href: null, icon: "M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0" },
 ];
 

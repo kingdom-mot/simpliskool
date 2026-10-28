@@ -38,7 +38,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
     { label: "Set the current session and term", done: !!d?.setup.session, href: "/admin/sessions" },
     { label: "Create classes and arms", done: !!d?.setup.classes, href: "/admin/classes" },
     { label: "Add subjects", done: !!d?.setup.subjects, href: "/admin/classes" },
-    { label: "Set this term's fees", done: !!d?.setup.fees },
+    { label: "Set this term's fees", done: !!d?.setup.fees, href: "/admin/fees" },
     { label: "Invite teachers and bursar", done: !!d?.setup.staff, href: "/admin/staff" },
     { label: "Add students and parents", done: !!d?.setup.students, href: "/admin/students/import" },
   ];
@@ -276,7 +276,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
         )}
 
         <p className="text-sm text-[#4A5A70]">
-          More admin pages are being built: students, attendance, results and fees will open from the menu as each one goes live.{" "}
+          More admin pages are being built: results, timetable and announcements will open from the menu as each one goes live.{" "}
           <Link href="/help" className="font-bold text-c2 underline underline-offset-2">
             Get help
           </Link>
