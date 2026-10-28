@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MobileShell } from "@/components/MobileShell";
 import { Empty, TONES, TONE_CYCLE } from "@/components/ui";
 import type { ShellSchool } from "@/components/PortalShell";
@@ -57,14 +58,14 @@ export function StudentView({ school, fullName, d, now: nowOverride, todo }: { s
           </h2>
           <div className="flex flex-wrap gap-2">
             {todo.homework > 0 && (
-              <a href="/student/homework" className="s-btn2">
+              <Link href="/student/homework" className="s-btn2">
                 {todo.homework} homework to hand in
-              </a>
+              </Link>
             )}
             {todo.tests > 0 && (
-              <a href="/student/cbt" className="s-btn">
+              <Link href="/student/cbt" className="s-btn">
                 {todo.tests} test{todo.tests === 1 ? "" : "s"} open now
-              </a>
+              </Link>
             )}
           </div>
         </section>
