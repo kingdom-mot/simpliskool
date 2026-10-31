@@ -4,7 +4,7 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import { Box, LinkTabs, SuperShell } from "@/components/super";
 import { Empty, Pill } from "@/components/ui";
 import { ago, lagosTime, requirePlatform } from "@/lib/platform";
-import { nowMs } from "@/lib/platform-data";
+import { demoSchoolIds, notDemo, nowMs } from "@/lib/platform-data";
 import { assignTicket, reopenTicket, teamReply } from "../actions";
 
 export const metadata = { title: "Support inbox — Simpliskool back office" };
@@ -17,13 +17,14 @@ export default async function SuperSupport(props: { searchParams: Promise<{ show
   const ctx = await requirePlatform("support");
   const now = nowMs();
   const show = sp.show === "mine" || sp.show === "closed" ? sp.show : "open";
-  let q = ctx.admin.from("support_tickets").select("id, school_id, subject, priority, status, assigned_to, last_from, created_at, updated_at, schools(name), profiles!support_tickets_opened_by_fkey(full_name)");
+  const demo = await demoSchoolIds(ctx.admin);
+  let q = notDemo(ctx.admin.from("support_tickets").select("id, school_id, subject, priority, status, assigned_to, last_from, created_at, updated_at, schools(name), profiles!support_tickets_opened_by_fkey(full_name)"), demo);
   q = show === "closed" ? q.eq("status", "closed") : q.eq("status", "open");
   if (show === "mine") q = q.eq("assigned_to", ctx.user.id);
   const [{ data: list }, { data: team }, { count: openCount }] = await Promise.all([
     q.order("updated_at", { ascending: false }).limit(100).returns<Ticket[]>(),
     ctx.admin.from("platform_team").select("user_id, profiles!platform_team_user_id_fkey(full_name)").returns<{ user_id: string; profiles: { full_name: string | null } | null }[]>(),
-    ctx.admin.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open"),
+    notDemo(ctx.admin.from("support_tickets").select("id", { count: "exact", head: true }), demo).eq("status", "open"),
   ]);
   const tickets = [...(list ?? [])].sort((a, b) => (show === "closed" ? 0 : (a.priority === "urgent" ? 0 : 1) - (b.priority === "urgent" ? 0 : 1)) || Date.parse(b.updated_at) - Date.parse(a.updated_at));
   const who = new Map((team ?? []).map((t) => [t.user_id, t.profiles?.full_name ?? "Team member"]));

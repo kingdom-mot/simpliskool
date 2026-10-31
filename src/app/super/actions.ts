@@ -616,3 +616,16 @@ export async function savePlatformSettings(_prev: ActionState, fd: FormData): Pr
 export async function decideCheck(prev: ActionState, fd: FormData): Promise<ActionState> {
   return fd.get("do") === "approve" ? approveSchool(prev, fd) : askSchoolToFix(prev, fd);
 }
+
+/** Rebuilds the demo schools now (also happens every night). */
+export async function resetDemoNow(): Promise<ActionState> {
+  const ctx = await allowed("platform", "platform");
+  if (!ctx) return NO;
+  try {
+    const out = await (await import("@/lib/demo")).resetDemo();
+    await logPlatform(ctx, "Reset the demo schools", "other", null, `${out.students} students`);
+    return done(`Demo rebuilt with ${out.students} students. Anyone in it now sees fresh data.`);
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "The demo couldn't be rebuilt." };
+  }
+}

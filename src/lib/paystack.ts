@@ -1,4 +1,5 @@
 import "server-only";
+import { isDemoRequest } from "@/lib/demo";
 import { createHmac, randomBytes, timingSafeEqual } from "crypto";
 
 /**
@@ -59,6 +60,7 @@ export async function resolveAccount(accountNo: string, bankCode: string) {
  * charge ("subaccount" bearer) and Simpliskool takes nothing (0%).
  */
 export async function upsertSubaccount(input: { existing: string | null; schoolName: string; bankCode: string; accountNo: string; email: string | null }) {
+  if (await isDemoRequest()) return { ok: false as const, error: "Not available in the demo." };
   const body = {
     business_name: input.schoolName.slice(0, 100),
     settlement_bank: input.bankCode,
@@ -79,6 +81,7 @@ export function newReference() {
 }
 
 export async function initializePayment(input: { email: string; amountKobo: number; reference: string; subaccount: string; callbackUrl: string; metadata: Record<string, unknown> }) {
+  if (await isDemoRequest()) return { ok: false as const, error: "Online payment is switched off in the demo." };
   return ps<{ authorization_url: string; access_code: string; reference: string }>("/transaction/initialize", {
     method: "POST",
     body: {

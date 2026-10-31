@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DemoBar } from "@/components/DemoBar";
 import { SignOutButton } from "@/components/SignOutButton";
 import type { Tab } from "@/lib/nav";
 import { schoolThemeStyle } from "@/lib/theme";
@@ -29,6 +30,9 @@ export function MobileShell({
       <a className="sk-skip" href="#main">
         Skip to main content
       </a>
+      <div className="mx-auto w-full max-w-[640px] px-4 pt-2 empty:hidden [&>div]:mb-0">
+        <DemoBar />
+      </div>
       <header className={`px-4 pt-3.5 text-white ${overlap ? "pb-16" : "pb-5"}`} style={{ background: SCHOOL_GRADIENT }}>
         <div className="mx-auto flex max-w-[640px] items-center justify-between gap-2.5">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5">

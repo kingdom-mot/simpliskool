@@ -119,11 +119,14 @@ export async function requirePlatform(page: string) {
   if (!m.team.last_seen_at || Date.now() - Date.parse(m.team.last_seen_at) > 5 * 60_000) {
     await m.admin.from("platform_team").update({ last_seen_at: new Date().toISOString() }).eq("user_id", m.user.id);
   }
+  const { data: demoRows } = await m.admin.from("schools").select("id").eq("is_demo", true).then((r) => (r.error ? { data: [] as { id: string }[] } : r));
+  const demo = (demoRows ?? []).map((d: { id: string }) => d.id);
+  const skip = (ids: string[]) => (ids.length ? `(${ids.join(",")})` : null);
   const [checks, tickets] = await Promise.all([
     canOpen(role, "approvals")
-      ? m.admin.from("schools").select("id", { count: "exact", head: true }).is("payments_approved_at", null).eq("check_status", "waiting").eq("status", "active").then((r) => r.count ?? 0)
+      ? (skip(demo) ? m.admin.from("schools").select("id", { count: "exact", head: true }).not("id", "in", skip(demo)!) : m.admin.from("schools").select("id", { count: "exact", head: true })).is("payments_approved_at", null).eq("check_status", "waiting").eq("status", "active").then((r) => r.count ?? 0)
       : Promise.resolve(0),
-    canOpen(role, "support") ? m.admin.from("support_tickets").select("id", { count: "exact", head: true }).eq("status", "open").then((r) => r.count ?? 0) : Promise.resolve(0),
+    canOpen(role, "support") ? (skip(demo) ? m.admin.from("support_tickets").select("id", { count: "exact", head: true }).not("school_id", "in", skip(demo)!) : m.admin.from("support_tickets").select("id", { count: "exact", head: true })).eq("status", "open").then((r) => r.count ?? 0) : Promise.resolve(0),
   ]);
   const badge: Record<string, number> = { approvals: checks, support: tickets };
   const nav = NAV.map((g) => ({

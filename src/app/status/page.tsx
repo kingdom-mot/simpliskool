@@ -82,6 +82,9 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       db.push({ label: "0016 absence reports, message choices", ...(await fnExists(admin, "attendance_month", { p_student: zero, p_month: "2026-01-01" })) });
       db.push({ label: "0017 school groups (branches)", ...(await fnExists(admin, "is_group_proprietor", { p_group: zero })) });
       db.push({ label: "0018 back office (team, checks, support, notices, SMS credit)", ...(await fnExists(admin, "viewing_school", { p_school: zero })) });
+      // (Checked by its column: calling demo_reset would rebuild the demo.)
+      const demoCol = await admin.from("schools").select("is_demo").limit(1);
+      db.push({ label: "0019 public demo (Bright Future Academy)", ok: !demoCol.error, ...(demoCol.error ? { detail: "Not found in the database" } : {}) });
       db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
   }

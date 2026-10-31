@@ -1,4 +1,5 @@
 import "server-only";
+import { demoSchoolIds, notDemo } from "@/lib/platform-data";
 import type { createAdminClient } from "@/lib/supabase/admin";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -24,18 +25,15 @@ export type PayRow = {
 
 /** Online payments (and failed attempts) across every school since `from`. */
 export async function onlinePayments(admin: Admin, from: string, limit = 500): Promise<PayRow[]> {
+  const demo = await demoSchoolIds(admin);
   const [{ data: pays }, { data: failed }] = await Promise.all([
-    admin
-      .from("payments")
-      .select("id, created_at, paid_at, paystack_reference, school_id, amount_kobo, fees_kobo, channel, status, voided_at, void_reason, schools(name)")
+    notDemo(admin.from("payments").select("id, created_at, paid_at, paystack_reference, school_id, amount_kobo, fees_kobo, channel, status, voided_at, void_reason, schools(name)"), demo)
       .eq("method", "paystack")
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(limit)
       .returns<{ id: string; created_at: string; paid_at: string | null; paystack_reference: string | null; school_id: string; amount_kobo: number; fees_kobo: number | null; channel: string | null; status: string; voided_at: string | null; void_reason: string | null; schools: { name: string } | null }[]>(),
-    admin
-      .from("payment_intents")
-      .select("reference, created_at, school_id, amount_kobo, created_by, schools(name)")
+    notDemo(admin.from("payment_intents").select("reference, created_at, school_id, amount_kobo, created_by, schools(name)"), demo)
       .eq("status", "failed")
       .gte("created_at", from)
       .order("created_at", { ascending: false })

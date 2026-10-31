@@ -1,4 +1,5 @@
 import "server-only";
+import { isDemoRequest } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { normalizePhone } from "@/lib/people";
 import { claim, finish } from "@/lib/notify";
@@ -59,6 +60,7 @@ export async function giveBackSmsCredit(admin: Admin, schoolId: string, n: numbe
 export async function sendSms(to: string, text: string, from?: string): Promise<SmsResult> {
   const key = process.env.TERMII_API_KEY;
   if (!key) return { ok: false, skipped: true, error: "SMS isn't set up yet (TERMII_API_KEY missing)." };
+  if (await isDemoRequest()) return { ok: false, skipped: true, error: "Texts are switched off in the demo." };
   const num = termiiNumber(to);
   if (!num) return { ok: false, skipped: true, error: "Not a valid phone number" };
   try {
@@ -80,6 +82,7 @@ export async function sendSms(to: string, text: string, from?: string): Promise<
 export async function sendSmsBulk(numbers: string[], text: string, from?: string): Promise<{ sent: number; failed: number; skipped: boolean }> {
   const key = process.env.TERMII_API_KEY;
   if (!key) return { sent: 0, failed: 0, skipped: true };
+  if (await isDemoRequest()) return { sent: 0, failed: 0, skipped: true };
   const list = [...new Set(numbers.map(termiiNumber).filter((n): n is string => !!n))];
   let sent = 0;
   let failed = 0;

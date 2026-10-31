@@ -11,6 +11,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { listBanks, paystackReady, paystackTestMode, resolveAccount, upsertSubaccount } from "@/lib/paystack";
 import { SCHOOL_PALETTE } from "@/lib/theme";
 import { teamEmail } from "@/lib/platform-mail";
+import { isDemoRequest } from "@/lib/demo";
 
 /** Only the school owner changes settings (same rule as the design). */
 const SETTINGS_ROLES: Role[] = ["owner"];
@@ -169,6 +170,7 @@ export async function saveGradingScale(_prev: ActionState, fd: FormData): Promis
 }
 
 export async function savePayout(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "Payout accounts can't be changed in the demo." };
   const { supabase, school, user } = await requireSchool(SETTINGS_ROLES);
   const acct = String(fd.get("account_no") ?? "").replace(/\s/g, "");
   const typedName = String(fd.get("account_name") ?? "").trim();
@@ -215,6 +217,7 @@ export async function savePayout(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function pauseOnlinePayments(): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "Not available in the demo." };
   const { supabase, school } = await requireSchool(SETTINGS_ROLES);
   const { error } = await supabase.from("school_payouts").update({ paystack_subaccount: null, updated_at: new Date().toISOString() }).eq("school_id", school.id);
   if (error) return { error: "We couldn't switch online payment off." };
@@ -238,6 +241,7 @@ export async function saveSms(_prev: ActionState, fd: FormData): Promise<ActionS
 
 /** The owner asks for their own SMS sender name; Simpliskool sends it to the SMS provider. */
 export async function requestSenderName(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "Sender names can't be requested from the demo." };
   const { supabase, school } = await requireSchool(["owner"]);
   const v = String(fd.get("sender_id") ?? "").trim().toUpperCase();
   if (!/^[A-Z0-9 ]{3,11}$/.test(v)) return { error: "Use 3 to 11 letters or numbers, like GREENFIELD." };

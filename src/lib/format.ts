@@ -64,8 +64,13 @@ export function clock(hhmm: string): string {
 
 export const TERM_NAME = ["", "First Term", "Second Term", "Third Term"];
 
+const TITLES = /^(mr|mrs|miss|ms|dr|prof|chief|alhaji|alhaja|engr|pastor|rev|sir|lady|hon)\.?$/i;
+
+/** "Mrs Adaeze Okonkwo" → "Mrs Okonkwo" (titles keep the surname); "Tolu Okafor" → "Tolu". */
 export function firstName(full: string): string {
-  return full.trim().split(/\s+/)[0] || full;
+  const parts = full.trim().split(/\s+/);
+  if (parts.length > 1 && TITLES.test(parts[0])) return `${parts[0]} ${parts[parts.length - 1]}`;
+  return parts[0] || full;
 }
 
 export function personInitials(full: string): string {

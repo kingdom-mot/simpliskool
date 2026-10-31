@@ -2,7 +2,7 @@ import { Flash } from "@/components/Flash";
 import { Box, SuperShell } from "@/components/super";
 import { Empty, Pill } from "@/components/ui";
 import { requirePlatform } from "@/lib/platform";
-import { nowMs, shortDay } from "@/lib/platform-data";
+import { demoSchoolIds, notDemo, nowMs, shortDay } from "@/lib/platform-data";
 import { endNotice } from "../actions";
 import { NoticeComposer } from "./NoticeComposer";
 
@@ -17,7 +17,7 @@ export default async function SuperNotices() {
   const today = lagosDay(now);
   const [{ data: notices }, { data: schools }, { data: reads }] = await Promise.all([
     ctx.admin.from("platform_notices").select("id, kind, headline, audience, school_ids, show_until, created_at, ended_at, email_owners").order("created_at", { ascending: false }).limit(30).returns<{ id: string; kind: string; headline: string; audience: string; school_ids: string[] | null; show_until: string; created_at: string; ended_at: string | null; email_owners: boolean }[]>(),
-    ctx.admin.from("schools").select("id, name, plan").eq("status", "active").order("name").returns<{ id: string; name: string; plan: string }[]>(),
+    notDemo(ctx.admin.from("schools").select("id, name, plan"), await demoSchoolIds(ctx.admin), "id").eq("status", "active").order("name").returns<{ id: string; name: string; plan: string }[]>(),
     ctx.admin.from("notice_reads").select("notice_id, school_id").limit(50000).returns<{ notice_id: string; school_id: string | null }[]>(),
   ]);
   const readBy = new Map<string, Set<string>>();

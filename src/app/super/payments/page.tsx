@@ -5,7 +5,7 @@ import { Box, LinkTabs, money, Scroll, Stat, SuperShell } from "@/components/sup
 import { Empty, Pill } from "@/components/ui";
 import { listDisputes, listSettlements, paystackReady, paystackTestMode } from "@/lib/paystack";
 import { lagosTime, requirePlatform } from "@/lib/platform";
-import { nowMs, shortDay } from "@/lib/platform-data";
+import { demoSchoolIds, notDemo, nowMs, shortDay } from "@/lib/platform-data";
 import { onlinePayments, RANGE_LABEL, rangeStart, type Range } from "@/lib/platform-money";
 import { askNewAccount, declineRefund, refundPayment, sendDisputeEvidence } from "../actions";
 
@@ -21,11 +21,10 @@ export default async function SuperPayments(props: { searchParams: Promise<{ tab
   const tab = sp.tab === "po" || sp.tab === "ds" ? sp.tab : "tx";
   const from = rangeStart(range, now);
   const to = new Date(now).toISOString();
+  const demo = await demoSchoolIds(ctx.admin);
   const [rows, { data: refunds }, disputes] = await Promise.all([
     onlinePayments(ctx.admin, from),
-    ctx.admin
-      .from("refund_requests")
-      .select("id, school_id, amount_kobo, reason, status, created_at, decided_at, decline_note, schools(name), payments(paystack_reference, receipt_no), profiles!refund_requests_requested_by_fkey(full_name)")
+    notDemo(ctx.admin.from("refund_requests").select("id, school_id, amount_kobo, reason, status, created_at, decided_at, decline_note, schools(name), payments(paystack_reference, receipt_no), profiles!refund_requests_requested_by_fkey(full_name)"), demo)
       .order("created_at", { ascending: false })
       .limit(30)
       .returns<{ id: string; school_id: string; amount_kobo: number; reason: string; status: string; created_at: string; decided_at: string | null; decline_note: string | null; schools: { name: string } | null; payments: { paystack_reference: string | null; receipt_no: string | null } | null; profiles: { full_name: string | null } | null }[]>(),

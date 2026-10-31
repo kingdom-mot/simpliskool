@@ -7,6 +7,7 @@ import { z } from "zod";
 import { requireSchool } from "@/lib/auth";
 import { setFlash } from "@/lib/flash";
 import { teamEmail } from "@/lib/platform-mail";
+import { isDemoRequest } from "@/lib/demo";
 import type { ActionState } from "@/components/forms";
 import { emailReady } from "@/lib/email";
 import { sendFeeReminders, sendReceiptEmail } from "@/lib/fee-emails";
@@ -71,6 +72,7 @@ export async function voidPayment(_prev: ActionState, fd: FormData): Promise<Act
 
 /** Online payments are refunded by Simpliskool (through Paystack); the school asks here. */
 export async function askRefund(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "Refunds can't be requested in the demo." };
   const { supabase, school, membership, fullName } = await requireSchool(FINANCE_ROLES);
   if (membership.role !== "owner" && membership.role !== "bursar") return { error: "Only the owner or bursar can ask for a refund." };
   const id = uuid.safeParse(fd.get("id"));

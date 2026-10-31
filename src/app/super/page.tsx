@@ -5,7 +5,7 @@ import { Pill } from "@/components/ui";
 import { emailReady } from "@/lib/email";
 import { paystackReady, paystackTestMode } from "@/lib/paystack";
 import { ago, requirePlatform } from "@/lib/platform";
-import { health, lagosMidnight, longDay, nameMatches, nowMs, parentsPct, schoolRows } from "@/lib/platform-data";
+import { demoSchoolIds, health, lagosMidnight, notDemo, longDay, nameMatches, nowMs, parentsPct, schoolRows } from "@/lib/platform-data";
 import { smsReady } from "@/lib/sms";
 
 export const metadata = { title: "Platform overview — Simpliskool back office" };
@@ -24,18 +24,19 @@ export default async function SuperOverview(props: { searchParams: Promise<{ m?:
   const ctx = await requirePlatform("overview");
   const now = nowMs();
   const first = weekStart(now) - 8 * WEEK;
+  const demo = await demoSchoolIds(ctx.admin);
   const [rows, { data: terms }, active, { data: weekly }, { data: tickets }, { data: refunds }, { data: notes }] = await Promise.all([
     schoolRows(ctx.admin),
-    ctx.admin.from("terms").select("id").eq("is_current", true).returns<{ id: string }[]>(),
+    notDemo(ctx.admin.from("terms").select("id"), demo).eq("is_current", true).returns<{ id: string }[]>(),
     ctx.admin.rpc("platform_active_since", { p_since: lagosMidnight() }).then((r) => Number(r.data) || 0),
-    ctx.admin.from("payments").select("amount_kobo, created_at, method").eq("status", "success").gte("created_at", new Date(first).toISOString()).limit(20000).returns<{ amount_kobo: number; created_at: string; method: string }[]>(),
-    ctx.admin.from("support_tickets").select("id, priority, created_at").eq("status", "open").returns<{ id: number; priority: string; created_at: string }[]>(),
-    ctx.admin.from("refund_requests").select("id").eq("status", "asked").returns<{ id: string }[]>(),
-    ctx.admin.from("notifications").select("channel, status").gte("created_at", new Date(now - WEEK).toISOString()).in("channel", ["email", "sms"]).limit(50000).returns<{ channel: string; status: string }[]>(),
+    notDemo(ctx.admin.from("payments").select("amount_kobo, created_at, method"), demo).eq("status", "success").gte("created_at", new Date(first).toISOString()).limit(20000).returns<{ amount_kobo: number; created_at: string; method: string }[]>(),
+    notDemo(ctx.admin.from("support_tickets").select("id, priority, created_at"), demo).eq("status", "open").returns<{ id: number; priority: string; created_at: string }[]>(),
+    notDemo(ctx.admin.from("refund_requests").select("id"), demo).eq("status", "asked").returns<{ id: string }[]>(),
+    notDemo(ctx.admin.from("notifications").select("channel, status"), demo).gte("created_at", new Date(now - WEEK).toISOString()).in("channel", ["email", "sms"]).limit(50000).returns<{ channel: string; status: string }[]>(),
   ]);
   const termIds = (terms ?? []).map((t) => t.id);
   const { data: termPays } = termIds.length
-    ? await ctx.admin.from("payments").select("amount_kobo, method, invoices!inner(term_id)").eq("status", "success").in("invoices.term_id", termIds).limit(50000).returns<{ amount_kobo: number; method: string }[]>()
+    ? await notDemo(ctx.admin.from("payments").select("amount_kobo, method, invoices!inner(term_id)"), demo).eq("status", "success").in("invoices.term_id", termIds).limit(50000).returns<{ amount_kobo: number; method: string }[]>()
     : { data: [] as { amount_kobo: number; method: string }[] };
 
   const live = rows.filter((r) => r.status === "active");
@@ -115,15 +116,15 @@ export default async function SuperOverview(props: { searchParams: Promise<{ m?:
         <Box id="wk-h" title="Fees paid each week" actions={<LinkTabs label="Measure" current={m} tabs={[["amt", "Amount", "/super?m=amt"], ["cnt", "Number of payments", "/super?m=cnt"]]} />}>
           <div role="img" aria-label={`${m === "amt" ? "Fees paid" : "Number of payments"} each week for the last 9 weeks: ${bars.map((b) => `${dayMonth(b.w)} ${m === "amt" ? money(b.amt) : b.cnt}`).join(", ")}`} className="flex h-[220px] items-end gap-2 border-b border-[#E3EAF3] pt-2.5">
             {bars.map((b, i) => (
-              <div key={b.w} className="flex h-full flex-1 flex-col items-center justify-end gap-1.5">
-                <span className="text-[11px] font-extrabold text-[#173B70] sm:text-xs">{m === "amt" ? money(b.amt) : b.cnt}</span>
+              <div key={b.w} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
+                <span className="hidden text-[11px] font-extrabold text-[#173B70] sm:block sm:text-xs">{m === "amt" ? money(b.amt) : b.cnt}</span>
                 <div className="w-full max-w-12 rounded-t-lg" style={{ height: `${Math.round(((m === "amt" ? b.amt : b.cnt) / max) * 170)}px`, background: i === bars.length - 1 ? "#0F9D8A" : "#173B70" }} />
               </div>
             ))}
           </div>
           <div aria-hidden="true" className="flex gap-2">
             {bars.map((b) => (
-              <span key={b.w} className="flex-1 text-center text-[11px] text-[#4A5A70] sm:text-xs">
+              <span key={b.w} className="min-w-0 flex-1 truncate text-center text-[10px] text-[#4A5A70] sm:text-xs">
                 {dayMonth(b.w)}
               </span>
             ))}

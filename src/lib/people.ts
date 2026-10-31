@@ -1,4 +1,5 @@
 import "server-only";
+import { isDemoRequest } from "@/lib/demo";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Nigerian phone numbers to international form: 0803 123 4567 -> +2348031234567. */
@@ -25,6 +26,8 @@ export function normalizeEmail(raw: string | null | undefined): string | null {
  * Only call this after checking the caller is allowed to add people to the school.
  */
 export async function findOrCreateUser(input: { email?: string | null; phone?: string | null; fullName?: string | null }): Promise<string | null> {
+  // The demo never creates real sign-ins (it's wiped every night and anyone can use it).
+  if (await isDemoRequest()) return null;
   const email = normalizeEmail(input.email);
   const phone = normalizePhone(input.phone);
   if (!email && !phone) return null;

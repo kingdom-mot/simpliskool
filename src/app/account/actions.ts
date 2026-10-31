@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { isDemoEmail } from "@/lib/demo";
 import type { ActionState } from "@/components/forms";
 import { requireUser } from "@/lib/auth";
 
@@ -31,7 +32,8 @@ export async function saveMessages(_prev: ActionState, fd: FormData): Promise<Ac
 
 /** Signs this account out on every phone and computer. */
 export async function signOutEverywhere(): Promise<ActionState> {
-  const { supabase } = await requireUser();
+  const { supabase, user } = await requireUser();
+  if (isDemoEmail(user.email)) return { error: "Not available in the demo (other visitors share this login)." };
   await supabase.auth.signOut({ scope: "global" });
   redirect("/login?signed_out=1");
 }

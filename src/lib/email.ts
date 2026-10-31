@@ -1,4 +1,5 @@
 import "server-only";
+import { isDemoEmail, isDemoRequest } from "@/lib/demo";
 
 /**
  * Sends one email through Resend (https://resend.com).
@@ -14,6 +15,7 @@ export function emailReady() {
 export async function sendEmail(msg: { to: string; subject: string; html: string; text: string; fromName?: string; replyTo?: string | null }): Promise<EmailResult> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { ok: false, skipped: true, error: "Email isn't set up yet (RESEND_API_KEY missing)." };
+  if (isDemoEmail(msg.to) || (await isDemoRequest())) return { ok: false, skipped: true, error: "Emails are switched off in the demo." };
   const fromAddress = process.env.EMAIL_FROM_ADDRESS ?? "notifications@simpliskool.com";
   // Display name like "Bright Stars College via Simpliskool"; quotes and angle brackets removed.
   const name = (msg.fromName ? `${msg.fromName} via Simpliskool` : "Simpliskool").replace(/["<>]/g, "");
@@ -62,6 +64,8 @@ ${bodyHtml}
 export async function sendEmailBatch(msgs: { to: string; subject: string; html: string; text: string; fromName?: string; replyTo?: string | null }[]): Promise<{ sent: number; failed: number; skipped: boolean }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { sent: 0, failed: 0, skipped: true };
+  if (await isDemoRequest()) return { sent: 0, failed: 0, skipped: true };
+  msgs = msgs.filter((m) => !isDemoEmail(m.to));
   const fromAddress = process.env.EMAIL_FROM_ADDRESS ?? "notifications@simpliskool.com";
   let sent = 0;
   let failed = 0;

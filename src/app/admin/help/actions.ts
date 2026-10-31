@@ -5,11 +5,13 @@ import type { ActionState } from "@/components/forms";
 import { requireSchool } from "@/lib/auth";
 import { setFlash } from "@/lib/flash";
 import { teamEmail } from "@/lib/platform-mail";
+import { isDemoRequest } from "@/lib/demo";
 
 const ROLES = ["owner", "admin", "principal", "bursar"] as const;
 
 /** Opens a request to the Simpliskool team. */
 export async function openTicket(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "In the demo, help requests aren't sent. In your own school, they reach the Simpliskool team straight away." };
   const { supabase, school, fullName } = await requireSchool([...ROLES]);
   const subject = String(fd.get("subject") ?? "").trim();
   const body = String(fd.get("body") ?? "").trim();
@@ -26,6 +28,7 @@ export async function openTicket(_prev: ActionState, fd: FormData): Promise<Acti
 }
 
 export async function replyToTeam(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  if (await isDemoRequest()) return { error: "In the demo, replies aren't sent." };
   const { supabase, school, fullName } = await requireSchool([...ROLES]);
   const id = Number(fd.get("ticket_id"));
   const body = String(fd.get("body") ?? "").trim();

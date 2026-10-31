@@ -5,7 +5,7 @@ import { Pill } from "@/components/ui";
 import { paystackReady, paystackTestMode } from "@/lib/paystack";
 import { requirePlatform } from "@/lib/platform";
 import { FEATURES, getSettings } from "@/lib/platform-settings";
-import { savePlatformSettings } from "../actions";
+import { resetDemoNow, savePlatformSettings } from "../actions";
 
 export const metadata = { title: "Platform settings — Simpliskool back office" };
 
@@ -123,6 +123,16 @@ export default async function SuperPlatform() {
           <SubmitButton>Save settings</SubmitButton>
         </div>
       </ActionForm>
+      <Box id="demo-h" title="Demo schools">
+        <p className="text-sm text-[#4A5A70]">
+          Bright Future Academy (Lekki and Ajah) is the public demo at <a className="s-link" href="/demo">simpliskool.com/demo</a>. It&apos;s rebuilt with fresh made-up data every night at midnight; emails, texts and payments are always off there, and it never shows up in the back office figures.
+        </p>
+        <ActionForm action={resetDemoNow}>
+          <SubmitButton className="s-btn2" pending="Rebuilding (about 20 seconds)…">
+            Reset the demo now
+          </SubmitButton>
+        </ActionForm>
+      </Box>
     </SuperShell>
   );
 }

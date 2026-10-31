@@ -3,7 +3,7 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import { LinkTabs, Scroll, Stat, SuperShell } from "@/components/super";
 import { Empty, Pill } from "@/components/ui";
 import { requirePlatform } from "@/lib/platform";
-import { nowMs, schoolRows, shortDay } from "@/lib/platform-data";
+import { demoSchoolIds, notDemo, nowMs, schoolRows, shortDay } from "@/lib/platform-data";
 import { smsReady } from "@/lib/sms";
 import { addSmsCredit, decideSender } from "../actions";
 
@@ -22,12 +22,13 @@ export default async function SuperMessaging(props: { searchParams: Promise<{ ta
   const tab = sp.tab === "sn" ? "sn" : "cr";
   const from = monthStart();
   const days30 = new Date(now - 30 * 86_400_000).toISOString();
+  const demo = await demoSchoolIds(ctx.admin);
   const [rows, { data: notes }, { data: anns }, { data: recent }, { data: senders }] = await Promise.all([
     schoolRows(ctx.admin),
-    ctx.admin.from("notifications").select("school_id, channel, status").gte("created_at", from).limit(100000).returns<{ school_id: string; channel: string; status: string }[]>(),
-    ctx.admin.from("announcements").select("school_id, sms_sent, emailed").gte("created_at", from).limit(20000).returns<{ school_id: string; sms_sent: number | null; emailed: number | null }[]>(),
-    ctx.admin.from("notifications").select("school_id").eq("channel", "sms").eq("status", "sent").gte("created_at", days30).limit(100000).returns<{ school_id: string }[]>(),
-    ctx.admin.from("schools").select("id, name, sender_id, sender_status, sender_note, sender_asked_at").neq("sender_status", "none").order("sender_asked_at", { ascending: false }).returns<{ id: string; name: string; sender_id: string | null; sender_status: keyof typeof SENDER; sender_note: string | null; sender_asked_at: string | null }[]>(),
+    notDemo(ctx.admin.from("notifications").select("school_id, channel, status"), demo).gte("created_at", from).limit(100000).returns<{ school_id: string; channel: string; status: string }[]>(),
+    notDemo(ctx.admin.from("announcements").select("school_id, sms_sent, emailed"), demo).gte("created_at", from).limit(20000).returns<{ school_id: string; sms_sent: number | null; emailed: number | null }[]>(),
+    notDemo(ctx.admin.from("notifications").select("school_id"), demo).eq("channel", "sms").eq("status", "sent").gte("created_at", days30).limit(100000).returns<{ school_id: string }[]>(),
+    notDemo(ctx.admin.from("schools").select("id, name, sender_id, sender_status, sender_note, sender_asked_at"), demo, "id").neq("sender_status", "none").order("sender_asked_at", { ascending: false }).returns<{ id: string; name: string; sender_id: string | null; sender_status: keyof typeof SENDER; sender_note: string | null; sender_asked_at: string | null }[]>(),
   ]);
   const smsSent = (notes ?? []).filter((n) => n.channel === "sms" && n.status === "sent").length + (anns ?? []).reduce((a, x) => a + Number(x.sms_sent ?? 0), 0);
   const smsFailed = (notes ?? []).filter((n) => n.channel === "sms" && n.status === "failed").length;

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SignOutButton } from "@/components/SignOutButton";
+import { DemoBar } from "@/components/DemoBar";
 import { PlatformBanners } from "@/components/PlatformBanners";
 import type { Role } from "@/lib/auth";
 import type { NavGroup } from "@/lib/nav";
@@ -145,6 +146,7 @@ export async function PortalShell({
       </aside>
 
       <main id="main" className="min-w-0 flex-1 px-4 pb-12 pt-6 md:px-7">
+        <DemoBar />
         <PlatformBanners schoolId={schoolId} role={role} />
         {children}
       </main>

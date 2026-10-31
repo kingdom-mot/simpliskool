@@ -94,3 +94,14 @@ export const csvCell = (v: unknown) => {
   const safe = /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
   return /[",\n]/.test(safe) ? `"${safe.replace(/"/g, '""')}"` : safe;
 };
+
+/** The demo schools (left out of the back office's figures). Empty before 0019 is run. */
+export async function demoSchoolIds(admin: Admin): Promise<string[]> {
+  const { data, error } = await admin.from("schools").select("id").eq("is_demo", true).returns<{ id: string }[]>();
+  return error ? [] : (data ?? []).map((s) => s.id);
+}
+
+/** Leaves the demo schools out of a query (on `column`, usually school_id). */
+export function notDemo<T extends { not: (column: string, operator: string, value: string) => T }>(q: T, ids: string[], column = "school_id"): T {
+  return ids.length ? q.not(column, "in", `(${ids.join(",")})`) : q;
+}

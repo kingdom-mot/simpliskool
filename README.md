@@ -37,6 +37,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0016_family.sql` (parents report absences in advance, excused absences, everyone's email/text choices, teachers' names for families)
      - `0017_groups.sql` (school groups: one proprietor, several branches, group team)
      - `0018_platform.sql` (Dream Savvy back office at /super: team and two-step sign-in, read-only view as a school, new school checks before online payments, support requests, notices, SMS credit and sender names, refunds, audit log, platform settings)
+     - `0019_demo.sql` (the public demo school: Bright Future Academy, Lekki and Ajah, with made-up data, rebuilt every night)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -116,3 +117,10 @@ Add `ANTHROPIC_API_KEY` (from console.anthropic.com) in Vercel and redeploy. Tea
 3. Sign in, open `/super`, and set up two-step sign-in with an authenticator app.
 
 Team members only see a school by "viewing" it: read only, time-limited, written to the audit log, and the owner is emailed. The database refuses any change made while viewing. Schools that already had online payments when 0018 ran stay approved; any new or changed payout account pauses online payment until someone approves it under New school checks.
+
+## Public demo (/demo)
+
+`www.simpliskool.com/demo` lets anyone try Simpliskool as a school owner, proprietor (two branches), principal, bursar, teacher, parent or student, without signing up. The school's own website is at `demo.simpliskool.com`.
+
+- Run `0019_demo.sql`. The first visit to /demo builds the demo (about 10 seconds); after that it is rebuilt every night at midnight Lagos time (Vercel Cron, `/api/cron/demo-reset`, needs `CRON_SECRET`), or from the back office: Platform settings → Reset the demo now.
+- Demo people sign in with addresses on `demo.simpliskool.com`. While they're in the demo, emails, texts, online payments, new sign-ins, payout accounts, help requests and refund requests are switched off, and the demo schools are left out of the back office's figures.
