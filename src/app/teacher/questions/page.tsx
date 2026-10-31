@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { PageHero } from "@/components/admin";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -19,6 +21,7 @@ const DIFF: Record<string, string> = { easy: "Easy", medium: "Medium", hard: "Ha
 export default async function QuestionBank(props: { searchParams: Promise<{ bank?: string; topic?: string; diff?: string }> }) {
   const sp = await props.searchParams;
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
+  if (!(await featureOn(school.id, "cbt"))) redirect("/teacher");
   const mine = await myClassSubjects(supabase, school.id, user.id);
   const banks = [...new Map(mine.map((m) => [`${m.subject_id}|${m.level}`, { key: `${m.subject_id}|${m.level}`, label: `${m.level} · ${m.subject}`, subject: m.subject_id, level: m.level }])).values()];
   const bank = banks.find((b) => b.key === sp.bank) ?? banks[0];
@@ -34,7 +37,7 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
   const ai = aiReady();
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="questions">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="questions">
       <div className="flex flex-col gap-5">
         <PageHero title="Question bank" sub={bank ? `${bank.label} · ${rows.length} question${rows.length === 1 ? "" : "s"}` : undefined} />
         {!bank ? (

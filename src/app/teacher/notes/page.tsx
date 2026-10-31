@@ -116,7 +116,7 @@ export default async function TeacherNotes(props: { searchParams: Promise<{ cs?:
   }
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="notes">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="notes">
       <div className="flex flex-col gap-5">
         <PageHero sub={term ? termLabel(term) : undefined} title="Lesson notes" />
         <p className="-mt-2 text-sm text-[#4A5A70]">Write, send to the principal for approval, then share with your class on the day.</p>

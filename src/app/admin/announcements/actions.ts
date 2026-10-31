@@ -64,7 +64,7 @@ export async function sendAnnouncement(_prev: ActionState, fd: FormData): Promis
   if (sendEmail || sendSms) {
     const d = await deliverAnnouncement(row.id);
     if (d && sendEmail) extra += d.emailSkipped ? " Emails weren't sent: email isn't set up yet." : ` Emailed ${d.emailed} ${d.emailed === 1 ? "person" : "people"}${d.emailFailed ? ` (${d.emailFailed} failed)` : ""}.`;
-    if (d && sendSms) extra += d.smsSkipped ? " Texts weren't sent: SMS is off in Settings." : ` Texted ${d.texted} ${d.texted === 1 ? "phone" : "phones"}${d.smsFailed ? ` (${d.smsFailed} failed)` : ""}.`;
+    if (d && sendSms) extra += d.smsNoCredit ? " Texts weren't sent: not enough SMS credit. Buy more from Simpliskool." : d.smsSkipped ? " Texts weren't sent: SMS is off in Settings." : ` Texted ${d.texted} ${d.texted === 1 ? "phone" : "phones"}${d.smsFailed ? ` (${d.smsFailed} failed)` : ""}.`;
   }
   revalidatePath("/admin/announcements");
   return { ok: true, message: `Sent to ${n} ${n === 1 ? "person" : "people"} in the app.${extra} You'll see who has read it below.`, at: Date.now() };

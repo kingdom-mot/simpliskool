@@ -80,7 +80,7 @@ export default async function TeacherScores(props: { searchParams: Promise<{ cs?
   }
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="scores">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="scores">
       <OfflineReady />
       <div className="flex flex-col gap-5">
         <PageHero sub={term ? termLabel(term) : undefined} title="Score entry" />

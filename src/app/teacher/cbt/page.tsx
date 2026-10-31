@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { PageHero } from "@/components/admin";
 import { Flash } from "@/components/Flash";
@@ -18,6 +20,7 @@ const at = (iso: string) => Date.parse(iso);
 
 export default async function TeacherCbt() {
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
+  if (!(await featureOn(school.id, "cbt"))) redirect("/teacher");
   const mine = await myClassSubjects(supabase, school.id, user.id);
   const [{ data: tests }, { data: partsRaw }, { data: qs }] = await Promise.all([
     supabase.from("cbt_tests").select("id, title, practice, opens_at, closes_at, question_ids, duration_min, class_ids, cbt_attempts(submitted_at)").eq("school_id", school.id).eq("teacher_id", user.id).order("opens_at", { ascending: false }).limit(60).returns<T[]>(),
@@ -41,7 +44,7 @@ export default async function TeacherCbt() {
   const status = (t: T) => (now < at(t.opens_at) ? { k: "info" as const, t: "Scheduled" } : now <= at(t.closes_at) ? { k: "warn" as const, t: "Open now" } : { k: "good" as const, t: "Finished" });
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="cbt">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="cbt">
       <div className="flex flex-col gap-5">
         <PageHero title="CBT tests" actions={banks.length ? <a className="s-btn" href="#new-h">+ New test</a> : undefined} />
         <Flash />

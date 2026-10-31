@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { AdminPage, Panel, requireAdminPage } from "@/components/admin";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -21,6 +23,7 @@ const sum = (raw: unknown) => parseItems(raw).reduce((a, x) => a + x.kobo, 0);
 export default async function PayrollPage(props: { searchParams: Promise<{ tab?: string; month?: string; slip?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(["owner", "bursar"]);
+  if (!(await featureOn(ctx.school.id, "payroll"))) redirect("/admin");
   const { supabase, school, membership } = ctx;
   const nowMonth = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date()).slice(0, 7);
   const month = sp.month && /^\d{4}-\d{2}$/.test(sp.month) ? sp.month : nowMonth;

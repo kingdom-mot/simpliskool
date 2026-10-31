@@ -72,7 +72,7 @@ export default async function MarkHomework(props: { params: Promise<{ id: string
   };
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="homework">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="homework">
       <div className="flex flex-col gap-5">
         <PageHero
           title={hw.title}

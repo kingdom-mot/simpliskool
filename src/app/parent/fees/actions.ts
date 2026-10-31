@@ -21,7 +21,7 @@ async function origin() {
 }
 
 export async function startOnlinePayment(_prev: ActionState, fd: FormData): Promise<ActionState> {
-  const { supabase, school, user } = await requireSchool(["parent"]);
+  const { supabase, school, user } = await requireSchool(["parent"], { allowSuspended: true });
   const id = z.string().uuid().safeParse(fd.get("invoice"));
   if (!id.success) return { error: "Something went wrong. Refresh the page and try again." };
   if (!paystackReady()) return { error: "Online payment isn't available yet. Please pay the school directly." };
@@ -52,6 +52,8 @@ export async function startOnlinePayment(_prev: ActionState, fd: FormData): Prom
   const admin = createAdminClient();
   const { data: payout } = await admin.from("school_payouts").select("paystack_subaccount").eq("school_id", school.id).maybeSingle<{ paystack_subaccount: string | null }>();
   if (!payout?.paystack_subaccount) return { error: "The school hasn't switched on online payment yet. Please pay the school directly." };
+  const { data: approved } = await admin.from("schools").select("payments_approved_at").eq("id", school.id).maybeSingle<{ payments_approved_at: string | null }>();
+  if (approved && !approved.payments_approved_at) return { error: "Online payment is paused while Simpliskool checks the school's bank account. Please try again later or pay the school directly." };
 
   const { data: me } = await admin.from("profiles").select("email, full_name").eq("id", user.id).maybeSingle<{ email: string | null; full_name: string | null }>();
   // Paystack needs an email address; parents who sign in by phone get a placeholder (no email is sent to it).

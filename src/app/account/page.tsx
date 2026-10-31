@@ -140,7 +140,7 @@ export default async function Account() {
     );
   if (role === "teacher")
     return (
-      <PortalShell school={school} roleLabel="Teacher" fullName={ctx.fullName} groups={TEACHER_NAV} active="">
+      <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={ctx.fullName} groups={TEACHER_NAV} active="">
         <div className="flex flex-col gap-5">
           <PageHero title="My account" />
           {body}

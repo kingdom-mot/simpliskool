@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { MobileShell } from "@/components/MobileShell";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -24,6 +26,7 @@ function until(iso: string, now: number) {
 
 export default async function StudentCbt() {
   const { supabase, school } = await requireSchool(["student"]);
+  if (!(await featureOn(school.id, "cbt"))) redirect("/student");
   const { data } = await supabase.rpc("cbt_student_tests");
   const tests = (data as T[] | null) ?? [];
   const now = nowMs();

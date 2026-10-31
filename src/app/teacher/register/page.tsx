@@ -92,7 +92,7 @@ export default async function RegisterPage(props: { searchParams: Promise<{ clas
   }
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="register">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="register">
       <OfflineReady />
       <div className="flex flex-col gap-4">
         <PageHero sub="Attendance" title={`Register${cls ? ` · ${classLabel(cls.name, cls.arm)}` : ""}`} />

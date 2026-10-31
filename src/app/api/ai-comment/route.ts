@@ -7,7 +7,8 @@ const body = z.object({ student: z.string().uuid(), term: z.string().uuid(), who
 
 /** Suggests a report card comment from the student's own results. Only the first name and results are sent. */
 export async function POST(req: Request) {
-  const { supabase } = await requireSchool(["owner", "admin", "principal", "teacher"]);
+  const { supabase, viewing } = await requireSchool(["owner", "admin", "principal", "teacher"]);
+  if (viewing) return Response.json({ error: "Not available while viewing a school." }, { status: 403 });
   if (!aiReady()) return Response.json({ error: "AI suggestions aren't switched on." }, { status: 503 });
   const p = body.safeParse(await req.json().catch(() => null));
   if (!p.success) return Response.json({ error: "Bad request" }, { status: 400 });

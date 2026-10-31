@@ -71,7 +71,7 @@ export function AdminPage({
   children: React.ReactNode;
 }) {
   return (
-    <PortalShell school={ctx.school} roleLabel={ROLE_LABEL[ctx.membership.role]} fullName={ctx.fullName} groups={adminNav(ctx.membership.role)} active={active}>
+    <PortalShell school={ctx.school} schoolId={ctx.school.id} role={ctx.membership.role} roleLabel={ROLE_LABEL[ctx.membership.role]} fullName={ctx.fullName} groups={adminNav(ctx.membership.role)} active={active}>
       <div className="flex flex-col gap-5">
         <PageHero crumb={crumb} title={title} count={count} actions={actions} />
         {children}

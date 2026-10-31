@@ -33,7 +33,30 @@ export function smsText(s: string) {
   return t.length > 306 ? `${t.slice(0, 303)}...` : t;
 }
 
-export async function sendSms(to: string, text: string): Promise<SmsResult> {
+/** How many SMS pages a text uses (one credit each, per number). */
+export function smsPages(text: string) {
+  const t = smsText(text);
+  return t.length <= 160 ? 1 : Math.ceil(t.length / 153);
+}
+
+/** The school's own sender name once approved, otherwise Simpliskool's. */
+export async function schoolSender(admin: Admin, schoolId: string) {
+  const { data } = await admin.from("schools").select("sender_id, sender_status").eq("id", schoolId).maybeSingle<{ sender_id: string | null; sender_status: string }>();
+  return data?.sender_status === "live" && data.sender_id ? data.sender_id : undefined;
+}
+
+/** Takes SMS credit from the school; false when there isn't enough (nothing is taken). */
+export async function takeSmsCredit(admin: Admin, schoolId: string, n: number) {
+  const { data, error } = await admin.rpc("use_sms_credit", { p_school: schoolId, p_n: n });
+  if (error) return /function/i.test(error.message); // before database file 0018: no credit limits
+  return data === true;
+}
+
+export async function giveBackSmsCredit(admin: Admin, schoolId: string, n: number) {
+  if (n > 0) await admin.rpc("add_sms_credit", { p_school: schoolId, p_n: n });
+}
+
+export async function sendSms(to: string, text: string, from?: string): Promise<SmsResult> {
   const key = process.env.TERMII_API_KEY;
   if (!key) return { ok: false, skipped: true, error: "SMS isn't set up yet (TERMII_API_KEY missing)." };
   const num = termiiNumber(to);
@@ -42,7 +65,7 @@ export async function sendSms(to: string, text: string): Promise<SmsResult> {
     const res = await fetch(`${BASE()}/api/sms/send`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ api_key: key, to: num, from: process.env.TERMII_SENDER_ID ?? "Simpliskool", sms: smsText(text), type: "plain", channel: process.env.TERMII_CHANNEL ?? "generic" }),
+      body: JSON.stringify({ api_key: key, to: num, from: from ?? process.env.TERMII_SENDER_ID ?? "Simpliskool", sms: smsText(text), type: "plain", channel: process.env.TERMII_CHANNEL ?? "generic" }),
       signal: AbortSignal.timeout(10000),
     });
     const data = (await res.json().catch(() => ({}))) as { message_id?: string | number; message?: string; code?: string };
@@ -54,7 +77,7 @@ export async function sendSms(to: string, text: string): Promise<SmsResult> {
 }
 
 /** One message to many numbers (Termii bulk, up to 10,000 per request). Returns how many were accepted. */
-export async function sendSmsBulk(numbers: string[], text: string): Promise<{ sent: number; failed: number; skipped: boolean }> {
+export async function sendSmsBulk(numbers: string[], text: string, from?: string): Promise<{ sent: number; failed: number; skipped: boolean }> {
   const key = process.env.TERMII_API_KEY;
   if (!key) return { sent: 0, failed: 0, skipped: true };
   const list = [...new Set(numbers.map(termiiNumber).filter((n): n is string => !!n))];
@@ -66,7 +89,7 @@ export async function sendSmsBulk(numbers: string[], text: string): Promise<{ se
       const res = await fetch(`${BASE()}/api/sms/send/bulk`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ api_key: key, to: chunk, from: process.env.TERMII_SENDER_ID ?? "Simpliskool", sms: smsText(text), type: "plain", channel: process.env.TERMII_CHANNEL ?? "generic" }),
+        body: JSON.stringify({ api_key: key, to: chunk, from: from ?? process.env.TERMII_SENDER_ID ?? "Simpliskool", sms: smsText(text), type: "plain", channel: process.env.TERMII_CHANNEL ?? "generic" }),
         signal: AbortSignal.timeout(20000),
       });
       const data = (await res.json().catch(() => ({}))) as { message_id?: string | number };
@@ -109,7 +132,14 @@ export async function sendLoggedSms(admin: Admin, row: { school_id: string; stud
   const id = await claim(admin, { ...row, channel: "sms" });
   if (!id) return null;
   const to = row.recipient.split(" ")[0];
-  const res = await sendSms(to, text);
+  const pages = smsPages(text);
+  if (smsReady() && !(await takeSmsCredit(admin, row.school_id, pages))) {
+    const res: SmsResult = { ok: false, skipped: false, error: "No SMS credit left. Buy more from Simpliskool." };
+    await finish(admin, id, res);
+    return res;
+  }
+  const res = await sendSms(to, text, await schoolSender(admin, row.school_id));
+  if (!res.ok && smsReady()) await giveBackSmsCredit(admin, row.school_id, pages);
   await finish(admin, id, res);
   return res;
 }
@@ -117,4 +147,22 @@ export async function sendLoggedSms(admin: Admin, row: { school_id: string; stud
 /** Short school name for texts, e.g. "Greenfield College". */
 export function shortName(name: string) {
   return name.length > 40 ? `${name.slice(0, 38)}…` : name;
+}
+
+/** Asks Termii (and the networks) to approve a sender name. Approval takes a few days. */
+export async function requestSenderId(senderId: string, company: string, usecase: string): Promise<{ ok: true } | { ok: false; error: string }> {
+  const key = process.env.TERMII_API_KEY;
+  if (!key) return { ok: false, error: "SMS isn't set up yet (TERMII_API_KEY missing)." };
+  try {
+    const res = await fetch(`${BASE()}/api/sender-id/request`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ api_key: key, sender_id: senderId, usecase: usecase.slice(0, 200), company: company.slice(0, 100) }),
+      signal: AbortSignal.timeout(15000),
+    });
+    const data = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
+    return res.ok ? { ok: true } : { ok: false, error: data.message ?? `SMS service error ${res.status}` };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "SMS service unreachable" };
+  }
 }

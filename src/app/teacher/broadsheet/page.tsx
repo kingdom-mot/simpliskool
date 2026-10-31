@@ -182,7 +182,7 @@ export default async function TeacherBroadsheet(props: { searchParams: Promise<{
   }
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="broadsheet">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="broadsheet">
       <div className="flex flex-col gap-5">
         <PageHero sub={term ? termLabel(term) : undefined} title={cls ? `${classLabel(cls.name, cls.arm)} report comments` : "Class broadsheet"} />
         {body}

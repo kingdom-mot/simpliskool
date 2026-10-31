@@ -1,8 +1,12 @@
 "use server";
 
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireSchool } from "@/lib/auth";
+import { setFlash } from "@/lib/flash";
+import { teamEmail } from "@/lib/platform-mail";
 import type { ActionState } from "@/components/forms";
 import { emailReady } from "@/lib/email";
 import { sendFeeReminders, sendReceiptEmail } from "@/lib/fee-emails";
@@ -63,6 +67,24 @@ export async function voidPayment(_prev: ActionState, fd: FormData): Promise<Act
   if (error) return { error: /Online/.test(error.message) ? "Online payments can't be cancelled here." : "We couldn't cancel the payment. Please try again." };
   refresh();
   return { ok: true, message: "Payment cancelled. The student's balance has gone back up.", at: Date.now() };
+}
+
+/** Online payments are refunded by Simpliskool (through Paystack); the school asks here. */
+export async function askRefund(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school, membership, fullName } = await requireSchool(FINANCE_ROLES);
+  if (membership.role !== "owner" && membership.role !== "bursar") return { error: "Only the owner or bursar can ask for a refund." };
+  const id = uuid.safeParse(fd.get("id"));
+  if (!id.success) return { error: "Something went wrong. Refresh the page and try again." };
+  const reason = String(fd.get("reason") ?? "").trim();
+  const { error } = await supabase.rpc("request_refund", { p_payment: id.data, p_reason: reason });
+  if (error) return { error: error.code === "P0001" ? error.message : /function/i.test(error.message) ? "Refund requests aren't switched on yet. Use Get help." : "We couldn't send the request." };
+  const inbox = process.env.SUPPORT_EMAIL;
+  if (inbox) await teamEmail(inbox, `Refund asked for: ${school.name}`, `${school.name} asked for a refund`, [`${fullName}: ${reason}`], { label: "Open disputes and refunds", path: "/super/payments?tab=ds" });
+  // The button goes away once asked, so the message goes with the reloaded page.
+  await setFlash("Sent to Simpliskool. We'll refund the parent and tell you when it's done (it comes out of your next payout).", "/admin/payments");
+  const back = (await headers()).get("referer");
+  const path = back ? new URL(back).pathname + new URL(back).search : "/admin/payments";
+  redirect(path.startsWith("/admin/payments") ? path : "/admin/payments");
 }
 
 export async function resendReceipt(_prev: ActionState, fd: FormData): Promise<ActionState> {

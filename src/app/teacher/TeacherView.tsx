@@ -19,7 +19,7 @@ function lagosNow(): string {
   return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Africa/Lagos" }).format(new Date());
 }
 
-export function TeacherView({ school, fullName, d, now: nowOverride }: { school: ShellSchool; fullName: string; d: TeacherData | null; now?: string }) {
+export function TeacherView({ school, fullName, d, now: nowOverride }: { school: ShellSchool & { id?: string }; fullName: string; d: TeacherData | null; now?: string }) {
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
   const now = nowOverride ?? lagosNow();
 
@@ -28,7 +28,7 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
   const nowLesson = lessons.find((l) => l.state === "now");
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="today">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="today">
       <OfflineReady />
       <div className="flex flex-col gap-5">
         <div>

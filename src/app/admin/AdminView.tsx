@@ -29,7 +29,7 @@ export type AdminData = {
 
 const METHOD: Record<string, string> = { paystack: "Online", transfer: "Transfer", cash: "Cash", pos: "POS" };
 
-export function AdminView({ school, role, fullName, d }: { school: ShellSchool & { slug: string }; role: Role; fullName: string; d: AdminData | null }) {
+export function AdminView({ school, role, fullName, d }: { school: ShellSchool & { slug: string; id?: string }; role: Role; fullName: string; d: AdminData | null }) {
   const membership = { role };
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
@@ -58,7 +58,7 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
   if (d && d.subject_classes > d.subject_classes_scored && d.term) tasks.push({ tag: "Results", kind: "warn", text: `${d.subject_classes - d.subject_classes_scored} subject class${d.subject_classes - d.subject_classes_scored === 1 ? " has" : "es have"} no scores yet` });
 
   return (
-    <PortalShell school={school} roleLabel={ROLE_LABEL[membership.role]} fullName={fullName} groups={adminNav(membership.role)} active="dashboard">
+    <PortalShell school={school} schoolId={school.id} role={membership.role} roleLabel={ROLE_LABEL[membership.role]} fullName={fullName} groups={adminNav(membership.role)} active="dashboard">
       <div className="flex flex-col gap-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>

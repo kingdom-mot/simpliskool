@@ -13,7 +13,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  return updateSession(request, NextResponse.next({ request }));
+  // Lets pages know their own address (e.g. to come back to after hiding a notice).
+  const headers = new Headers(request.headers);
+  headers.set("x-pathname", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+  return updateSession(request, NextResponse.next({ request: { headers } }));
 }
 
 export const config = {

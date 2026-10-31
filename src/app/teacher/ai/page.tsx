@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import { PageHero } from "@/components/admin";
 import { PortalShell } from "@/components/PortalShell";
 import { Empty } from "@/components/ui";
@@ -14,12 +16,13 @@ export const metadata = { title: "AI assistant" };
 export default async function AiAssistant(props: { searchParams: Promise<{ task?: string; topic?: string }> }) {
   const sp = await props.searchParams;
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
+  if (!(await featureOn(school.id, "ai"))) redirect("/teacher");
   const mine = await myClassSubjects(supabase, school.id, user.id);
   const ready = aiReady();
   const used = ready ? await aiUsed(supabase, user.id) : 0;
   const task: Task = sp.task === "quiz" || sp.task === "simpler" || sp.task === "homework" ? sp.task : "note";
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="ai">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="ai">
       <div className="flex flex-col gap-5">
         <PageHero title="AI teaching assistant" sub="Drafts you check and edit" />
         {!ready ? (

@@ -38,6 +38,8 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
     },
     { label: "TERMII_API_KEY (SMS)", ok: process.env.TERMII_API_KEY ? true : null, detail: process.env.TERMII_API_KEY ? `Sender name: ${process.env.TERMII_SENDER_ID ?? "Simpliskool (default)"}` : "Not set: no texts are sent" },
     { label: "CRON_SECRET (daily job for scheduled announcements)", ok: !!process.env.CRON_SECRET, fix: "Add any long random text as CRON_SECRET in Vercel, then redeploy" },
+    { label: "SUPER_ADMIN_EMAILS (who can open the Dream Savvy back office)", ok: process.env.SUPER_ADMIN_EMAILS ? true : null, detail: process.env.SUPER_ADMIN_EMAILS ? "Set" : "Not set: add your email in Vercel to open /super", fix: "Add your sign-in email (comma-separate several) as SUPER_ADMIN_EMAILS in Vercel, then redeploy" },
+    { label: "SUPPORT_EMAIL (where schools' help requests are emailed)", ok: process.env.SUPPORT_EMAIL ? true : null, detail: process.env.SUPPORT_EMAIL ? "Set" : "Not set: requests still arrive in the back office inbox" },
   ];
 
   const db: Check[] = [];
@@ -79,6 +81,7 @@ export default async function StatusPage(props: { searchParams: Promise<{ proble
       db.push({ label: "0015 homework, question bank, CBT tests, AI assistant", ...(await fnExists(admin, "class_roster", { p_class: zero, p_class_subject: null, p_term: zero })) });
       db.push({ label: "0016 absence reports, message choices", ...(await fnExists(admin, "attendance_month", { p_student: zero, p_month: "2026-01-01" })) });
       db.push({ label: "0017 school groups (branches)", ...(await fnExists(admin, "is_group_proprietor", { p_group: zero })) });
+      db.push({ label: "0018 back office (team, checks, support, notices, SMS credit)", ...(await fnExists(admin, "viewing_school", { p_school: zero })) });
       db.push({ label: "0009 school settings (motto, logo storage)", ok: !e9 && !b9, detail: e9 || b9 ? "Missing: run 0009_school_settings.sql, then 0008_grants.sql again" : undefined });
     }
   }

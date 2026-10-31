@@ -109,3 +109,45 @@ export function validSignature(rawBody: string, signature: string | null) {
   const got = Buffer.from(signature);
   return good.length === got.length && timingSafeEqual(good, got);
 }
+
+/** Money Paystack paid out to schools (their subaccounts) in a date range. */
+export type Settlement = {
+  id: number | string;
+  status: string;
+  total_amount: number;
+  effective_amount?: number;
+  total_fees?: number;
+  settlement_date?: string;
+  createdAt?: string;
+  subaccount?: { subaccount_code?: string; business_name?: string; account_number?: string; settlement_bank?: string } | null;
+};
+export async function listSettlements(fromIso: string, toIso: string) {
+  return ps<Settlement[]>(`/settlement?perPage=100&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`);
+}
+
+/** Chargebacks raised by parents' banks. */
+export type Dispute = {
+  id: number | string;
+  status: string;
+  refund_amount?: number | null;
+  currency?: string;
+  category?: string;
+  resolution?: string | null;
+  dueAt?: string | null;
+  due_at?: string | null;
+  createdAt?: string;
+  message?: { body?: string } | null;
+  transaction?: { reference?: string; amount?: number; customer?: { email?: string } } | null;
+};
+export async function listDisputes(fromIso: string, toIso: string) {
+  return ps<Dispute[]>(`/dispute?perPage=50&from=${encodeURIComponent(fromIso)}&to=${encodeURIComponent(toIso)}`);
+}
+
+export async function addDisputeEvidence(id: string, e: { customer_email: string; customer_name: string; customer_phone: string; service_details: string; delivery_date?: string }) {
+  return ps<{ id: number }>(`/dispute/${encodeURIComponent(id)}/evidence`, { method: "POST", body: e });
+}
+
+/** Full refund of a payment to the parent (Paystack's charge isn't returned). */
+export async function refundTransaction(reference: string, reason: string) {
+  return ps<{ id?: number; status?: string }>("/refund", { method: "POST", body: { transaction: reference, merchant_note: reason.slice(0, 200) } });
+}

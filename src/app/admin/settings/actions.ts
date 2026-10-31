@@ -10,6 +10,7 @@ import { normalizeEmail, normalizePhone } from "@/lib/people";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { listBanks, paystackReady, paystackTestMode, resolveAccount, upsertSubaccount } from "@/lib/paystack";
 import { SCHOOL_PALETTE } from "@/lib/theme";
+import { teamEmail } from "@/lib/platform-mail";
 
 /** Only the school owner changes settings (same rule as the design). */
 const SETTINGS_ROLES: Role[] = ["owner"];
@@ -204,7 +205,13 @@ export async function savePayout(_prev: ActionState, fd: FormData): Promise<Acti
   );
   if (error) return { error: /column/i.test(error.message) ? "Run database file 0014_payments_sms_schedule.sql in Supabase first." : "We couldn't save the account." };
   revalidatePath("/admin/settings");
-  return { ok: true, message: `Saved: ${name}, ${bank.name}. Online payment is now on, so parents see a "Pay online" button on their fees page.`, at: Date.now() };
+  const { data: chk } = await supabase.from("schools").select("payments_approved_at").eq("id", school.id).maybeSingle<{ payments_approved_at: string | null }>();
+  if (chk && !chk.payments_approved_at) {
+    const inbox = process.env.SUPPORT_EMAIL;
+    if (inbox) await teamEmail(inbox, `Payout account to check: ${school.name}`, `${school.name} added a payout account`, [`${name}, ${bank.name} ••${acct.slice(-4)}. Check it before parents can pay online.`], { label: "Open new school checks", path: `/super/checks?sel=${school.id}` });
+    return { ok: true, message: `Saved: ${name}, ${bank.name}. Simpliskool checks new accounts (usually within a working day); parents can pay online as soon as it's done.`, at: Date.now() };
+  }
+  return { ok: true, message: `Saved: ${name}, ${bank.name}. Online payment is on, so parents see a "Pay online" button on their fees page.`, at: Date.now() };
 }
 
 export async function pauseOnlinePayments(): Promise<ActionState> {
@@ -227,4 +234,15 @@ export async function saveSms(_prev: ActionState, fd: FormData): Promise<ActionS
   if (!row.sms_enabled) return { ok: true, message: "SMS is off. Parents get emails and app messages only.", at: Date.now() };
   const uses = [row.sms_absence && "absences", row.sms_fees && "fee reminders", row.sms_receipts && "payment receipts"].filter(Boolean) as string[];
   return { ok: true, message: `SMS is on${uses.length ? ` for ${uses.join(", ").replace(/, ([^,]*)$/, " and $1")}` : ""}. You can also text announcements when you send them.`, at: Date.now() };
+}
+
+/** The owner asks for their own SMS sender name; Simpliskool sends it to the SMS provider. */
+export async function requestSenderName(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(["owner"]);
+  const v = String(fd.get("sender_id") ?? "").trim().toUpperCase();
+  if (!/^[A-Z0-9 ]{3,11}$/.test(v)) return { error: "Use 3 to 11 letters or numbers, like GREENFIELD." };
+  const { error } = await supabase.rpc("request_sender", { p_school: school.id, p_sender: v });
+  if (error) return { error: /function/i.test(error.message) ? "This isn't switched on yet." : error.code === "P0001" ? error.message : "We couldn't send the request." };
+  revalidatePath("/admin/settings");
+  return { ok: true, message: `${v} sent to Simpliskool. The networks usually approve a name in a few days.`, at: Date.now() };
 }

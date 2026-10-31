@@ -1,7 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { SignOutButton } from "@/components/SignOutButton";
+import { PlatformBanners } from "@/components/PlatformBanners";
+import type { Role } from "@/lib/auth";
 import type { NavGroup } from "@/lib/nav";
+import { hiddenNavKeys } from "@/lib/platform-settings";
 import { initials, schoolThemeStyle } from "@/lib/theme";
 import { personInitials } from "@/lib/format";
 
@@ -55,13 +58,15 @@ function NavList({ groups, active }: { groups: NavGroup[]; active: string }) {
 }
 
 /** Sidebar layout for the admin and teacher portals, in the school's own colours. */
-export function PortalShell({
+export async function PortalShell({
   school,
   roleLabel,
   fullName,
-  groups,
+  groups: allGroups,
   active,
   children,
+  schoolId,
+  role,
 }: {
   school: ShellSchool;
   roleLabel: string;
@@ -69,7 +74,12 @@ export function PortalShell({
   groups: NavGroup[];
   active: string;
   children: React.ReactNode;
+  /** For school portals: hides switched-off features and shows Simpliskool notices. */
+  schoolId?: string;
+  role?: Role;
 }) {
+  const hidden = schoolId ? await hiddenNavKeys(schoolId) : new Set<string>();
+  const groups = allGroups.map((g) => ({ ...g, items: g.items.filter((i) => !hidden.has(i.key)) })).filter((g) => g.items.length);
   return (
     <div style={schoolThemeStyle(school.primary_color, school.secondary_color)} className="min-h-screen bg-brand-cloud md:flex">
       <a className="sk-skip" href="#main">
@@ -135,6 +145,7 @@ export function PortalShell({
       </aside>
 
       <main id="main" className="min-w-0 flex-1 px-4 pb-12 pt-6 md:px-7">
+        <PlatformBanners schoolId={schoolId} role={role} />
         {children}
       </main>
     </div>

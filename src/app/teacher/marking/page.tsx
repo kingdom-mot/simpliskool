@@ -24,7 +24,7 @@ export default async function MarkingQueue() {
   const total = queue.reduce((a, h) => a + h.waiting, 0);
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="marking">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="marking">
       <div className="flex flex-col gap-5">
         <PageHero title="Marking" sub={total ? `${total} piece${total === 1 ? "" : "s"} of work to mark` : "All caught up"} />
         {queue.length ? (

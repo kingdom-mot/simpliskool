@@ -32,7 +32,7 @@ const termKey = (i: Invoice) => `${i.terms?.academic_sessions?.name ?? ""}-${i.t
 
 export default async function ParentFees(props: { searchParams: Promise<{ child?: string }> }) {
   const sp = await props.searchParams;
-  const { supabase, school, user } = await requireSchool(["parent"]);
+  const { supabase, school, user } = await requireSchool(["parent"], { allowSuspended: true });
   const [{ data: rows }, { data: s }, { data: ready }, { data: started }] = await Promise.all([
     supabase
       .from("guardians")

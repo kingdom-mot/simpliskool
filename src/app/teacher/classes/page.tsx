@@ -78,7 +78,7 @@ export default async function MyClasses(props: { searchParams: Promise<{ c?: str
   const tone = (a: number, b: number) => (b === 0 ? "info" : a >= b ? "good" : a / b >= 0.6 ? "warn" : "bad");
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="classes">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="classes">
       <div className="flex flex-col gap-5">
         <PageHero title="My classes" sub={term ? termLabel(term) : undefined} />
         {!cards.length ? (

@@ -47,6 +47,7 @@ const ADMIN: NavGroup[] = [
     items: [
       { key: "sessions", label: "Sessions & terms", href: "/admin/sessions" },
       { key: "settings", label: "Settings", href: "/admin/settings" },
+      { key: "help", label: "Get help", href: "/admin/help" },
     ],
   },
 ];
@@ -57,7 +58,7 @@ const HIDE: Partial<Record<Role, string[]>> = {
   principal: ["payroll", "settings", "fees", "payments"],
   admin: ["payroll", "settings", "staffatt", "lessonnotes", "reportcards"],
 };
-const BURSAR_KEEP = ["dashboard", "students", "fees", "payments", "payroll"];
+const BURSAR_KEEP = ["dashboard", "students", "fees", "payments", "payroll", "help"];
 
 export function adminNav(role: Role): NavGroup[] {
   const allowed = (k: string) => (role === "bursar" ? BURSAR_KEEP.includes(k) : !(HIDE[role] ?? []).includes(k));

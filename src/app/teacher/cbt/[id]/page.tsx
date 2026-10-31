@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHero } from "@/components/admin";
@@ -22,6 +24,7 @@ const at = (iso: string) => Date.parse(iso);
 export default async function CbtResults(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const { supabase, school, fullName } = await requireSchool(["teacher"]);
+  if (!(await featureOn(school.id, "cbt"))) redirect("/teacher");
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
   const { data: t } = await supabase.from("cbt_tests").select("id, title, practice, opens_at, closes_at, duration_min, question_ids, marks_each, ca_part, ca_sent_at, show_score, subjects(name)").eq("id", id).maybeSingle<T>();
   if (!t) notFound();
@@ -43,7 +46,7 @@ export default async function CbtResults(props: { params: Promise<{ id: string }
   ];
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="cbt">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="cbt">
       <div className="flex flex-col gap-5">
         <PageHero
           title={t.title}

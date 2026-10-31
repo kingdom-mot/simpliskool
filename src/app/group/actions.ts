@@ -9,6 +9,7 @@ import { SCHOOL_COOKIE, requireUser, requireSchool } from "@/lib/auth";
 import { deliverAnnouncement } from "@/lib/announce";
 import { setFlash } from "@/lib/flash";
 import { GROUP_COOKIE, requireGroup } from "@/lib/group";
+import { featureOn } from "@/lib/platform-settings";
 import { findOrCreateUser, normalizeEmail, normalizePhone } from "@/lib/people";
 import { asParts } from "@/lib/results";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -44,6 +45,7 @@ export async function openBranch(fd: FormData) {
 export async function createGroup(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase, school, membership } = await requireSchool(["owner"]);
   if (membership.role !== "owner") return { error: "Only the school owner can do this." };
+  if (!(await featureOn(school.id, "grp"))) return { error: "School groups aren't switched on for your school. Contact Simpliskool." };
   const name = String(fd.get("group_name") ?? "").trim();
   if (name.length < 3) return { error: "Give the group a name, like Bright Stars Group." };
   const { data, error } = await supabase.rpc("create_group", { p_school: school.id, p_name: name });

@@ -1,3 +1,4 @@
+import { featureOn } from "@/lib/platform-settings";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { MobileShell } from "@/components/MobileShell";
@@ -17,6 +18,7 @@ type Review = { title: string; score: number; total: number; questions: { body: 
 export default async function TakeTest(props: { params: Promise<{ id: string }> }) {
   const { id } = await props.params;
   const { supabase, school, user, fullName } = await requireSchool(["student"]);
+  if (!(await featureOn(school.id, "cbt"))) redirect("/student");
   if (!/^[0-9a-f-]{36}$/.test(id)) redirect("/student/cbt");
   const { data: me } = await supabase.from("students").select("id").eq("school_id", school.id).eq("user_id", user.id).maybeSingle<{ id: string }>();
   const { data: at } = me ? await supabase.from("cbt_attempts").select("id, submitted_at").eq("test_id", id).eq("student_id", me.id).maybeSingle<{ id: string; submitted_at: string | null }>() : { data: null };

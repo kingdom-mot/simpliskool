@@ -1,3 +1,4 @@
+import { Flash } from "@/components/Flash";
 import Link from "next/link";
 import { AdminPage, Panel, classLabel, requireAdminPage } from "@/components/admin";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -6,7 +7,7 @@ import { emailReady } from "@/lib/email";
 import { FINANCE_ROLES, METHOD_LABEL, loadTerms, termLabel } from "@/lib/fees";
 import { naira, pct } from "@/lib/format";
 import { levelOrder } from "@/lib/nigeria";
-import { recordPayment, resendReceipt, sendReminders, voidPayment } from "./actions";
+import { askRefund, recordPayment, resendReceipt, sendReminders, voidPayment } from "./actions";
 import { parentPhones, smsReady, smsSettings } from "@/lib/sms";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -58,6 +59,10 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
   const o = data as Overview | null;
   const owingInvoices = (o?.invoice_list ?? []).filter((i) => i.balance > 0);
   const canVoid = membership.role !== "bursar";
+  const canRefund = membership.role === "owner" || membership.role === "bursar";
+  // Refunds of online payments are made by Simpliskool (database file 0018).
+  const { data: refundRows } = await supabase.from("refund_requests").select("payment_id, status").eq("school_id", school.id).returns<{ payment_id: string; status: string }[]>();
+  const refundOf = new Map((refundRows ?? []).filter((r) => r.status !== "declined").map((r) => [r.payment_id, r.status]));
   const ready = emailReady();
   // Parents reachable by text (only matters when the school has SMS fee reminders on).
   const withPhone = new Set<string>();
@@ -92,6 +97,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
         </>
       }
     >
+      <Flash />
       <form method="get" className="flex flex-wrap items-end gap-2">
         <input type="hidden" name="tab" value={tab} />
         <div>
@@ -211,6 +217,24 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                                     Email receipt<span className="sr-only"> {p.receipt}</span>
                                   </SubmitButton>
                                 </ActionForm>
+                              )}
+                              {p.method === "paystack" && refundOf.has(p.id) && <Pill kind="warn">{refundOf.get(p.id) === "refunded" ? "Refunded" : "Refund asked for"}</Pill>}
+                              {canRefund && p.method === "paystack" && !refundOf.has(p.id) && refundRows && (
+                                <details>
+                                  <summary className="s-link cursor-pointer text-sm">
+                                    Ask for a refund<span className="sr-only"> of payment {p.receipt}</span>
+                                  </summary>
+                                  <ActionForm action={askRefund} className="mt-2 flex w-60 flex-col gap-2">
+                                    <input type="hidden" name="id" value={p.id} />
+                                    <label className="label" htmlFor={`rf-${p.id}`}>
+                                      Why should the parent get it back?
+                                    </label>
+                                    <input id={`rf-${p.id}`} name="reason" className="sk-input py-2" required minLength={3} maxLength={300} placeholder="e.g. Paid twice by mistake" />
+                                    <SubmitButton className="s-btn2" pending="Sending…">
+                                      Send to Simpliskool
+                                    </SubmitButton>
+                                  </ActionForm>
+                                </details>
                               )}
                               {canVoid && p.method !== "paystack" && (
                                 <details>

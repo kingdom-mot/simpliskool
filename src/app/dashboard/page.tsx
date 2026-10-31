@@ -9,7 +9,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { GROUP_ROLE_LABEL, type GroupRole } from "@/lib/group";
 
 export default async function DashboardPage() {
-  const { memberships, user } = await requireUser();
+  const { memberships, user, suspended, viewing } = await requireUser();
+  if (viewing) redirect("/admin");
   // School groups this person looks after (proprietor, group finance, director of studies).
   const { data: groupRows } = await createAdminClient()
     .from("group_members")
@@ -18,11 +19,24 @@ export default async function DashboardPage() {
     .returns<{ group_id: string; role: GroupRole; school_groups: { name: string } | null }[]>()
     .then((r) => (r.error ? { data: [] } : r)); // before database file 0017
   const groups = groupRows ?? [];
+  // The Dream Savvy team's back office.
+  const { data: team } = await createAdminClient()
+    .from("platform_team")
+    .select("role")
+    .eq("user_id", user.id)
+    .maybeSingle<{ role: string }>()
+    .then((r) => (r.error ? { data: null } : r)); // before database file 0018
+  const listed = (process.env.SUPER_ADMIN_EMAILS ?? "").toLowerCase().split(",").map((e) => e.trim()).includes((user.email ?? "").toLowerCase());
+  const isTeam = !!team || (listed && !!user.email);
 
-  if (memberships.length === 0 && groups.length === 0) redirect("/onboarding");
+  if (memberships.length === 0 && groups.length === 0) {
+    if (isTeam) redirect("/super");
+    if (suspended.length) redirect("/suspended");
+    redirect("/onboarding");
+  }
 
   // One school and one role: go straight in.
-  if (memberships.length === 1 && groups.length === 0) {
+  if (memberships.length === 1 && groups.length === 0 && !isTeam) {
     const only = memberships[0];
     if ((await cookies()).get(SCHOOL_COOKIE)?.value === only.school_id) redirect(homeForRole(only.role));
   }
@@ -36,6 +50,17 @@ export default async function DashboardPage() {
         <div className="card">
           <h1 className="text-lg font-semibold text-brand-navy">Choose where to go</h1>
           <ul className="mt-4 space-y-2">
+            {isTeam && (
+              <li>
+                <Link href="/super" className="flex w-full items-center justify-between rounded-lg border-2 border-[#0A1F3D]/30 bg-[#0A1F3D] px-4 py-3 text-left text-white hover:border-brand-teal">
+                  <span>
+                    <span className="block font-medium">Simpliskool back office</span>
+                    <span className="block text-xs text-white">Dream Savvy team</span>
+                  </span>
+                  <span aria-hidden="true">→</span>
+                </Link>
+              </li>
+            )}
             {groups.map((g) => (
               <li key={g.group_id}>
                 <form action={chooseGroup}>

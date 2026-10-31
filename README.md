@@ -36,6 +36,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0015_teaching.sql` (homework and marking, question bank, CBT tests, AI assistant allowance, My classes; private "learning" file storage)
      - `0016_family.sql` (parents report absences in advance, excused absences, everyone's email/text choices, teachers' names for families)
      - `0017_groups.sql` (school groups: one proprietor, several branches, group team)
+     - `0018_platform.sql` (Dream Savvy back office at /super: team and two-step sign-in, read-only view as a school, new school checks before online payments, support requests, notices, SMS credit and sender names, refunds, audit log, platform settings)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -107,3 +108,11 @@ select cron.schedule('simpliskool-dispatch', '*/5 * * * *',
 ## AI comment suggestions and the AI assistant (optional)
 
 Add `ANTHROPIC_API_KEY` (from console.anthropic.com) in Vercel and redeploy. Teachers and the principal then get **Suggest with AI** on report card comments; only the student's first name and results are sent. Without the key, the button fills in a starting comment built from the scores. With it, teachers also get the AI teaching assistant (lesson notes, quiz questions for the bank, simpler explanations, homework ideas), up to `AI_TEACHER_MONTHLY_LIMIT` requests each a month (default 200).
+
+## Dream Savvy back office (/super)
+
+1. Run `0018_platform.sql`.
+2. In Vercel add `SUPER_ADMIN_EMAILS` (your sign-in email; comma-separate several) and, optionally, `SUPPORT_EMAIL` (where schools' help requests and new payout accounts are emailed). `PLATFORM_SECRET` (any long random text) is optional: it signs two-step cookies and encrypts authenticator secrets; without it the service role key is used.
+3. Sign in, open `/super`, and set up two-step sign-in with an authenticator app.
+
+Team members only see a school by "viewing" it: read only, time-limited, written to the audit log, and the owner is emailed. The database refuses any change made while viewing. Schools that already had online payments when 0018 ran stay approved; any new or changed payout account pauses online payment until someone approves it under New school checks.

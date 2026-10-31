@@ -21,7 +21,7 @@ export default async function TeacherTimetable() {
   const at = (d: number, pid: string) => mine.filter((s) => s.day_of_week === d && s.period_id === pid);
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="timetable">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="timetable">
       <div className="flex flex-col gap-5">
         <div className="no-print">
           <PageHero sub={`${mine.length} period${mine.length === 1 ? "" : "s"} a week · set by the school admin`} title="My timetable" actions={mine.length > 0 ? <PrintButton>Print or save as PDF</PrintButton> : undefined} />

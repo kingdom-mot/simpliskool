@@ -4,12 +4,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { emailLayout, escapeHtml, sendEmailBatch } from "@/lib/email";
 import { siteUrl } from "@/lib/notify";
 import { normalizePhone } from "@/lib/people";
-import { sendSmsBulk, shortName, smsReady, smsSettings } from "@/lib/sms";
+import { giveBackSmsCredit, schoolSender, sendSmsBulk, shortName, smsPages, smsReady, smsSettings, takeSmsCredit } from "@/lib/sms";
 import { schoolColours } from "@/lib/theme";
 import { optedOut } from "@/lib/optouts";
 
 type Row = { id: string; school_id: string; title: string; body: string; audience: string; class_ids: string[] | null; kind: string; event_at: string | null; send_email: boolean; send_sms: boolean };
-export type Delivery = { emailed: number; emailFailed: number; emailSkipped: boolean; texted: number; smsFailed: number; smsSkipped: boolean };
+export type Delivery = { emailed: number; emailFailed: number; emailSkipped: boolean; texted: number; smsFailed: number; smsSkipped: boolean; smsNoCredit?: boolean };
 
 /**
  * Sends one announcement's email and SMS. Claims it first (dispatched_at), so it
@@ -64,11 +64,19 @@ export async function deliverAnnouncement(id: string): Promise<Delivery | null> 
     if (!smsReady() || !settings.sms_enabled) out.smsSkipped = true;
     else {
       const phones = [...new Set(people.filter((x) => !noSms.has(x.id)).map((x) => normalizePhone(x.phone)).filter((p): p is string => !!p))];
-      const text = `${shortName(name)}: ${a.title}.${when ? ` ${when}.` : ""} ${a.body}`;
-      const r = await sendSmsBulk(phones, text.length > 300 ? `${text.slice(0, 250)}... More in the Simpliskool app.` : text);
-      out.texted = r.sent;
-      out.smsFailed = r.failed;
-      out.smsSkipped = r.skipped;
+      const full = `${shortName(name)}: ${a.title}.${when ? ` ${when}.` : ""} ${a.body}`;
+      const text = full.length > 300 ? `${full.slice(0, 250)}... More in the Simpliskool app.` : full;
+      const cost = phones.length * smsPages(text);
+      if (!(await takeSmsCredit(admin, a.school_id, cost))) {
+        out.smsSkipped = true;
+        out.smsNoCredit = true;
+      } else {
+        const r = await sendSmsBulk(phones, text, await schoolSender(admin, a.school_id));
+        out.texted = r.sent;
+        out.smsFailed = r.failed;
+        out.smsSkipped = r.skipped;
+        await giveBackSmsCredit(admin, a.school_id, (phones.length - r.sent) * smsPages(text));
+      }
     }
   }
   await admin.from("announcements").update({ emailed: out.emailed, sms_sent: out.texted }).eq("id", a.id);

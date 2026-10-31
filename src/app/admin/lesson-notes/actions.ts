@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { SETUP_ROLES } from "@/components/admin";
 import type { ActionState } from "@/components/forms";
+import { featureOn } from "@/lib/platform-settings";
 import { requireSchool } from "@/lib/auth";
 import { emailReady } from "@/lib/email";
 import { setFlash } from "@/lib/flash";
@@ -63,6 +64,7 @@ export async function remindNoteTeachers(_prev: ActionState, fd: FormData): Prom
 
 export async function createInspectorLink(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase, school, user } = await requireSchool(SETUP_ROLES);
+  if (!(await featureOn(school.id, "inspect"))) return { error: "Inspector links are switched off for your school." };
   const name = String(fd.get("name") ?? "").trim();
   if (name.length < 2) return { error: "Enter the inspector's name." };
   const org = String(fd.get("organisation") ?? "").trim().slice(0, 120);

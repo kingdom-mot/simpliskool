@@ -6,7 +6,8 @@ import { ColourPicker } from "./ColourPicker";
 import { LogoForm } from "./LogoForm";
 import { MarkSplit } from "./MarkSplit";
 import { GradingScale } from "./GradingScale";
-import { pauseOnlinePayments, savePayout, saveSms } from "./actions";
+import { pauseOnlinePayments, requestSenderName, savePayout, saveSms } from "./actions";
+import { featureOn } from "@/lib/platform-settings";
 import { createGroup } from "@/app/group/actions";
 import { listBanks, paystackReady, paystackTestMode } from "@/lib/paystack";
 import { smsReady } from "@/lib/sms";
@@ -74,6 +75,13 @@ export default async function SettingsPage() {
   const sms = smsRow ?? { sms_enabled: false, sms_absence: true, sms_fees: true, sms_receipts: true };
   const smsUse = (usage as { month: number; failed: number; parents: number } | null) ?? { month: 0, failed: 0, parents: 0 };
   const onlineOn = !!payout?.paystack_subaccount;
+  // Set by the Simpliskool team (database file 0018); null before it's run.
+  const { data: plat } = await supabase
+    .from("schools")
+    .select("payments_approved_at, check_status, check_note, sms_credit, sender_id, sender_status, sender_note, plan, pilot_ends")
+    .eq("id", school.id)
+    .maybeSingle<{ payments_approved_at: string | null; check_status: string; check_note: string | null; sms_credit: number; sender_id: string | null; sender_status: string; sender_note: string | null; plan: string; pilot_ends: string | null }>();
+  const groupsOn = await featureOn(school.id, "grp");
   const { data: grp } = await supabase.from("schools").select("group_id, school_groups(name)").eq("id", school.id).maybeSingle<{ group_id: string | null; school_groups: { name: string } | null }>();
   const leaders = ((staff as { user_id: string; full_name: string | null; email: string | null; roles: string[]; joined: boolean }[] | null) ?? []).filter((m) => m.roles.some((r) => ["owner", "admin", "principal", "bursar"].includes(r)));
   const ROLE_NAME: Record<string, string> = { owner: "Owner", admin: "Admin", principal: "Principal / Head teacher", bursar: "Bursar" };
@@ -349,6 +357,15 @@ export default async function SettingsPage() {
             <span className="text-[#4A5A70]">{payout.verified_at ? "Name confirmed with the bank." : "Name not confirmed with the bank yet."}</span>
           </div>
         )}
+        {onlineOn && plat && (
+          <p className={`rounded-xl px-4 py-3 text-sm font-semibold ${plat.payments_approved_at ? "bg-[#E7F6F2] text-[#0B6B5A]" : plat.check_status === "asked" ? "bg-[#FEF3F2] text-[#912018]" : "bg-[#FFF6E3] text-[#5C4310]"}`}>
+            {plat.payments_approved_at
+              ? "✓ Checked by Simpliskool. Parents can pay fees online."
+              : plat.check_status === "asked"
+                ? `Simpliskool needs something fixed before parents can pay online: ${plat.check_note ?? "check your account details"}`
+                : "Simpliskool is checking this account, usually within a working day. Parents can pay online as soon as it's done."}
+          </p>
+        )}
         {onlineOn && (
           <ActionForm action={pauseOnlinePayments} className="flex flex-col gap-2">
             <div>
@@ -385,6 +402,33 @@ export default async function SettingsPage() {
             <SubmitButton>Save SMS settings</SubmitButton>
           </div>
         </ActionForm>
+        {plat && (
+          <div className="flex flex-col gap-3 rounded-xl bg-brand-cloud px-4 py-3">
+            <p className="text-sm text-brand-slate">
+              SMS credit left: <strong>{plat.sms_credit.toLocaleString("en-NG")}</strong> text{plat.sms_credit === 1 ? "" : "s"}. A long text uses 2. To buy more, use <a className="s-link" href="/admin/help">Get help</a>.
+            </p>
+            <ActionForm action={requestSenderName} className="flex flex-wrap items-end gap-3">
+              <div className="min-w-[200px] flex-1">
+                <label className="label" htmlFor="snd">
+                  Sender name parents see
+                </label>
+                <input id="snd" name="sender_id" className="sk-input uppercase" maxLength={11} pattern="[A-Za-z0-9 ]{3,11}" defaultValue={plat.sender_id ?? ""} placeholder="GREENFIELD" aria-describedby="snd-h" />
+                <span id="snd-h" className="mt-1 block text-[13px] text-[#4A5A70]">
+                  {plat.sender_status === "live"
+                    ? `${plat.sender_id} is live: your texts come from it.`
+                    : plat.sender_status === "asked" || plat.sender_status === "sent"
+                      ? `${plat.sender_id} is waiting for the networks to approve it (a few days). Texts come from Simpliskool until then.`
+                      : plat.sender_status === "rejected"
+                        ? `${plat.sender_id} wasn't approved: ${plat.sender_note ?? "try another name"}`
+                        : "Up to 11 letters or numbers. Until it's approved, texts come from Simpliskool."}
+                </span>
+              </div>
+              <SubmitButton className="s-btn2" pending="Sending…">
+                Ask for this name
+              </SubmitButton>
+            </ActionForm>
+          </div>
+        )}
         <p className="text-sm text-brand-slate">
           Texts sent this month: <strong>{smsUse.month}</strong>
           {smsUse.failed > 0 && <span className="text-[#912018]"> · {smsUse.failed} failed in the last 7 days (usually a wrong number)</span>}
@@ -401,6 +445,8 @@ export default async function SettingsPage() {
               Open the group dashboard
             </a>
           </>
+        ) : !groupsOn ? (
+          <p className="text-sm text-brand-slate">School groups aren&apos;t switched on for your school yet. Ask us through Get help if you run more than one campus.</p>
         ) : (
           <>
             <p className="text-sm text-brand-slate">If you run several campuses, make this school the first branch of a group. You&apos;ll get one dashboard for all branches: fees, attendance, results, payroll and staff, plus shared settings. Each branch keeps its own principal, staff and fees.</p>
@@ -420,8 +466,12 @@ export default async function SettingsPage() {
       <Panel title="Plan" id="plan">
         <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-brand-cloud p-4">
           <div>
-            <span className="font-heading text-xl font-extrabold text-c1">Pilot plan</span>
-            <p className="text-sm text-brand-slate">You&apos;re one of our pilot schools. Everything is included during the pilot.</p>
+            <span className="font-heading text-xl font-extrabold text-c1">{!plat || plat.plan === "pilot" ? "Pilot plan" : plat.plan === "group" ? "School group plan" : "Single school plan"}</span>
+            <p className="text-sm text-brand-slate">
+              {!plat || plat.plan === "pilot"
+                ? `You're one of our pilot schools. Everything is included during the pilot${plat?.pilot_ends ? `, until ${new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" }).format(new Date(`${plat.pilot_ends}T12:00:00Z`))}` : ""}.`
+                : "Billed once a term on active students."}
+            </p>
           </div>
           <div className="text-right">
             <span className="block text-xs font-bold uppercase tracking-[0.05em] text-[#4A5A70]">Active students</span>

@@ -36,7 +36,7 @@ export default async function TeacherHomework(props: { searchParams: Promise<{ t
   const pre = mine.some((m) => m.id === sp.cs) ? sp.cs! : null;
 
   return (
-    <PortalShell school={school} roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="homework">
+    <PortalShell school={school} schoolId={school.id} role="teacher" roleLabel="Teacher" fullName={fullName} groups={TEACHER_NAV} active="homework">
       <div className="flex flex-col gap-5">
         <PageHero title="Homework and assignments" sub={term ? termLabel(term) : undefined} actions={mine.length ? <a className="s-btn" href="#new-h">+ New</a> : undefined} />
         <Flash />

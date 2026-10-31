@@ -5,6 +5,7 @@ import { z } from "zod";
 import { aiReady, askClaude } from "@/lib/ai";
 import { aiLimit, aiUsed, draftMcqs, spendAi, type Mcq } from "@/lib/ai-teach";
 import { requireSchool } from "@/lib/auth";
+import { featureOn } from "@/lib/platform-settings";
 import { loadTerms } from "@/lib/fees";
 import { weekOfTerm } from "@/lib/lesson-notes";
 
@@ -29,6 +30,7 @@ export async function ask(task: Task, csId: string, request: string, history: Tu
   if (!cs) return { error: "Choose one of your classes." };
   const req = request.trim().slice(0, 1500);
   if (req.length < 3) return { error: "Type what you need first." };
+  if (!(await featureOn(ctx.school.id, "ai"))) return { error: "The AI assistant is switched off for your school." };
   if (!(await spendAi(ctx.supabase, ctx.school.id, ctx.user.id, task))) return { error: `You've used this month's ${aiLimit()} AI requests. They reset on the 1st.` };
   const where = `Class: ${cs.level}\nSubject: ${cs.subject}`;
 
