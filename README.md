@@ -38,6 +38,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0017_groups.sql` (school groups: one proprietor, several branches, group team)
      - `0018_platform.sql` (Dream Savvy back office at /super: team and two-step sign-in, read-only view as a school, new school checks before online payments, support requests, notices, SMS credit and sender names, refunds, audit log, platform settings)
      - `0019_demo.sql` (the public demo school: Bright Future Academy, Lekki and Ajah, with made-up data, rebuilt every night)
+     - `0020_hardening.sql` (owners can't change Simpliskool-only school settings such as the demo marker; people can't change the email or phone on their profile)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.

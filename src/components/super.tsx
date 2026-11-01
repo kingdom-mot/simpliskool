@@ -3,7 +3,7 @@ import { PageHero } from "@/components/admin";
 import { PortalShell } from "@/components/PortalShell";
 import { TEAM_ROLE_LABEL, type PlatformCtx } from "@/lib/platform";
 
-const SHELL = { name: "Simpliskool back office", logo_url: null, primary_color: "#0A1F3D", secondary_color: "#0F9D8A" };
+const SHELL = { name: "Simpliskool back office", logo_url: null, primary_color: "#0A1F3D", secondary_color: "#0B7D6E" };
 
 /** Side menu and header for the Dream Savvy back office. */
 export function SuperShell({ ctx, active, title, sub, actions, crumb, children }: { ctx: PlatformCtx; active: string; title: string; sub?: React.ReactNode; actions?: React.ReactNode; crumb?: { label: string; href?: string }[]; children: React.ReactNode }) {
