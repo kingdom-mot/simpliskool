@@ -10,6 +10,9 @@ import { naira } from "@/lib/format";
 import { parseItems, type Settings } from "@/lib/payroll";
 import { approvePayroll, deleteStructure, markPaid, preparePayroll, saveStaffPay, saveStructure, saveTaxSettings } from "./actions";
 
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
 export const metadata = { title: "Payroll" };
 
 type Structure = { id: string; name: string; basic_kobo: number; allowances: unknown; deductions: unknown };
@@ -20,7 +23,7 @@ const BANKS = ["Access Bank", "Citibank", "Ecobank", "Fidelity Bank", "First Ban
 const STATES = ["Lagos (LIRS)", "Ogun (OGIRS)", "Oyo (OYIRS)", "FCT (FCT-IRS)", "Rivers (RIRS)", "Kano (KIRS)", "Other"];
 const sum = (raw: unknown) => parseItems(raw).reduce((a, x) => a + x.kobo, 0);
 
-export default async function PayrollPage(props: { searchParams: Promise<{ tab?: string; month?: string; slip?: string }> }) {
+export default async function PayrollPage(props: { searchParams: Promise<{ tab?: string; month?: string; slip?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(["owner", "bursar"]);
   if (!(await featureOn(ctx.school.id, "payroll"))) redirect("/admin");
@@ -45,6 +48,9 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
   const cur = (slips ?? []).find((s) => s.user_id === sp.slip);
   const s = settings ?? { pension_on: false, pension_staff_pct: 8, pension_employer_pct: 10, paye_on: false, tax_state: null, tin: null };
   const STATUS = { draft: ["Draft: not approved", "warn"], approved: ["Approved: waiting to be paid", "info"], paid: ["Paid", "good"] } as const;
+  const q = searchText(sp.q);
+  const slipRows = (slips ?? []).filter((x) => matches(q, x.name, x.job_title));
+  const payPage = paginate(staffList.filter((m) => matches(q, m.full_name, m.email, m.roles.join(" "))), pageNum(sp.page), 20);
   const tabHref = (t: string) => `/admin/payroll?${new URLSearchParams({ tab: t, month })}`;
 
   return (
@@ -113,7 +119,8 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                 </a>
               )}
             </div>
-            {slips?.length ? (
+            {(slips?.length ?? 0) > 8 && <SearchBar id="pr-q" label="Find a staff member" placeholder="Name or job title" q={q} keep={{ month }} clearHref={linkTo("/admin/payroll", { month })} compact />}
+            {slipRows.length ? (
               <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Payroll table: scroll sideways to see more">
                 <table className="tbl min-w-[980px]">
                   <caption className="sr-only">{monthName} payroll. Select a name to see the payslip.</caption>
@@ -130,7 +137,7 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                     </tr>
                   </thead>
                   <tbody>
-                    {slips.map((x) => (
+                    {slipRows.map((x) => (
                       <tr key={x.id} className={x.user_id === sp.slip ? "bg-brand-cloud" : ""}>
                         <th scope="row">
                           <Link className="s-link" href={`/admin/payroll?${new URLSearchParams({ month, slip: x.user_id })}#slip`}>
@@ -151,7 +158,7 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                 </table>
               </div>
             ) : (
-              <Empty>{structures?.length ? "Prepare the payroll to work out this month's pay." : "Start in Salary structures: add your pay structures and give each staff member one."}</Empty>
+              <Empty>{q && slips?.length ? noMatch(q, "staff") : structures?.length ? "Prepare the payroll to work out this month's pay." : "Start in Salary structures: add your pay structures and give each staff member one."}</Empty>
             )}
           </Panel>
           {cur && (
@@ -270,9 +277,11 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
 
           <Panel id="sp-h" title="Staff pay details">
             <p className="text-sm text-[#4A5A70]">Give each staff member a structure and their bank details. Pension details (PFA and PIN) appear on the remittance schedule.</p>
-            {staffList.length ? (
+            {staffList.length > 8 && <SearchBar id="sp-q" label="Find a staff member" placeholder="Name, email or role" q={q} keep={{ tab: "structures" }} clearHref="/admin/payroll?tab=structures" compact />}
+            {payPage.rows.length ? (
+              <>
               <ul className="flex flex-col gap-3">
-                {staffList.map((m) => {
+                {payPage.rows.map((m) => {
                   const p = payOf.get(m.user_id);
                   const nm = m.full_name?.trim() || m.email || "Staff member";
                   const id = m.user_id.slice(0, 8);
@@ -348,8 +357,10 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                   );
                 })}
               </ul>
+              <Pager p={payPage} href={(n) => linkTo("/admin/payroll", { tab: "structures", q, page: n })} label="Staff pay pages" noun="staff" />
+              </>
             ) : (
-              <Empty>No staff yet.</Empty>
+              <Empty>{q && staffList.length ? noMatch(q, "staff") : "No staff yet."}</Empty>
             )}
             <datalist id="banks">
               {BANKS.map((b) => (

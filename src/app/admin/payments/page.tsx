@@ -10,6 +10,9 @@ import { levelOrder } from "@/lib/nigeria";
 import { askRefund, recordPayment, resendReceipt, sendReminders, voidPayment } from "./actions";
 import { parentPhones, smsReady, smsSettings } from "@/lib/sms";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { Picker } from "@/components/Picker";
+import { matches, pageNum, paginate, searchText } from "@/lib/paging";
 
 export const metadata = { title: "Payments and defaulters" };
 
@@ -31,7 +34,7 @@ const TZ = "Africa/Lagos";
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: TZ });
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
 
-export default async function PaymentsPage(props: { searchParams: Promise<{ term?: string; class?: string; tab?: string; invoice?: string }> }) {
+export default async function PaymentsPage(props: { searchParams: Promise<{ term?: string; class?: string; tab?: string; invoice?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(FINANCE_ROLES);
   const { supabase, school, membership } = ctx;
@@ -40,6 +43,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
   const classes = (classRows ?? []).sort((a, b) => levelOrder(a.name) - levelOrder(b.name) || classLabel(a.name, a.arm).localeCompare(classLabel(b.name, b.arm)));
   const classId = classes.some((c) => c.id === sp.class) ? sp.class! : null;
   const tab = sp.tab === "defaulters" || sp.tab === "invoices" ? sp.tab : "payments";
+  const q = searchText(sp.q);
 
   if (!term) {
     return (
@@ -76,7 +80,17 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
   const reachable = (d: { id: string; parents_with_email: number }) => (ready && d.parents_with_email > 0) || withPhone.has(d.id);
   const periodName = `${termLabel(term)}${classId ? `, ${classLabel(classes.find((c) => c.id === classId)!.name, classes.find((c) => c.id === classId)!.arm)}` : ""}`;
   const base = { term: term.id, ...(classId ? { class: classId } : {}) };
-  const href = (o2: Record<string, string>) => `/admin/payments?${new URLSearchParams({ ...base, ...o2 })}`;
+  const href = (o2: Record<string, string>) => `/admin/payments?${new URLSearchParams({ ...base, ...(q ? { q } : {}), ...o2 })}`;
+  // Search and pages for the list on show. The counts on the tabs stay for the whole term.
+  const payList = (o?.payments ?? []).filter((p) => matches(q, p.name, p.class, p.receipt, p.reference, METHOD_LABEL[p.method] ?? p.method));
+  const debtList = (o?.defaulters ?? []).filter((d) => matches(q, d.name, d.admission_no, d.class));
+  const invList = (o?.invoice_list ?? []).filter((i) => matches(q, i.name, i.admission_no, i.class));
+  const page = pageNum(sp.page);
+  const payPage = paginate(payList, page);
+  const debtPage = paginate(debtList, page);
+  const invPage = paginate(invList, page);
+  const pageHref = (n: number) => href({ tab, ...(n > 1 ? { page: String(n) } : {}) });
+  const remindable = debtList.filter((d) => reachable(d));
   const exportHref = (kind: string) => `/admin/payments/export?${new URLSearchParams({ ...base, kind })}`;
   const debtTotal = (o?.defaulters ?? []).reduce((a, d) => a + d.total, 0);
 
@@ -165,8 +179,18 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
             ))}
           </nav>
 
+          <SearchBar
+            id="pay-q"
+            label={tab === "payments" ? "Search payments" : tab === "defaulters" ? "Search defaulters" : "Search invoices"}
+            placeholder={tab === "payments" ? "Student, class, receipt no. or bank reference" : "Student name, admission no. or class"}
+            q={q}
+            keep={{ ...base, tab }}
+            clearHref={`/admin/payments?${new URLSearchParams({ ...base, tab })}`}
+          />
+
           {tab === "payments" &&
-            (o?.payments.length ? (
+            (payPage.rows.length ? (
+              <>
               <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Payments table: scroll sideways to see more">
                 <table className="tbl min-w-[860px]">
                   <caption className="sr-only">Payments for {periodName}</caption>
@@ -185,7 +209,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                     </tr>
                   </thead>
                   <tbody>
-                    {o.payments.map((p) => (
+                    {payPage.rows.map((p) => (
                       <tr key={p.id}>
                         <td className="whitespace-nowrap">{day(p.at)}</td>
                         <th scope="row">{p.name}</th>
@@ -261,21 +285,39 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                   </tbody>
                 </table>
               </div>
+              <Pager p={payPage} href={pageHref} label="Payment pages" noun="payments" />
+              </>
             ) : (
-              <Empty>No payments for {periodName} yet.</Empty>
+              <Empty>{q ? noMatch(q, "payments") : `No payments for ${periodName} yet.`}</Empty>
             ))}
 
           {tab === "defaulters" &&
-            (o?.defaulters.length ? (
+            (debtPage.rows.length ? (
               <ActionForm action={sendReminders} className="flex flex-col gap-3">
+                {remindable.map((d) => (
+                  <input key={d.id} type="hidden" name="all_student" value={d.id} />
+                ))}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <p className="text-sm text-brand-slate">
-                    {o.defaulters.length} student{o.defaulters.length === 1 ? "" : "s"} owe {naira(debtTotal)} in all, including earlier terms.
+                    {q
+                      ? `${debtList.length} of ${o!.defaulters.length} students owing match your search.`
+                      : `${o!.defaulters.length} student${o!.defaulters.length === 1 ? "" : "s"} owe ${naira(debtTotal)} in all, including earlier terms.`}
                   </p>
-                  <SubmitButton pending="Sending…">Send payment reminders</SubmitButton>
+                  <div className="flex flex-wrap gap-2">
+                    <SubmitButton pending="Sending…">Remind the ticked parents</SubmitButton>
+                    {debtPage.pages > 1 && remindable.length > 0 && (
+                      <button type="submit" name="all" value="1" className="s-btn2">
+                        Remind all {remindable.length}
+                        {q ? " found" : ""}
+                      </button>
+                    )}
+                  </div>
                 </div>
                 {!ready && !smsOn && <p className="text-[13px] text-[#4A5A70]">Emails aren&apos;t switched on yet, so reminders can&apos;t be sent.</p>}
-                <p className="text-[13px] text-[#4A5A70]">Tick the students whose parents should get their full balance by email{smsOn ? " and text" : ""}. Each parent gets at most one reminder per child a day.</p>
+                <p className="text-[13px] text-[#4A5A70]">
+                  Tick the students whose parents should get their full balance by email{smsOn ? " and text" : ""}
+                  {debtPage.pages > 1 ? `, or use "Remind all" for everyone on every page${q ? " that matches your search" : ""}` : ""}. Each parent gets at most one reminder per child a day.
+                </p>
                 <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Defaulters table: scroll sideways to see more">
                   <table className="tbl min-w-[860px]">
                     <caption className="sr-only">Students owing for {periodName}</caption>
@@ -294,7 +336,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                       </tr>
                     </thead>
                     <tbody>
-                      {o.defaulters.map((d) => (
+                      {debtPage.rows.map((d) => (
                         <tr key={d.id}>
                           <td>
                             <input
@@ -319,7 +361,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                           <td>{d.last_reminder ? day(d.last_reminder) : "Never"}</td>
                           <td>
                             {d.invoice_id && d.cur > 0 && (
-                              <Link className="s-link text-sm" href={`${href({ tab: "defaulters", invoice: d.invoice_id })}#record`}>
+                              <Link className="s-link text-sm" href={`${href({ tab: "defaulters", invoice: d.invoice_id, ...(debtPage.page > 1 ? { page: String(debtPage.page) } : {}) })}#record`}>
                                 Record payment<span className="sr-only"> for {d.name}</span>
                               </Link>
                             )}
@@ -329,13 +371,15 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                     </tbody>
                   </table>
                 </div>
+                <Pager p={debtPage} href={pageHref} label="Defaulter pages" noun="students" />
               </ActionForm>
             ) : (
-              <Empty>Nobody owes anything for {periodName}.</Empty>
+              <Empty>{q ? noMatch(q, "students owing") : `Nobody owes anything for ${periodName}.`}</Empty>
             ))}
 
           {tab === "invoices" &&
-            (o?.invoice_list.length ? (
+            (invPage.rows.length ? (
+              <>
               <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Invoices table: scroll sideways to see more">
                 <table className="tbl min-w-[640px]">
                   <caption className="sr-only">Invoices for {periodName}</caption>
@@ -349,7 +393,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                     </tr>
                   </thead>
                   <tbody>
-                    {o.invoice_list.map((i) => (
+                    {invPage.rows.map((i) => (
                       <tr key={i.id}>
                         <th scope="row">
                           {i.name} <span className="block text-xs font-normal text-[#4A5A70]">{i.admission_no}</span>
@@ -363,29 +407,28 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                   </tbody>
                 </table>
               </div>
+              <Pager p={invPage} href={pageHref} label="Invoice pages" noun="invoices" />
+              </>
             ) : (
-              <Empty>No invoices for {periodName} yet.</Empty>
+              <Empty>{q ? noMatch(q, "invoices") : `No invoices for ${periodName} yet.`}</Empty>
             ))}
         </section>
 
         <Panel id="record" title="Record a payment">
           {owingInvoices.length ? (
             <ActionForm action={recordPayment} resetOnSuccess className="flex flex-col gap-3">
-              <div>
-                <label className="label" htmlFor="r-inv">
-                  Student
-                </label>
-                <select id="r-inv" name="invoice" className="sk-input" required defaultValue={owingInvoices.some((i) => i.id === sp.invoice) ? sp.invoice : ""}>
-                  <option value="" disabled>
-                    Choose a student
-                  </option>
-                  {owingInvoices.map((i) => (
-                    <option key={i.id} value={i.id}>
-                      {i.name} ({i.class ?? "no class"}) · owes {naira(i.balance)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Picker
+                key={sp.invoice ?? "none"}
+                id="r-inv"
+                name="invoice"
+                label="Student"
+                required
+                placeholder="Type the student's name or admission no."
+                hint={`${owingInvoices.length} student${owingInvoices.length === 1 ? "" : "s"} still owe for ${termLabel(term)}.`}
+                emptyText="Nobody owing matches. Check the spelling, or the student may have paid in full."
+                defaultValue={owingInvoices.some((i) => i.id === sp.invoice) ? sp.invoice : undefined}
+                options={owingInvoices.map((i) => ({ value: i.id, label: i.name, sub: `${i.class ?? "No class"} · ${i.admission_no} · owes ${naira(i.balance)}`, keywords: i.admission_no }))}
+              />
               <div>
                 <label className="label" htmlFor="r-amt">
                   Amount (₦)

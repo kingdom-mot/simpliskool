@@ -16,7 +16,10 @@ type Hw = { id: string; class_subject_id: string; kind: string; title: string; d
 const weekAhead = () => lagosParts(new Date(Date.now() + 3 * 86400000)).date;
 const nowMs = () => Date.now();
 
-export default async function TeacherHomework(props: { searchParams: Promise<{ tab?: string; new?: string; cs?: string }> }) {
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function TeacherHomework(props: { searchParams: Promise<{ tab?: string; new?: string; cs?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
   const [mine, { term }, { data: partsRaw }] = await Promise.all([myClassSubjects(supabase, school.id, user.id), loadTerms(supabase, school.id), supabase.rpc("assessment_parts", { p_school: school.id })]);
@@ -32,7 +35,9 @@ export default async function TeacherHomework(props: { searchParams: Promise<{ t
   const open = (rows ?? []).filter((h) => Date.parse(h.due_at) >= now || h.homework_submissions.some((s) => s.status === "submitted"));
   const past = (rows ?? []).filter((h) => !open.includes(h)).reverse();
   const tab = sp.tab === "past" ? "past" : "open";
-  const list = tab === "past" ? past : open;
+  const q = searchText(sp.q);
+  const pg = paginate((tab === "past" ? past : open).filter((h) => matches(q, h.title, csOf.get(h.class_subject_id)?.label, h.kind === "assignment" ? "assignment" : "homework")), pageNum(sp.page), 15);
+  const list = pg.rows;
   const pre = mine.some((m) => m.id === sp.cs) ? sp.cs! : null;
 
   return (
@@ -60,6 +65,7 @@ export default async function TeacherHomework(props: { searchParams: Promise<{ t
                   </Link>
                 ))}
               </nav>
+              {(tab === "past" ? past : open).length > 8 && <SearchBar id="hw-q" label="Search homework" placeholder="Title, class or subject" q={q} keep={{ tab }} clearHref={`/teacher/homework?tab=${tab}`} compact />}
               {list.length ? (
                 <ul className="flex flex-col gap-2">
                   {list.map((h) => {
@@ -91,8 +97,9 @@ export default async function TeacherHomework(props: { searchParams: Promise<{ t
                   })}
                 </ul>
               ) : (
-                <Empty>{tab === "open" ? "No open homework. Set some with the form." : "Nothing here yet."}</Empty>
+                <Empty>{q ? noMatch(q, "homework") : tab === "open" ? "No open homework. Set some with the form." : "Nothing here yet."}</Empty>
               )}
+              <Pager p={pg} href={(n) => linkTo("/teacher/homework", { tab, q, page: n })} label="Homework pages" />
             </section>
             <section aria-labelledby="new-h" className="flex flex-col gap-4 rounded-[18px] border border-t-[5px] border-[#E3EAF3] border-t-c1 bg-white p-[22px]">
               <h2 id="new-h" className="text-lg !text-c1">

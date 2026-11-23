@@ -19,7 +19,10 @@ const TABS = [
 ] as const;
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Africa/Lagos" });
 
-export default async function LessonNotesReview(props: { searchParams: Promise<{ tab?: string; note?: string }> }) {
+import { Pager, SearchBar } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function LessonNotesReview(props: { searchParams: Promise<{ tab?: string; note?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(SETUP_ROLES);
   const { supabase, school } = ctx;
@@ -49,9 +52,15 @@ export default async function LessonNotesReview(props: { searchParams: Promise<{
     byTeacher.set(c.teacher_id, e);
   }
   const tab = TABS.find(([k]) => k === sp.tab) ?? TABS[0];
-  const list = notes.filter((n) => (tab[2] as readonly string[]).includes(n.status));
-  const sel = notes.find((n) => n.id === sp.note) ?? list[0];
   const label = (n: Row) => `${n.class_subjects?.subjects?.name ?? ""} · ${classLabel(n.class_subjects?.classes?.name ?? "", n.class_subjects?.classes?.arm ?? "")}`;
+  const q = searchText(sp.q);
+  const pg = paginate(
+    notes.filter((n) => (tab[2] as readonly string[]).includes(n.status) && matches(q, label(n), n.profiles?.full_name, n.topic, `week ${n.week}`)),
+    pageNum(sp.page),
+    20,
+  );
+  const list = pg.rows;
+  const sel = notes.find((n) => n.id === sp.note) ?? list[0];
 
   return (
     <AdminPage
@@ -87,16 +96,18 @@ export default async function LessonNotesReview(props: { searchParams: Promise<{
           return (
             <Link key={k} href={`/admin/lesson-notes?tab=${k}`} aria-current={tab[0] === k ? "page" : undefined} className={`flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] px-4 text-sm font-bold ${tab[0] === k ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}>
               {l}
-              <span className={`rounded-full px-2 py-0.5 text-xs ${tab[0] === k ? "bg-white/20" : "bg-brand-cloud"}`}>{n}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${tab[0] === k ? "bg-black/25" : "bg-brand-cloud"}`}>{n}</span>
             </Link>
           );
         })}
       </nav>
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <nav aria-label="Lesson notes" className="flex flex-col gap-1 rounded-[18px] border border-[#E3EAF3] bg-white p-2">
+        <div className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-2">
+        <SearchBar id="ln-q" label="Search notes" placeholder="Teacher, subject, class, topic or week" q={q} keep={{ tab: tab[0] }} clearHref={`/admin/lesson-notes?tab=${tab[0]}`} compact className="px-1 pt-1" />
+        <nav aria-label="Lesson notes" className="flex flex-col gap-1">
           {list.length ? (
             list.map((n) => (
-              <Link key={n.id} href={`/admin/lesson-notes?tab=${tab[0]}&note=${n.id}`} aria-current={sel?.id === n.id ? "page" : undefined} className={`flex flex-col rounded-xl px-3 py-2.5 ${sel?.id === n.id ? "bg-brand-cloud" : ""}`}>
+              <Link key={n.id} href={linkTo("/admin/lesson-notes", { tab: tab[0], q, page: pg.page, note: n.id })} aria-current={sel?.id === n.id ? "page" : undefined} className={`flex flex-col rounded-xl px-3 py-2.5 ${sel?.id === n.id ? "bg-brand-cloud" : ""}`}>
                 <span className="flex items-center justify-between gap-2">
                   <span className={`font-bold ${sel?.id === n.id ? "text-c1" : "text-brand-slate"}`}>{label(n)}</span>
                   <Pill kind={NOTE_STATUS[n.status][1]}>{NOTE_STATUS[n.status][0]}</Pill>
@@ -108,9 +119,13 @@ export default async function LessonNotesReview(props: { searchParams: Promise<{
               </Link>
             ))
           ) : (
-            <p className="p-3 text-sm text-[#4A5A70]">Nothing here.</p>
+            <p className="p-3 text-sm text-[#4A5A70]">{q ? `No notes match “${q}”.` : "Nothing here."}</p>
           )}
         </nav>
+        <div className="px-1 [&>nav]:flex-col [&>nav]:items-stretch">
+          <Pager p={pg} href={(n) => linkTo("/admin/lesson-notes", { tab: tab[0], q, page: n })} label="Note pages" />
+        </div>
+        </div>
         {sel ? (
           <Panel id="rv-h" title={`${label(sel)} · Week ${sel.week}`} actions={<Pill kind={NOTE_STATUS[sel.status][1]}>{NOTE_STATUS[sel.status][0]}</Pill>}>
             <p className="-mt-2 text-sm text-[#4A5A70]">{sel.profiles?.full_name ?? "Teacher"}</p>

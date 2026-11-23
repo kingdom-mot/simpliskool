@@ -8,13 +8,17 @@ export const metadata = { title: "Audit log — Simpliskool back office" };
 
 const KIND: Record<AuditKind, { l: string; k: "warn" | "good" | "bad" | "info" }> = { view: { l: "Viewed", k: "warn" }, money: { l: "Money", k: "bad" }, access: { l: "Access", k: "good" }, other: { l: "Other", k: "info" } };
 
-export default async function SuperAudit(props: { searchParams: Promise<{ tab?: string; q?: string }> }) {
+import { Pager } from "@/components/ListTools";
+import { linkTo, pageNum, paginate } from "@/lib/paging";
+
+export default async function SuperAudit(props: { searchParams: Promise<{ tab?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requirePlatform("audit");
   const all = ctx.can("audit.all");
   const tab = all ? (["view", "money", "access"].includes(sp.tab ?? "") ? (sp.tab as AuditKind) : "all") : "money";
   const q = (sp.q ?? "").slice(0, 80);
-  const rows = await auditRows(ctx.admin, { kinds: tab === "all" ? null : [tab], q, limit: 300 });
+  const pg = paginate(await auditRows(ctx.admin, { kinds: tab === "all" ? null : [tab], q, limit: 1000 }), pageNum(sp.page), 50);
+  const rows = pg.rows;
   const href = (t: string) => `/super/audit?${new URLSearchParams({ ...(t !== "all" ? { tab: t } : {}), ...(q ? { q } : {}) })}`;
 
   return (
@@ -88,6 +92,7 @@ export default async function SuperAudit(props: { searchParams: Promise<{ tab?: 
       ) : (
         <Empty>Nothing matches.</Empty>
       )}
+      <Pager p={pg} href={(n) => linkTo("/super/audit", { tab: tab === "all" ? "" : tab, q, page: n })} label="Audit log pages" noun="entries" />
     </SuperShell>
   );
 }

@@ -12,7 +12,10 @@ type M = { school_id: string; user_id: string; role: Role; profiles: { full_name
 type CS = { school_id: string; teacher_id: string; classes: { name: string; arm: string } | null; subjects: { name: string } | null };
 type SA = { school_id: string; user_id: string; clock_in: string | null; date: string };
 
-export default async function GroupStaff(props: { searchParams: Promise<{ branch?: string; q?: string }> }) {
+import { Pager } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function GroupStaff(props: { searchParams: Promise<{ branch?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireGroup("staff");
   const branch = ctx.ids.includes(sp.branch ?? "") ? sp.branch! : null;
@@ -36,9 +39,9 @@ export default async function GroupStaff(props: { searchParams: Promise<{ branch
     p.roles.push(m.role);
     people.set(k, p);
   }
-  const q = (sp.q ?? "").trim().toLowerCase();
-  const rows = [...people.values()]
-    .filter((p) => !q || p.name.toLowerCase().includes(q))
+  const q = searchText(sp.q);
+  const all = [...people.values()]
+    .filter((p) => matches(q, p.name, p.roles.map((x) => ROLE_LABEL[x]).join(" ")))
     .sort((a, b) => (name.get(a.school) ?? "").localeCompare(name.get(b.school) ?? "") || a.name.localeCompare(b.name))
     .map((p) => {
       const teaches = (cs ?? []).filter((c) => c.school_id === p.school && c.teacher_id === p.user);
@@ -47,9 +50,11 @@ export default async function GroupStaff(props: { searchParams: Promise<{ branch
       const onTime = days.filter((d) => hm(d.clock_in!) <= (lateAfter.get(p.school) ?? "07:45")).length;
       return { ...p, teaches: subj.length ? `${subj.join(", ")} · ${teaches.map((t) => (t.classes ? classLabel(t.classes.name, t.classes.arm) : "")).filter((v, i, a) => v && a.indexOf(v) === i).slice(0, 4).join(", ")}` : "—", days: days.length, onTime };
     });
+  const pg = paginate(all, pageNum(sp.page), 30);
+  const rows = pg.rows;
 
   return (
-    <GroupShell ctx={ctx} active="staff" title="Staff across branches" sub={`${rows.length} staff · attendance is marked by each branch; you see it here, read only.`}>
+    <GroupShell ctx={ctx} active="staff" title="Staff across branches" sub={`${all.length} staff · attendance is marked by each branch; you see it here, read only.`}>
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {stats
           .filter((s) => !branch || s.id === branch)
@@ -81,7 +86,7 @@ export default async function GroupStaff(props: { searchParams: Promise<{ branch
           <label className="label" htmlFor="gs-q">
             Search
           </label>
-          <input id="gs-q" name="q" defaultValue={sp.q ?? ""} className="sk-input" placeholder="Name" />
+          <input id="gs-q" name="q" defaultValue={sp.q ?? ""} className="sk-input" placeholder="Name or role" type="search" />
         </div>
         <button className="s-btn2">Show</button>
       </form>
@@ -119,8 +124,9 @@ export default async function GroupStaff(props: { searchParams: Promise<{ branch
             </table>
           </div>
         ) : (
-          <Empty>No staff found.</Empty>
+          <Empty>{q ? `No staff match “${q}”.` : "No staff found."}</Empty>
         )}
+        <Pager p={pg} href={(n) => linkTo("/group/staff", { branch, q, page: n })} label="Staff pages" noun="staff" />
         <p className="text-[13px] text-[#4A5A70]">To add, remove or move staff, open the branch and use its Staff page.</p>
       </section>
     </GroupShell>

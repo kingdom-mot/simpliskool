@@ -2,6 +2,8 @@ import Link from "next/link";
 import { AdminPage, Panel, requireAdminPage } from "@/components/admin";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Empty, ICONS, Pill, StatCard } from "@/components/ui";
+import { SearchBar, noMatch } from "@/components/ListTools";
+import { matches, searchText } from "@/lib/paging";
 import { clockStaff, setLateTime } from "./actions";
 
 export const metadata = { title: "Staff attendance" };
@@ -18,7 +20,7 @@ const ampm = (h: string | null) => {
   return `${H % 12 || 12}:${String(M).padStart(2, "0")}${H >= 12 ? "pm" : "am"}`;
 };
 
-export default async function StaffAttendancePage(props: { searchParams: Promise<{ date?: string; tab?: string; month?: string }> }) {
+export default async function StaffAttendancePage(props: { searchParams: Promise<{ date?: string; tab?: string; month?: string; q?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(["owner", "admin", "principal"]);
   const { supabase, school, membership } = ctx;
@@ -26,6 +28,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
   const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) && sp.date <= today ? sp.date : today;
   const tab = sp.tab === "month" ? "month" : "today";
   const month = sp.month && /^\d{4}-\d{2}$/.test(sp.month) ? sp.month : date.slice(0, 7);
+  const q = searchText(sp.q);
   const canMark = membership.role === "owner" || membership.role === "principal";
   const [{ data: dayData }, { data: monthData }] = await Promise.all([
     supabase.rpc("staff_attendance_day", { p_school: school.id, p_date: date }),
@@ -43,6 +46,8 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
   };
   const longDate = new Date(`${date}T12:00:00+01:00`).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: TZ });
   const monthName = new Date(`${month}-15T12:00:00+01:00`).toLocaleDateString("en-GB", { month: "long", year: "numeric", timeZone: TZ });
+  const shown = rows.filter((r) => matches(q, r.name, r.role));
+  const monthRows = ((monthData as Month[] | null) ?? []).filter((m) => matches(q, m.name));
   const status = (r: Row): [string, "good" | "warn" | "bad" | "info"] =>
     r.status === "absent" ? ["Absent", "bad"] : r.status === "leave" ? ["On leave", "info"] : r.status === "duty" ? ["Official duty", "info"] : !r.clock_in ? ["Not in yet", "info"] : r.clock_out ? [`Left at ${tm(r.clock_out)}`, "info"] : isLate(r) ? ["Late", "warn"] : ["On time", "good"];
 
@@ -90,7 +95,8 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
 
       {tab === "today" ? (
         <Panel id="day-h" title={`Staff clock-in and clock-out for ${longDate}`}>
-          {rows.length ? (
+          {rows.length > 6 && <SearchBar id="sa-q" label="Find a staff member" placeholder="Name or role" q={q} keep={{ date: date === today ? "" : date }} clearHref={`/admin/staff-attendance${date === today ? "" : `?date=${date}`}`} compact />}
+          {shown.length ? (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Staff attendance: scroll sideways to see more">
               <table className="tbl min-w-[900px]">
                 <caption className="sr-only">Staff clock-in and clock-out for {longDate}</caption>
@@ -105,7 +111,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((r) => {
+                  {shown.map((r) => {
                     const [st, kind] = status(r);
                     return (
                       <tr key={r.id}>
@@ -178,7 +184,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
               </table>
             </div>
           ) : (
-            <Empty>No staff yet. Invite staff on the Staff page.</Empty>
+            <Empty>{q && rows.length ? noMatch(q, "staff") : "No staff yet. Invite staff on the Staff page."}</Empty>
           )}
           {membership.role === "owner" && (
             <ActionForm action={setLateTime} className="flex flex-wrap items-end gap-2 border-t border-[#EEF3F9] pt-3">
@@ -196,6 +202,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
         <Panel id="mon-h" title={`Staff attendance summary for ${monthName}`}>
           <form method="get" className="flex flex-wrap items-end gap-2">
             <input type="hidden" name="tab" value="month" />
+            {q && <input type="hidden" name="q" value={q} />}
             <div>
               <label className="label" htmlFor="sa-month">
                 Month
@@ -204,7 +211,8 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
             </div>
             <button className="s-btn2">Show</button>
           </form>
-          {(monthData as Month[] | null)?.length ? (
+          {((monthData as Month[] | null)?.length ?? 0) > 6 && <SearchBar id="sm-q" label="Find a staff member" placeholder="Name" q={q} keep={{ tab: "month", month }} clearHref={`/admin/staff-attendance?tab=month&month=${month}`} compact />}
+          {monthRows.length ? (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Monthly summary: scroll sideways to see more">
               <table className="tbl min-w-[700px]">
                 <caption className="sr-only">Staff attendance summary for {monthName}</caption>
@@ -219,7 +227,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
                   </tr>
                 </thead>
                 <tbody>
-                  {(monthData as Month[]).map((m) => (
+                  {monthRows.map((m) => (
                     <tr key={m.id}>
                       <th scope="row">{m.name}</th>
                       <td>{m.present}</td>
@@ -233,7 +241,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
               </table>
             </div>
           ) : (
-            <Empty>No staff yet.</Empty>
+            <Empty>{q && (monthData as Month[] | null)?.length ? noMatch(q, "staff") : "No staff yet."}</Empty>
           )}
         </Panel>
       )}

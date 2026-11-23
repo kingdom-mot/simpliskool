@@ -13,7 +13,10 @@ export const metadata = { title: "Payments and payouts — Simpliskool back offi
 
 const OPEN_DISPUTE = ["awaiting-merchant-feedback", "awaiting-bank-feedback", "pending"];
 
-export default async function SuperPayments(props: { searchParams: Promise<{ tab?: string; range?: string }> }) {
+import { Pager, SearchBar } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function SuperPayments(props: { searchParams: Promise<{ tab?: string; range?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requirePlatform("payments");
   const now = nowMs();
@@ -42,7 +45,12 @@ export default async function SuperPayments(props: { searchParams: Promise<{ tab
 
   let body: React.ReactNode;
   if (tab === "tx") {
-    body = rows.length ? (
+    const find = searchText(sp.q);
+    const pg = paginate(rows.filter((r) => matches(find, r.reference, r.school, r.payer, r.channel, r.status)), pageNum(sp.page), 50);
+    body = (
+      <>
+      <SearchBar id="tx-q" label="Search payments" placeholder="Reference, school, payer or status" q={find} keep={{ range }} clearHref={`/super/payments?range=${range}`} compact className="max-w-[640px]" />
+      {pg.rows.length ? (
       <Scroll label="Payments">
         <table className="tbl min-w-[980px]">
           <caption className="sr-only">Online payments, newest first</caption>
@@ -65,7 +73,7 @@ export default async function SuperPayments(props: { searchParams: Promise<{ tab
             </tr>
           </thead>
           <tbody>
-            {rows.slice(0, 200).map((r) => (
+            {pg.rows.map((r) => (
               <tr key={`${r.id}-${r.status}`}>
                 <td className="whitespace-nowrap">{lagosTime(r.at)}</td>
                 <td className="font-mono text-[13px]">{r.reference}</td>
@@ -86,7 +94,10 @@ export default async function SuperPayments(props: { searchParams: Promise<{ tab
         </table>
       </Scroll>
     ) : (
-      <Empty>No online payments in this period.</Empty>
+      <Empty>{find ? `No payments match “${find}”.` : "No online payments in this period."}</Empty>
+    )}
+      <Pager p={pg} href={(n) => linkTo("/super/payments", { range, q: find, page: n })} label="Payment pages" noun="payments" />
+      </>
     );
   } else if (tab === "po") {
     const res = paystackReady() ? await listSettlements(from, to) : ({ ok: false, error: "Paystack isn't set up (PAYSTACK_SECRET_KEY)." } as const);

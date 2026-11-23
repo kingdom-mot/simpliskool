@@ -37,7 +37,10 @@ const PILL = { new: "info", assessment: "warn", offer: "warn", enrolled: "good",
 const TZ = "Africa/Lagos";
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: TZ });
 
-export default async function AdmissionsPage(props: { searchParams: Promise<{ tab?: string; app?: string }> }) {
+import { Pager, SearchBar } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function AdmissionsPage(props: { searchParams: Promise<{ tab?: string; app?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(SETUP_ROLES);
   const { supabase, school } = ctx;
@@ -52,9 +55,13 @@ export default async function AdmissionsPage(props: { searchParams: Promise<{ ta
   ]);
   const apps = data ?? [];
   const tab = (TABS.find(([k]) => k === sp.tab)?.[0] ?? "new") as App["status"];
-  const list = apps.filter((a) => a.status === tab);
+  // A search looks through every application, whatever its status.
+  const q = searchText(sp.q);
+  const ref = (a: App) => `APP-${String(a.ref_no ?? 0).padStart(4, "0")}`;
+  const pg = paginate(q ? apps.filter((a) => matches(q, a.child_name, a.parent_name, a.parent_phone, a.parent_email, a.class_applied, ref(a))) : apps.filter((a) => a.status === tab), pageNum(sp.page), 20);
+  const list = pg.rows;
   const sel = apps.find((a) => a.id === sp.app) ?? list[0];
-  const q = (o: Record<string, string>) => `/admin/admissions?${new URLSearchParams(o)}`;
+  const to = (o: Record<string, string>) => `/admin/admissions?${new URLSearchParams(o)}`;
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
   const age = (dob: string | null) => (dob ? new Date(`${dob}T12:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Not given");
   const matching = sel?.class_applied ? classes.filter((c) => c.name.toLowerCase() === sel.class_applied!.toLowerCase().trim() || classLabel(c.name, c.arm).toLowerCase() === sel.class_applied!.toLowerCase().trim()) : [];
@@ -76,19 +83,22 @@ export default async function AdmissionsPage(props: { searchParams: Promise<{ ta
         {TABS.map(([k, label]) => {
           const n = apps.filter((a) => a.status === k).length;
           return (
-            <Link key={k} href={q({ tab: k })} aria-current={tab === k ? "page" : undefined} className={`flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] px-4 text-sm font-bold ${tab === k ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}>
+            <Link key={k} href={to({ tab: k })} aria-current={tab === k ? "page" : undefined} className={`flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] px-4 text-sm font-bold ${tab === k ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}>
               {label}
-              <span className={`rounded-full px-2 py-0.5 text-xs ${tab === k ? "bg-white/20" : "bg-brand-cloud"}`}>{n}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${tab === k ? "bg-black/25" : "bg-brand-cloud"}`}>{n}</span>
             </Link>
           );
         })}
       </nav>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 lg:grid-cols-[320px_minmax(0,1fr)]">
-        <nav aria-label="Applications" className="flex flex-col gap-1 rounded-[18px] border border-[#E3EAF3] bg-white p-2">
+        <div className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-2">
+        <SearchBar id="ad-q" label="Search all applications" placeholder="Child, parent, phone or APP number" q={q} keep={{ tab }} clearHref={to({ tab })} compact className="px-1 pt-1" />
+        {q && <p className="px-2 text-[13px] text-[#4A5A70]">{pg.total} application{pg.total === 1 ? "" : "s"} found across every status.</p>}
+        <nav aria-label="Applications" className="flex flex-col gap-1">
           {list.length ? (
             list.map((a) => (
-              <Link key={a.id} href={q({ tab, app: a.id })} aria-current={sel?.id === a.id ? "page" : undefined} className={`flex flex-col rounded-xl px-3 py-2.5 ${sel?.id === a.id ? "bg-brand-cloud" : ""}`}>
+              <Link key={a.id} href={linkTo("/admin/admissions", { tab, q, page: pg.page, app: a.id })} aria-current={sel?.id === a.id ? "page" : undefined} className={`flex flex-col rounded-xl px-3 py-2.5 ${sel?.id === a.id ? "bg-brand-cloud" : ""}`}>
                 <span className="flex items-center justify-between gap-2">
                   <span className={`font-bold ${sel?.id === a.id ? "text-c1" : "text-brand-slate"}`}>{a.child_name}</span>
                   <Pill kind={PILL[a.status]}>{TABS.find(([k]) => k === a.status)?.[1]}</Pill>
@@ -99,9 +109,13 @@ export default async function AdmissionsPage(props: { searchParams: Promise<{ ta
               </Link>
             ))
           ) : (
-            <p className="p-3 text-sm text-[#4A5A70]">No applications here.</p>
+            <p className="p-3 text-sm text-[#4A5A70]">{q ? `No applications match “${q}”.` : "No applications here."}</p>
           )}
         </nav>
+        <div className="px-1 [&>nav]:flex-col [&>nav]:items-stretch">
+          <Pager p={pg} href={(n) => linkTo("/admin/admissions", { tab, q, page: n })} label="Application pages" />
+        </div>
+        </div>
 
         {sel ? (
           <Panel id="app-h" title={sel.child_name} actions={<Pill kind={PILL[sel.status]}>{TABS.find(([k]) => k === sel.status)?.[1]}</Pill>}>

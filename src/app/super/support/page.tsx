@@ -12,7 +12,10 @@ export const metadata = { title: "Support inbox — Simpliskool back office" };
 type Ticket = { id: number; school_id: string; subject: string; priority: string; status: string; assigned_to: string | null; last_from: string; created_at: string; updated_at: string; schools: { name: string } | null; profiles: { full_name: string | null } | null };
 const PRI = { urgent: { l: "Urgent", k: "bad" }, normal: { l: "Normal", k: "info" }, low: { l: "Low", k: "good" } } as const;
 
-export default async function SuperSupport(props: { searchParams: Promise<{ show?: string; t?: string }> }) {
+import { Pager, SearchBar } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function SuperSupport(props: { searchParams: Promise<{ show?: string; t?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requirePlatform("support");
   const now = nowMs();
@@ -22,12 +25,15 @@ export default async function SuperSupport(props: { searchParams: Promise<{ show
   q = show === "closed" ? q.eq("status", "closed") : q.eq("status", "open");
   if (show === "mine") q = q.eq("assigned_to", ctx.user.id);
   const [{ data: list }, { data: team }, { count: openCount }] = await Promise.all([
-    q.order("updated_at", { ascending: false }).limit(100).returns<Ticket[]>(),
+    q.order("updated_at", { ascending: false }).limit(500).returns<Ticket[]>(),
     ctx.admin.from("platform_team").select("user_id, profiles!platform_team_user_id_fkey(full_name)").returns<{ user_id: string; profiles: { full_name: string | null } | null }[]>(),
     notDemo(ctx.admin.from("support_tickets").select("id", { count: "exact", head: true }), demo).eq("status", "open"),
   ]);
-  const tickets = [...(list ?? [])].sort((a, b) => (show === "closed" ? 0 : (a.priority === "urgent" ? 0 : 1) - (b.priority === "urgent" ? 0 : 1)) || Date.parse(b.updated_at) - Date.parse(a.updated_at));
+  const find = searchText(sp.q);
+  const sorted = [...(list ?? [])].sort((a, b) => (show === "closed" ? 0 : (a.priority === "urgent" ? 0 : 1) - (b.priority === "urgent" ? 0 : 1)) || Date.parse(b.updated_at) - Date.parse(a.updated_at));
   const who = new Map((team ?? []).map((t) => [t.user_id, t.profiles?.full_name ?? "Team member"]));
+  const pg = paginate(sorted.filter((t) => matches(find, t.subject, t.schools?.name, t.profiles?.full_name, `#${t.id}`, String(t.id))), pageNum(sp.page), 20);
+  const tickets = pg.rows;
   let cur = tickets.find((t) => String(t.id) === sp.t);
   if (!cur && sp.t && /^\d+$/.test(sp.t)) {
     const { data } = await ctx.admin.from("support_tickets").select("id, school_id, subject, priority, status, assigned_to, last_from, created_at, updated_at, schools(name), profiles!support_tickets_opened_by_fkey(full_name)").eq("id", Number(sp.t)).maybeSingle<Ticket>();
@@ -38,7 +44,7 @@ export default async function SuperSupport(props: { searchParams: Promise<{ show
     ? await ctx.admin.from("support_messages").select("id, author_name, from_team, internal, body, created_at").eq("ticket_id", cur.id).order("created_at").returns<{ id: string; author_name: string | null; from_team: boolean; internal: boolean; body: string; created_at: string }[]>()
     : { data: [] };
   const full = ctx.can("support");
-  const href = (o: Record<string, string>) => `/super/support?${new URLSearchParams({ show, ...o })}`;
+  const href = (o: Record<string, string>) => linkTo("/super/support", { show: show === "open" ? "" : show, q: find, page: pg.page, ...o });
 
   return (
     <SuperShell ctx={ctx} active="support" title="Support inbox" sub={`${openCount ?? 0} open · reply within 4 working hours`}>
@@ -52,7 +58,10 @@ export default async function SuperSupport(props: { searchParams: Promise<{ show
           ["closed", "Closed", "/super/support?show=closed"],
         ]}
       />
-      {!cur ? (
+      {(sorted.length > 6 || find) && <SearchBar id="sup-q" label="Search requests" placeholder="School, subject, person or request number" q={find} keep={{ show: show === "open" ? "" : show }} clearHref={show === "open" ? "/super/support" : `/super/support?show=${show}`} compact className="max-w-[640px]" />}
+      {find && !tickets.length ? (
+        <Empty>No requests match “{find}”.</Empty>
+      ) : !cur ? (
         <Empty>{show === "closed" ? "No closed requests yet." : "No open requests. Schools ask for help from Get help in their portal."}</Empty>
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
@@ -77,6 +86,9 @@ export default async function SuperSupport(props: { searchParams: Promise<{ show
                 );
               })}
             </ul>
+            <div className="mt-3 [&>nav]:flex-col [&>nav]:items-stretch">
+              <Pager p={pg} href={(n) => linkTo("/super/support", { show: show === "open" ? "" : show, q: find, page: n })} label="Request pages" />
+            </div>
           </nav>
           <Box
             id="th-h"

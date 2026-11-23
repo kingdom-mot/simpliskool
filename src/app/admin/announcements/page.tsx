@@ -9,6 +9,8 @@ import { Flash } from "@/components/Flash";
 import { releaseDueSoon } from "@/lib/announce";
 import { smsReady } from "@/lib/sms";
 import { AnnouncementForm } from "./AnnouncementForm";
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
 import { cancelScheduled, deleteAnnouncement } from "./actions";
 
 export const metadata = { title: "Announcements" };
@@ -17,7 +19,9 @@ type Hist = { id: string; title: string; audience: string; kind: string; event_a
 type Waiting = { id: string; title: string; audience: string; kind: string; publish_at: string; send_email: boolean; send_sms: boolean; class_ids: string[] | null };
 const AUD: Record<string, string> = { school: "Whole school", parents: "All parents", staff: "Staff", class: "Classes" };
 
-export default async function AnnouncementsPage() {
+export default async function AnnouncementsPage(props: { searchParams: Promise<{ q?: string; page?: string }> }) {
+  const sp = await props.searchParams;
+  const q = searchText(sp.q);
   const ctx = await requireAdminPage(RESULTS_ADMIN);
   const { supabase, school } = ctx;
   await releaseDueSoon();
@@ -37,6 +41,7 @@ export default async function AnnouncementsPage() {
   const at = (iso: string) => new Date(iso).toLocaleString("en-GB", { weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit", hour12: true, timeZone: "Africa/Lagos" });
   const history = (hist as Hist[] | null) ?? [];
   const day = (iso: string) => new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Africa/Lagos" });
+  const sent = paginate(history.filter((h) => matches(q, h.title, AUD[h.audience], (h.class_names ?? []).join(" "), h.kind === "event" ? "event" : "")), pageNum(sp.page), 20);
 
   return (
     <AdminPage ctx={ctx} active="announcements" crumb={[{ label: "Communication" }]} title="Announcements">
@@ -76,9 +81,10 @@ export default async function AnnouncementsPage() {
         </Panel>
       )}
       <Panel id="sent-h" title="Sent">
-        {history.length ? (
+        {history.length > 10 && <SearchBar id="an-q" label="Search sent announcements" placeholder="Title, class or audience" q={q} clearHref="/admin/announcements#sent-h" compact />}
+        {sent.rows.length ? (
           <ul className="flex flex-col gap-2">
-            {history.map((h) => {
+            {sent.rows.map((h) => {
               const p = pct(h.read, h.reach);
               return (
                 <li key={h.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#E3EAF3] p-3">
@@ -112,8 +118,9 @@ export default async function AnnouncementsPage() {
             })}
           </ul>
         ) : (
-          <Empty>No announcements yet.</Empty>
+          <Empty>{q ? noMatch(q, "announcements") : "No announcements yet."}</Empty>
         )}
+        <Pager p={sent} href={(n) => `${linkTo("/admin/announcements", { q, page: n })}#sent-h`} label="Announcement pages" noun="announcements" />
       </Panel>
     </AdminPage>
   );

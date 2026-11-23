@@ -10,7 +10,10 @@ import { addSchool } from "../actions";
 
 export const metadata = { title: "Schools and groups — Simpliskool back office" };
 
-export default async function SuperSchools(props: { searchParams: Promise<{ tab?: string; q?: string; add?: string }> }) {
+import { Pager } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate } from "@/lib/paging";
+
+export default async function SuperSchools(props: { searchParams: Promise<{ tab?: string; q?: string; add?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requirePlatform("schools");
   const now = nowMs();
@@ -25,12 +28,16 @@ export default async function SuperSchools(props: { searchParams: Promise<{ tab?
   };
   const count = (k: string) => rows.filter((r) => (k === "pilot" ? r.plan === "pilot" && r.status === "active" : kind(r) === k)).length;
   const tab = ["pilot", "check", "risk", "off"].includes(sp.tab ?? "") ? sp.tab! : "all";
-  const q = (sp.q ?? "").trim().toLowerCase();
-  const digits = q.replace(/\D/g, "");
-  const list = rows
-    .filter((r) => tab === "all" || (tab === "pilot" ? r.plan === "pilot" && r.status === "active" : kind(r) === tab))
-    .filter((r) => !q || [r.name, r.address, r.slug, r.owner_name, r.owner_email, r.group_name].some((v) => v?.toLowerCase().includes(q)) || (digits.length >= 4 && (r.owner_phone ?? "").includes(digits)))
-    .sort((a, b) => (a.group_name ?? a.name).localeCompare(b.group_name ?? b.name) || a.name.localeCompare(b.name));
+  const q = (sp.q ?? "").trim().slice(0, 80);
+  const pg = paginate(
+    rows
+      .filter((r) => tab === "all" || (tab === "pilot" ? r.plan === "pilot" && r.status === "active" : kind(r) === tab))
+      .filter((r) => matches(q, r.name, r.address, r.slug, r.owner_name, r.owner_email, r.owner_phone, r.group_name))
+      .sort((a, b) => (a.group_name ?? a.name).localeCompare(b.group_name ?? b.name) || a.name.localeCompare(b.name)),
+    pageNum(sp.page),
+    30,
+  );
+  const list = pg.rows;
   const href = (t: string) => `/super/schools?${new URLSearchParams({ ...(t !== "all" ? { tab: t } : {}), ...(q ? { q } : {}) })}`;
   const PILL = { good: "good", warn: "warn", bad: "bad", info: "info" } as const;
 
@@ -143,6 +150,7 @@ export default async function SuperSchools(props: { searchParams: Promise<{ tab?
           </tbody>
         </table>
       </Scroll>
+      <Pager p={pg} href={(n) => linkTo("/super/schools", { tab: tab === "all" ? "" : tab, q, page: n })} label="School pages" noun="schools" />
 
       {sp.add && ctx.can("school.add") && (
         <Box id="add-h" title="Add a school for someone" className="max-w-[860px] border-t-[5px] !border-t-c2">

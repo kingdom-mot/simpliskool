@@ -3,6 +3,9 @@ import { AdminPage, Panel, SETUP_ROLES, classLabel, requireAdminPage } from "@/c
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Empty, Pill } from "@/components/ui";
 import { emailReady } from "@/lib/email";
+import { Pager, noMatch } from "@/components/ListTools";
+import { Picker } from "@/components/Picker";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
 import { addParent, inviteAllParents, inviteParent } from "./actions";
 
 export const metadata = { title: "Parents" };
@@ -17,7 +20,7 @@ function showPhone(p: string | null) {
   return d.length === 11 ? `${d.slice(0, 4)} ${d.slice(4, 7)} ${d.slice(7)}` : p;
 }
 
-export default async function ParentsPage(props: { searchParams: Promise<{ f?: string; q?: string }> }) {
+export default async function ParentsPage(props: { searchParams: Promise<{ f?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const ctx = await requireAdminPage(SETUP_ROLES);
   const { supabase, school } = ctx;
@@ -28,8 +31,12 @@ export default async function ParentsPage(props: { searchParams: Promise<{ f?: s
   const all = (data as Parent[] | null) ?? [];
   const status = (p: Parent): Status => (p.joined ? "joined" : p.invited_at ? "invited" : "none");
   const f = (["joined", "invited", "none"] as const).find((x) => x === sp.f) ?? "all";
-  const q = (sp.q ?? "").trim().toLowerCase();
-  const rows = all.filter((p) => (f === "all" || status(p) === f) && (!q || `${p.name} ${p.email ?? ""} ${p.phone ?? ""} ${p.children.map((c) => c.name).join(" ")}`.toLowerCase().includes(q)));
+  const q = searchText(sp.q);
+  const pg = paginate(
+    all.filter((p) => (f === "all" || status(p) === f) && matches(q, p.name, p.email, p.phone, p.children.map((c) => `${c.name} ${c.class ?? ""}`).join(" "))),
+    pageNum(sp.page),
+  );
+  const rows = pg.rows;
   const notInvited = all.filter((p) => status(p) === "none").length;
   const ready = emailReady();
   const tabs: [string, string, number][] = [
@@ -66,7 +73,7 @@ export default async function ParentsPage(props: { searchParams: Promise<{ f?: s
           {tabs.map(([k, l, n]) => (
             <Link key={k} href={href(k === "all" ? {} : { f: k })} aria-current={f === k ? "page" : undefined} className={`flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] px-4 text-sm font-bold ${f === k ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}>
               {l}
-              <span className={`rounded-full px-2 py-0.5 text-xs ${f === k ? "bg-white/20" : "bg-brand-cloud"}`}>{n}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${f === k ? "bg-black/25" : "bg-brand-cloud"}`}>{n}</span>
             </Link>
           ))}
         </nav>
@@ -148,8 +155,9 @@ export default async function ParentsPage(props: { searchParams: Promise<{ f?: s
             </table>
           </div>
         ) : (
-          <Empty>{all.length ? "No parents match." : "No parents yet. Add them here, from a student's page, or with the Excel upload."}</Empty>
+          <Empty>{q ? noMatch(q, "parents") : all.length ? "No parents here." : "No parents yet. Add them here, from a student's page, or with the Excel upload."}</Empty>
         )}
+        <Pager p={pg} href={(n) => linkTo("/admin/parents", { f: f === "all" ? "" : f, q, page: n })} label="Parent pages" noun="parents" />
       </Panel>
 
       <Panel id="add" title="Add a parent">
@@ -173,22 +181,15 @@ export default async function ParentsPage(props: { searchParams: Promise<{ f?: s
               </label>
               <input id="ap-email" name="email" type="email" className="sk-input" autoComplete="off" />
             </div>
-            <div>
-              <label className="label" htmlFor="ap-child">
-                Child
-              </label>
-              <select id="ap-child" name="student_id" className="sk-input sk-select" required defaultValue="">
-                <option value="" disabled>
-                  Choose a student
-                </option>
-                {studs.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.first_name} {s.last_name}
-                    {s.classes ? ` · ${classLabel(s.classes.name, s.classes.arm)}` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <Picker
+              id="ap-child"
+              name="student_id"
+              label="Child"
+              required
+              placeholder="Type the child's name"
+              emptyText="No student matches. Check the spelling or try part of the name."
+              options={studs.map((s) => ({ value: s.id, label: `${s.first_name} ${s.last_name}`, sub: s.classes ? classLabel(s.classes.name, s.classes.arm) : "No class" }))}
+            />
             <div>
               <label className="label" htmlFor="ap-rel">
                 Relationship (optional)

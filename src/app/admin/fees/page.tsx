@@ -149,7 +149,7 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
               className={`flex min-h-[44px] items-center gap-2 rounded-xl border-[1.5px] px-4 text-sm font-bold ${on ? "border-c1 bg-c1 text-white" : "border-[#DCE5F0] bg-white text-brand-slate"}`}
             >
               {s.label}
-              <span className={`rounded-full px-2 py-0.5 text-xs ${on ? "bg-white/20" : "bg-brand-cloud"}`}>{n}</span>
+              <span className={`rounded-full px-2 py-0.5 text-xs ${on ? "bg-black/25" : "bg-brand-cloud"}`}>{n}</span>
             </Link>
           );
         })}

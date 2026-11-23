@@ -12,13 +12,23 @@ export const metadata = { title: "School notices" };
 type Notice = { id: string; title: string; body: string; kind: string; event_at: string | null; created_at: string };
 const TZ = "Africa/Lagos";
 
-export default async function ParentNotices(props: { searchParams: Promise<{ tab?: string }> }) {
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { ilikeSafe, linkTo, pageNum, pagedFromCount, rangeOf, searchText } from "@/lib/paging";
+
+export default async function ParentNotices(props: { searchParams: Promise<{ tab?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const tab = sp.tab === "calendar" ? "calendar" : "notices";
   const { supabase, school, user } = await requireSchool(["parent"]);
   await releaseDueSoon();
-  const [{ data }, { data: mine }, { data: s }] = await Promise.all([
-    supabase.from("announcements").select("id, title, body, kind, event_at, created_at").eq("school_id", school.id).order("created_at", { ascending: false }).limit(50).returns<Notice[]>(),
+  const q = searchText(sp.q);
+  const page = pageNum(sp.page);
+  const nowIso = new Date().toISOString();
+  // Notices: newest first, 15 to a page, searchable. Events for the calendar are read on their own.
+  let noticeQuery = supabase.from("announcements").select("id, title, body, kind, event_at, created_at", { count: "exact" }).eq("school_id", school.id);
+  if (ilikeSafe(q)) noticeQuery = noticeQuery.or(`title.ilike.%${ilikeSafe(q)}%,body.ilike.%${ilikeSafe(q)}%`);
+  const [{ data, count }, { data: upcoming }, { data: mine }, { data: s }] = await Promise.all([
+    noticeQuery.order("created_at", { ascending: false }).range(...rangeOf(page, 15)).returns<Notice[]>(),
+    supabase.from("announcements").select("id, title, body, kind, event_at, created_at").eq("school_id", school.id).eq("kind", "event").gte("event_at", nowIso).order("event_at").limit(60).returns<Notice[]>(),
     supabase.from("announcement_rsvps").select("announcement_id, going").eq("user_id", user.id).returns<{ announcement_id: string; going: boolean }[]>(),
     supabase.from("schools").select("phone, email").eq("id", school.id).maybeSingle<{ phone: string | null; email: string | null }>(),
   ]);
@@ -26,8 +36,8 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
   // Opening the list counts as reading these notices.
   if (notices.length) await supabase.rpc("mark_announcements_read", { p_ids: notices.map((n) => n.id) });
   const answer = new Map((mine ?? []).map((r) => [r.announcement_id, r.going]));
-  const now = new Date().toISOString();
-  const events = notices.filter((n) => n.kind === "event" && n.event_at && Date.parse(n.event_at) >= Date.parse(now)).sort((a, b) => a.event_at!.localeCompare(b.event_at!));
+  const events = upcoming ?? [];
+  const pg = pagedFromCount(notices, page, count ?? 0, 15);
   const ago = (iso: string) => {
     const d = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date(iso));
     const today = new Intl.DateTimeFormat("en-CA", { timeZone: TZ }).format(new Date());
@@ -68,8 +78,10 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
           </Link>
         ))}
       </nav>
+      {tab === "notices" && ((count ?? 0) > 5 || q) && <SearchBar id="pn-q" label="Search notices" placeholder="Words in the notice" q={q} clearHref="/parent/notices" compact />}
       {tab === "notices" ? (
         notices.length ? (
+          <>
           <ul className="flex flex-col gap-3">
             {notices.map((n) => (
               <li key={n.id} className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-[18px]">
@@ -107,8 +119,10 @@ export default async function ParentNotices(props: { searchParams: Promise<{ tab
               </li>
             ))}
           </ul>
+          <Pager p={pg} href={(n) => linkTo("/parent/notices", { q, page: n })} label="Notice pages" noun="notices" />
+          </>
         ) : (
-          <Empty>No notices from the school yet.</Empty>
+          <Empty>{q ? noMatch(q, "notices") : "No notices from the school yet."}</Empty>
         )
       ) : events.length ? (
         <ul className="flex flex-col gap-2">

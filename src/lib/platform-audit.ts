@@ -12,6 +12,9 @@ export type AuditRow = { id: string; at: string; who: string; action: string; ki
 export async function auditRows(admin: Admin, opts: { kinds: AuditKind[] | null; q: string; limit: number }): Promise<AuditRow[]> {
   let p = admin.from("platform_audit").select("id, created_at, actor_name, action, kind, detail, school_name").order("created_at", { ascending: false }).limit(opts.limit);
   if (opts.kinds) p = p.in("kind", opts.kinds);
+  // Search in the database too, so older entries are found, not just the newest ones.
+  const safe = opts.q.replace(/[%_,()*\\:."']/g, " ").replace(/\s+/g, " ").trim();
+  if (safe) p = p.or(`actor_name.ilike.%${safe}%,action.ilike.%${safe}%,detail.ilike.%${safe}%,school_name.ilike.%${safe}%`);
   const wantMoney = !opts.kinds || opts.kinds.includes("money");
   const [{ data: own }, { data: school }] = await Promise.all([
     p.returns<{ id: number; created_at: string; actor_name: string | null; action: string; kind: AuditKind; detail: string | null; school_name: string | null }[]>(),

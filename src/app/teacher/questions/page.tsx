@@ -18,7 +18,10 @@ export const metadata = { title: "Question bank" };
 type Row = Q & { source: string; checked: boolean; created_by: string | null };
 const DIFF: Record<string, string> = { easy: "Easy", medium: "Medium", hard: "Hard" };
 
-export default async function QuestionBank(props: { searchParams: Promise<{ bank?: string; topic?: string; diff?: string }> }) {
+import { Pager } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+
+export default async function QuestionBank(props: { searchParams: Promise<{ bank?: string; topic?: string; diff?: string; q?: string; page?: string }> }) {
   const sp = await props.searchParams;
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
   if (!(await featureOn(school.id, "cbt"))) redirect("/teacher");
@@ -32,7 +35,10 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
     rows = data ?? [];
   }
   const topics = [...new Set(rows.map((r) => r.topic))].sort();
-  const shown = rows.filter((r) => (!sp.topic || r.topic === sp.topic) && (!sp.diff || r.difficulty === sp.diff));
+  const find = searchText(sp.q);
+  const matching = rows.filter((r) => (!sp.topic || r.topic === sp.topic) && (!sp.diff || r.difficulty === sp.diff) && matches(find, r.body, r.topic, r.explanation, r.options.join(" ")));
+  const pg = paginate(matching, pageNum(sp.page), 20);
+  const shown = pg.rows;
   const drafts = rows.filter((r) => !r.checked);
   const ai = aiReady();
 
@@ -81,6 +87,12 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
                   <option value="hard">Hard</option>
                 </select>
               </div>
+              <div className="min-w-[200px] flex-[2]">
+                <label className="label" htmlFor="qb-q">
+                  Search questions
+                </label>
+                <input id="qb-q" name="q" type="search" defaultValue={find} className="sk-input" placeholder="Words in the question or options" autoComplete="off" />
+              </div>
               <button className="s-btn2">Show</button>
             </form>
 
@@ -88,7 +100,7 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
               <section aria-labelledby="qs-h" className="flex flex-col gap-3 rounded-[18px] border border-t-[5px] border-[#E3EAF3] border-t-c2 bg-white p-[22px]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <h2 id="qs-h" className="text-lg !text-c1">
-                    Questions ({shown.length})
+                    Questions ({matching.length})
                   </h2>
                   {drafts.length > 1 && (
                     <ActionForm action={markChecked}>
@@ -106,7 +118,7 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
                     {shown.map((q, n) => (
                       <li key={q.id} className={`flex flex-col gap-2 rounded-xl border p-3 ${q.checked ? "border-[#E3EAF3]" : "border-[#F2D99B] bg-[#FFFBF0]"}`}>
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-extrabold text-[#4A5A70]">Q{n + 1}</span>
+                          <span className="text-xs font-extrabold text-[#4A5A70]">Q{pg.from + n}</span>
                           <Pill kind="info">{q.topic}</Pill>
                           <Pill kind={q.difficulty === "hard" ? "bad" : q.difficulty === "easy" ? "good" : "warn"}>{DIFF[q.difficulty]}</Pill>
                           {!q.checked && <Pill kind="warn">AI draft · check it</Pill>}
@@ -151,6 +163,7 @@ export default async function QuestionBank(props: { searchParams: Promise<{ bank
                 ) : (
                   <Empty>{rows.length ? "No questions match these filters." : "No questions yet. Add one, import from Excel, or let AI draft some."}</Empty>
                 )}
+                <Pager p={pg} href={(n) => `${linkTo("/teacher/questions", { bank: bank.key, topic: sp.topic, diff: sp.diff, q: find, page: n })}#qs-h`} label="Question pages" noun="questions" />
               </section>
 
               <div className="flex flex-col gap-5">

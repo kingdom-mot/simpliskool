@@ -104,11 +104,24 @@ export async function resendReceipt(_prev: ActionState, fd: FormData): Promise<A
 
 export async function sendReminders(_prev: ActionState, fd: FormData): Promise<ActionState> {
   const { school } = await requireSchool(FINANCE_ROLES);
-  const ids = [...new Set(fd.getAll("student").map(String))].filter((s) => uuid.safeParse(s).success);
-  if (!ids.length) return { error: "Tick the students whose parents should get a reminder." };
-  const sms = await smsFeeReminders(school.id, ids);
-  if (!emailReady() && sms.off) return { error: "Email and SMS aren't set up yet, so reminders can't be sent." };
-  const t = emailReady() ? await sendFeeReminders(school.id, ids) : { sent: 0, failed: 0, skipped: 0, noEmail: 0 };
+  // "Remind all" sends to every reachable student on every page; otherwise only the ticked ones.
+  const all = fd.get("all") === "1";
+  const ids = [...new Set(fd.getAll(all ? "all_student" : "student").map(String))].filter((s) => uuid.safeParse(s).success).slice(0, 5000);
+  if (!ids.length) return { error: all ? "None of these parents can be reached by email or text yet." : "Tick the students whose parents should get a reminder." };
+  // In batches of 100, so a long "Remind all" list never makes one huge database request.
+  const sms = { sent: 0, failed: 0, skipped: 0, noPhone: 0, off: false };
+  const t = { sent: 0, failed: 0, skipped: 0, noEmail: 0 };
+  for (let i = 0; i < ids.length; i += 100) {
+    const batch = ids.slice(i, i + 100);
+    const s = await smsFeeReminders(school.id, batch);
+    if (s.off) sms.off = true;
+    if (!emailReady() && s.off) return { error: "Email and SMS aren't set up yet, so reminders can't be sent." };
+    sms.sent += s.sent; sms.failed += s.failed; sms.skipped += s.skipped; sms.noPhone += s.noPhone;
+    if (emailReady()) {
+      const e = await sendFeeReminders(school.id, batch);
+      t.sent += e.sent; t.failed += e.failed; t.skipped += e.skipped; t.noEmail += e.noEmail;
+    }
+  }
   refresh();
   const parts = [
     t.sent && `${t.sent} email${t.sent === 1 ? "" : "s"} sent`,

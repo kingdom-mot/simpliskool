@@ -3,6 +3,8 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import { Empty, Pill } from "@/components/ui";
 import { personInitials } from "@/lib/format";
 import { ROLE_LABEL, type Role } from "@/lib/auth";
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
 import { changeRole, inviteStaff, removeStaff, resendInvite } from "./actions";
 
 type StaffRow = { user_id: string; full_name: string | null; email: string | null; phone: string | null; roles: Role[]; joined: boolean; class_teacher_of: string[]; teaches: string[] };
@@ -15,11 +17,15 @@ const ROLE_HINT: Record<string, string> = {
 };
 const AVATAR = ["#CFF3EC", "#D9E7FF", "#FFEDC2", "#EADBFF", "#FFDDEB", "#D3F8E2"];
 
-export default async function StaffPage() {
+export default async function StaffPage(props: { searchParams: Promise<{ q?: string; page?: string }> }) {
+  const sp = await props.searchParams;
+  const q = searchText(sp.q);
   const ctx = await requireAdminPage([...SETUP_ROLES]);
   const { supabase, school, membership, user } = ctx;
   const { data } = await supabase.rpc("staff_list", { p_school: school.id });
   const staff = (data as StaffRow[] | null) ?? [];
+  const found = staff.filter((s) => matches(q, s.full_name, s.email, s.phone, s.roles.map((r) => ROLE_LABEL[r]).join(" "), s.class_teacher_of.join(" "), s.teaches.join(" ")));
+  const pg = paginate(found, pageNum(sp.page));
   const grantable = (["teacher", "bursar", "principal", "admin"] as const).filter((r) => membership.role !== "principal" || r === "teacher" || r === "bursar");
 
   return (
@@ -62,7 +68,9 @@ export default async function StaffPage() {
       </Panel>
 
       <Panel id="list-h" title="Everyone on staff">
-        {staff.length ? (
+        {staff.length > 8 && <SearchBar id="st-q" label="Search staff" placeholder="Name, email, phone, role, class or subject" q={q} clearHref="/admin/staff" />}
+        {pg.rows.length ? (
+          <>
           <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
             <table className="tbl min-w-[860px]">
               <caption className="sr-only">Staff and their roles</caption>
@@ -79,7 +87,7 @@ export default async function StaffPage() {
                 </tr>
               </thead>
               <tbody>
-                {staff.map((s, i) => {
+                {pg.rows.map((s, i) => {
                   const name = s.full_name?.trim() || s.email || "Unnamed";
                   const main = (["owner", "admin", "principal", "bursar", "teacher"] as Role[]).find((r) => s.roles.includes(r))!;
                   const isMe = s.user_id === user.id;
@@ -158,8 +166,10 @@ export default async function StaffPage() {
               </tbody>
             </table>
           </div>
+          <Pager p={pg} href={(n) => linkTo("/admin/staff", { q, page: n })} label="Staff pages" noun="staff" />
+          </>
         ) : (
-          <Empty>No staff yet. Invite your teachers and bursar above.</Empty>
+          <Empty>{q ? noMatch(q, "staff") : "No staff yet. Invite your teachers and bursar above."}</Empty>
         )}
       </Panel>
     </AdminPage>

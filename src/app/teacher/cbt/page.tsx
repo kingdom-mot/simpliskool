@@ -15,15 +15,24 @@ export const metadata = { title: "CBT tests" };
 
 type T = { id: string; title: string; practice: boolean; opens_at: string; closes_at: string; question_ids: string[]; duration_min: number; class_ids: string[]; cbt_attempts: { submitted_at: string | null }[] };
 const tomorrow = () => lagosParts(new Date(Date.now() + 86400000)).date;
+import { Pager, SearchBar, noMatch } from "@/components/ListTools";
+import { ilikeSafe, linkTo, pageNum, pagedFromCount, rangeOf, searchText } from "@/lib/paging";
+
 const nowMs = () => Date.now();
 const at = (iso: string) => Date.parse(iso);
 
-export default async function TeacherCbt() {
+export default async function TeacherCbt(props: { searchParams: Promise<{ q?: string; page?: string }> }) {
+  const sp = await props.searchParams;
+  const q = searchText(sp.q);
+  const page = pageNum(sp.page);
   const { supabase, school, user, fullName } = await requireSchool(["teacher"]);
   if (!(await featureOn(school.id, "cbt"))) redirect("/teacher");
   const mine = await myClassSubjects(supabase, school.id, user.id);
-  const [{ data: tests }, { data: partsRaw }, { data: qs }] = await Promise.all([
-    supabase.from("cbt_tests").select("id, title, practice, opens_at, closes_at, question_ids, duration_min, class_ids, cbt_attempts(submitted_at)").eq("school_id", school.id).eq("teacher_id", user.id).order("opens_at", { ascending: false }).limit(60).returns<T[]>(),
+  // Every test the teacher has set, newest first, 15 to a page (searchable by title).
+  let testQuery = supabase.from("cbt_tests").select("id, title, practice, opens_at, closes_at, question_ids, duration_min, class_ids, cbt_attempts(submitted_at)", { count: "exact" }).eq("school_id", school.id).eq("teacher_id", user.id);
+  if (ilikeSafe(q)) testQuery = testQuery.ilike("title", `%${ilikeSafe(q)}%`);
+  const [{ data: tests, count: testCount }, { data: partsRaw }, { data: qs }] = await Promise.all([
+    testQuery.order("opens_at", { ascending: false }).range(...rangeOf(page, 15)).returns<T[]>(),
     supabase.rpc("assessment_parts", { p_school: school.id }),
     mine.length ? supabase.from("questions").select("subject_id, level, topic").eq("school_id", school.id).eq("checked", true).in("subject_id", [...new Set(mine.map((m) => m.subject_id))]).returns<{ subject_id: string; level: string; topic: string }[]>() : Promise.resolve({ data: [] as { subject_id: string; level: string; topic: string }[] }),
   ]);
@@ -56,6 +65,7 @@ export default async function TeacherCbt() {
               <h2 id="my-h" className="text-lg !text-c1">
                 My tests
               </h2>
+              {((testCount ?? 0) > 8 || q) && <SearchBar id="cbt-q" label="Search my tests" placeholder="Test title" q={q} clearHref="/teacher/cbt" compact />}
               {tests?.length ? (
                 <ul className="flex flex-col gap-2">
                   {tests.map((t) => {
@@ -83,8 +93,9 @@ export default async function TeacherCbt() {
                   })}
                 </ul>
               ) : (
-                <Empty>No tests yet. Add questions to the bank, then schedule a test.</Empty>
+                <Empty>{q ? noMatch(q, "tests") : "No tests yet. Add questions to the bank, then schedule a test."}</Empty>
               )}
+              <Pager p={pagedFromCount(tests ?? [], page, testCount ?? 0, 15)} href={(n) => linkTo("/teacher/cbt", { q, page: n })} label="Test pages" noun="tests" />
             </section>
             <section aria-labelledby="new-h" className="flex flex-col gap-4 rounded-[18px] border border-t-[5px] border-[#E3EAF3] border-t-c1 bg-white p-[22px]">
               <h2 id="new-h" className="text-lg !text-c1">
