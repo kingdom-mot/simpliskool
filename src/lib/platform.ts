@@ -41,6 +41,7 @@ const NAV: NavGroup[] = [
     label: "Control",
     items: [
       { key: "audit", label: "Audit log", href: "/super/audit" },
+      { key: "privacy", label: "Data protection", href: "/super/privacy" },
       { key: "team", label: "Dream Savvy team", href: "/super/team" },
       { key: "platform", label: "Platform settings", href: "/super/platform" },
     ],

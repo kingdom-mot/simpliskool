@@ -21,6 +21,8 @@ export type ApplyState = { ok?: boolean; error?: string };
 export async function applyForAdmission(_prev: ApplyState, formData: FormData): Promise<ApplyState> {
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  // A child's data needs a parent's or guardian's agreement (Nigeria Data Protection Act, section 31).
+  if (formData.get("consent") !== "1") return { error: "Please confirm you are the child's parent or guardian and agree to the school using these details." };
 
   const d = parsed.data;
   const supabase = await createClient();

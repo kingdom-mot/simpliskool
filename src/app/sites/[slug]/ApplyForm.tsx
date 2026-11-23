@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { applyForAdmission, type ApplyState } from "./actions";
+import { legalUrl } from "@/lib/legal";
 
 function Submit() {
   const { pending } = useFormStatus();
@@ -81,6 +82,16 @@ export function ApplyForm({ schoolId, classes }: { schoolId: string; classes?: s
         <label htmlFor="notes" className="label">Anything we should know?</label>
         <textarea id="notes" name="notes" rows={3} className="sk-input" />
       </div>
+      <label className="flex items-start gap-3 rounded-xl border border-[#DCE5F0] p-3 text-sm text-[#263449] sm:col-span-2">
+        <input type="checkbox" name="consent" value="1" required className="mt-0.5 h-5 w-5 flex-none" />
+        <span>
+          I am this child&apos;s parent or legal guardian, and I agree to the school using these details to consider the application. See the{" "}
+          <a href={legalUrl("/privacy")} target="_blank" rel="noreferrer" className="font-bold text-c2 underline">
+            privacy policy
+          </a>
+          .
+        </span>
+      </label>
       {state.error && (
         <p role="alert" className="rounded-xl bg-[#FEF3F2] px-4 py-3 text-sm font-semibold text-[#912018] sm:col-span-2">
           {state.error}

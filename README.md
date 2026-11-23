@@ -39,6 +39,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0018_platform.sql` (Dream Savvy back office at /super: team and two-step sign-in, read-only view as a school, new school checks before online payments, support requests, notices, SMS credit and sender names, refunds, audit log, platform settings)
      - `0019_demo.sql` (the public demo school: Bright Future Academy, Lekki and Ajah, with made-up data, rebuilt every night)
      - `0020_hardening.sql` (owners can't change Simpliskool-only school settings such as the demo marker; people can't change the email or phone on their profile)
+     - `0021_data_protection.sql` (Nigeria Data Protection Act: agreement and notice records, privacy requests, school deletion requests, the breach register, erasing a former student)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -125,3 +126,13 @@ Team members only see a school by "viewing" it: read only, time-limited, written
 
 - Run `0019_demo.sql`. The first visit to /demo builds the demo (about 10 seconds); after that it is rebuilt every night at midnight Lagos time (Vercel Cron, `/api/cron/demo-reset`, needs `CRON_SECRET`), or from the back office: Platform settings → Reset the demo now.
 - Demo people sign in with addresses on `demo.simpliskool.com`. While they're in the demo, emails, texts, online payments, new sign-ins, payout accounts, help requests and refund requests are switched off, and the demo schools are left out of the back office's figures.
+
+## Data protection (Nigeria Data Protection Act 2023)
+
+- Public pages: `/privacy`, `/terms` and `/dpa` (data processing agreement). The wording lives in `src/app/privacy`, `src/app/terms` and `src/app/dpa`; shared details (company, contact email, the list of outside services) are in `src/lib/legal.ts`.
+- When the terms or the agreement change, change `LEGAL_VERSION` in `src/lib/legal.ts`. Owners are then asked to accept the new version, and parents see the privacy notice again.
+- School owners agree when they create a school, or in Admin → Data protection. Every acceptance is recorded with its date and version.
+- Admin → Data protection: privacy requests from parents (with replies by email), download all school data as one Excel file, NDPC registration reminder, and asking for the school to be deleted (30 days' notice, can be cancelled).
+- A former student's personal details can be erased from their page (owner only); marks and payments stay as "Former student".
+- Back office → Data protection (super admins): schools waiting to be deleted (deletes records, files and unused sign-ins), and the breach register with the 72-hour NDPC clock.
+

@@ -303,6 +303,9 @@ function SignIn() {
             ) : (
               <p className="text-[#4A5A70]">New to Simpliskool? <Link href="/login?new=1" className="font-bold text-brand-teal-dark hover:underline">Create a school account</Link></p>
             )}
+            <p className="text-[13px] text-[#4A5A70]">
+              <Link href="/privacy" className="underline hover:text-brand-navy">Privacy policy</Link> · <Link href="/terms" className="underline hover:text-brand-navy">Terms of use</Link>
+            </p>
           </div>
         </div>
       </main>

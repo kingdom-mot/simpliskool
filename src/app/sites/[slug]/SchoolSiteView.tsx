@@ -2,6 +2,7 @@ import Image from "next/image";
 import { initials, schoolThemeStyle } from "@/lib/theme";
 import { DEFAULT_HIGHLIGHTS, asWebsite, pageOn } from "@/lib/website";
 import { ApplyForm } from "./ApplyForm";
+import { legalUrl } from "@/lib/legal";
 
 export type School = {
   id: string;
@@ -255,6 +256,9 @@ export function SchoolSiteView({ school, news, gallery = [] }: { school: School;
           <span>
             © {year} {school.name}
           </span>
+          <a href={legalUrl("/privacy")} className="underline underline-offset-2 hover:text-[#1B2433]">
+            Privacy
+          </a>
           <span className="flex items-center gap-2">
             Powered by <Image src="/simpliskool-logo-dark.png" alt="Simpliskool" width={100} height={22} className="h-[18px] w-auto" />
           </span>

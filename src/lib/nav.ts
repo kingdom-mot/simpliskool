@@ -47,6 +47,7 @@ const ADMIN: NavGroup[] = [
     items: [
       { key: "sessions", label: "Sessions & terms", href: "/admin/sessions" },
       { key: "settings", label: "Settings", href: "/admin/settings" },
+      { key: "privacy", label: "Data protection", href: "/admin/data-protection" },
       { key: "help", label: "Get help", href: "/admin/help" },
     ],
   },
@@ -55,7 +56,7 @@ const ADMIN: NavGroup[] = [
 // Same rules as the design: principals don't see money screens or settings; admins see less;
 // bursars only see money screens.
 const HIDE: Partial<Record<Role, string[]>> = {
-  principal: ["payroll", "settings", "fees", "payments"],
+  principal: ["payroll", "settings", "fees", "payments", "privacy"],
   admin: ["payroll", "settings", "staffatt", "lessonnotes", "reportcards"],
 };
 const BURSAR_KEEP = ["dashboard", "students", "fees", "payments", "payroll", "help"];

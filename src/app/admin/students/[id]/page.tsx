@@ -3,7 +3,7 @@ import { AdminPage, classLabel, Panel, requireAdminPage, SETUP_ROLES } from "@/c
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Pill } from "@/components/ui";
 import { personInitials } from "@/lib/format";
-import { addGuardian, removeGuardian, updateStudent } from "../actions";
+import { addGuardian, eraseStudent, removeGuardian, updateStudent } from "../actions";
 import { SignInPanel } from "./SignInPanel";
 import { ProfileTab } from "./ProfileTabs";
 import Link from "next/link";
@@ -47,7 +47,7 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
   const canEdit = SETUP_ROLES.includes(membership.role);
   if (!/^[0-9a-f-]{36}$/i.test(params.id)) notFound();
 
-  const [{ data: s }, { data: classes }, { data: pin }] = await Promise.all([
+  const [{ data: s }, { data: classes }, { data: pin }, { data: erasedRow, error: erasedError }] = await Promise.all([
     supabase
       .from("students")
       .select("id, first_name, last_name, other_names, admission_no, gender, date_of_birth, class_id, status, signin_method, created_at, state_of_origin, blood_group, address, admitted_on, classes(name, arm, profiles:class_teacher_id(full_name)), profiles(email, phone), guardians(id, relationship, user_id, profiles(full_name, phone, email))")
@@ -56,8 +56,12 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
       .maybeSingle<Student>(),
     supabase.from("classes").select("id, name, arm").eq("school_id", school.id).order("level_order").order("name").order("arm"),
     supabase.rpc("student_pin_status", { p_student: params.id }).maybeSingle<{ has_pin: boolean; set_at: string | null; failed_count: number; locked_until: string | null }>(),
+    // Read on its own so the page still works before database file 0021 has been run.
+    supabase.from("students").select("erased_at").eq("id", params.id).maybeSingle<{ erased_at: string | null }>(),
   ]);
   if (!s) notFound();
+  const erasedAt = erasedError ? null : (erasedRow?.erased_at ?? null);
+  const canErase = !erasedError;
 
   const name = `${s.first_name} ${s.last_name}`;
   const cls = s.classes ? classLabel(s.classes.name, s.classes.arm) : "No class";
@@ -269,6 +273,36 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
                 ownContact={own}
               />
             </Panel>
+          )}
+
+          {canErase && membership.role === "owner" && s.status !== "active" && !erasedAt && (
+            <Panel id="erase-h" title="Erase personal details">
+              <p className="text-sm text-[#263449]">
+                For a student who has left. Their name, date of birth, photo, address and other details are wiped, parents are unlinked and their sign-in is removed. Marks, attendance and payments stay, shown as &quot;Former student&quot;, so results and accounts still add up. This can&apos;t be undone.
+              </p>
+              <details>
+                <summary className="s-link cursor-pointer text-sm">Erase {s.first_name}&apos;s details</summary>
+                <ActionForm action={eraseStudent} className="mt-3 flex flex-col gap-3">
+                  <input type="hidden" name="student_id" value={s.id} />
+                  <div>
+                    <label className="label" htmlFor="er-confirm">
+                      Type ERASE to confirm
+                    </label>
+                    <input id="er-confirm" name="confirm" className="sk-input" required autoComplete="off" autoCapitalize="characters" />
+                  </div>
+                  <div>
+                    <SubmitButton className="s-btn-danger" pending="Erasing…">
+                      Erase personal details
+                    </SubmitButton>
+                  </div>
+                </ActionForm>
+              </details>
+            </Panel>
+          )}
+          {erasedAt && (
+            <p role="status" className="rounded-xl bg-[#EEF3F9] px-4 py-3 text-sm text-[#173B70]">
+              This former student&apos;s personal details were erased on {new Date(erasedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "Africa/Lagos" })}.
+            </p>
           )}
         </div>
       </div>

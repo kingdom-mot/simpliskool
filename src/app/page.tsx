@@ -269,7 +269,7 @@ export default function Home() {
             <Image src="/simpliskool-logo-dark.png" alt="Simpliskool" width={143} height={32} className="h-8 w-auto" />
             <p className="mt-4 text-[15px] leading-relaxed text-[#4A5A70]">Simplifying school management.<br />A product of Dream Savvy Solutions, Lagos.</p>
           </div>
-          <div className="flex gap-16 text-[15px]">
+          <div className="flex flex-wrap gap-x-16 gap-y-8 text-[15px]">
             <div className="flex flex-col gap-2.5">
               <strong className="text-brand-navy">Product</strong>
               <a href="#features" className="text-brand-slate hover:text-brand-teal-dark">Features</a>
@@ -281,6 +281,12 @@ export default function Home() {
               <a href="mailto:enquiries@simpliskool.com" className="text-brand-slate hover:text-brand-teal-dark">enquiries@simpliskool.com</a>
               <a href="#faq" className="text-brand-slate hover:text-brand-teal-dark">FAQ</a>
               <Link href="/login" className="text-brand-slate hover:text-brand-teal-dark">Sign in</Link>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <strong className="text-brand-navy">Legal</strong>
+              <Link href="/privacy" className="text-brand-slate hover:text-brand-teal-dark">Privacy policy</Link>
+              <Link href="/terms" className="text-brand-slate hover:text-brand-teal-dark">Terms of use</Link>
+              <Link href="/dpa" className="text-brand-slate hover:text-brand-teal-dark">Data processing agreement</Link>
             </div>
           </div>
         </div>

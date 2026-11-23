@@ -59,6 +59,24 @@ export function OnboardingForm({ rootDomain }: { rootDomain: string }) {
           <span className="whitespace-nowrap pr-3 text-sm text-slate-500">.{rootDomain}</span>
         </div>
       </div>
+      <label className="flex items-start gap-3 rounded-lg border border-slate-300 p-3 text-sm text-slate-700">
+        <input type="checkbox" name="agree" value="1" required className="mt-0.5 h-5 w-5 flex-none" />
+        <span>
+          I agree, on behalf of the school, to the{" "}
+          <a href="/terms" target="_blank" className="font-bold text-brand-teal-dark underline">
+            terms of use
+          </a>{" "}
+          and the{" "}
+          <a href="/dpa" target="_blank" className="font-bold text-brand-teal-dark underline">
+            data processing agreement
+          </a>
+          , and I&apos;ve read the{" "}
+          <a href="/privacy" target="_blank" className="font-bold text-brand-teal-dark underline">
+            privacy policy
+          </a>
+          .
+        </span>
+      </label>
       <Submit />
       {state.error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{state.error}</p>}
     </form>

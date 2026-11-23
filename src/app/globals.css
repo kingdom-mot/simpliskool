@@ -152,3 +152,14 @@ h1, h2, h3, h4, h5, h6 {
 .overflow-auto {
   position: relative;
 }
+
+/* Privacy policy, terms and data processing agreement */
+.legal > * + * { margin-top: 0.85rem; }
+.legal ul { list-style: disc; padding-left: 1.4rem; }
+.legal ol { list-style: decimal; padding-left: 1.4rem; }
+.legal li + li { margin-top: 0.35rem; }
+.legal a { color: #0B6B5A; font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.legal strong { color: #0A1F3D; }
+.legal table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.legal th, .legal td { border: 1px solid #DCE5F0; padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
+.legal th { background: #EEF3F9; color: #0A1F3D; }

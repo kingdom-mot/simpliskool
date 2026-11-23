@@ -29,7 +29,7 @@ export type AdminData = {
 
 const METHOD: Record<string, string> = { paystack: "Online", transfer: "Transfer", cash: "Cash", pos: "POS" };
 
-export function AdminView({ school, role, fullName, d }: { school: ShellSchool & { slug: string; id?: string }; role: Role; fullName: string; d: AdminData | null }) {
+export function AdminView({ school, role, fullName, d, agreementDue = false }: { school: ShellSchool & { slug: string; id?: string }; role: Role; fullName: string; d: AdminData | null; agreementDue?: boolean }) {
   const membership = { role };
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
@@ -73,6 +73,16 @@ export function AdminView({ school, role, fullName, d }: { school: ShellSchool &
             Your school website
           </a>
         </div>
+        {agreementDue && (
+          <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-[#F2D99B] bg-[#FFF6E3] p-4">
+            <p className="text-sm text-[#5C4310]">
+              <strong>Please accept the terms and data processing agreement.</strong> They set out how Simpliskool looks after your school&apos;s records under the Nigeria Data Protection Act.
+            </p>
+            <a className="s-btn" href="/admin/data-protection#agree-h">
+              Review and accept
+            </a>
+          </div>
+        )}
 
         {doneCount < setup.length && (
           <section aria-labelledby="setup-h" className="flex flex-wrap items-center justify-between gap-4 rounded-[20px] px-[22px] py-5 text-white" style={{ background: SCHOOL_GRADIENT }}>

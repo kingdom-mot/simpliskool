@@ -6,6 +6,7 @@ import { z } from "zod";
 import { isDemoEmail } from "@/lib/demo";
 import { createClient } from "@/lib/supabase/server";
 import { SCHOOL_COOKIE } from "@/lib/auth";
+import { LEGAL_VERSION } from "@/lib/legal";
 
 const schema = z.object({
   name: z.string().trim().min(3, "Enter the school's full name"),
@@ -21,6 +22,7 @@ export type OnboardingState = { error?: string };
 export async function createSchool(_prev: OnboardingState, formData: FormData): Promise<OnboardingState> {
   const parsed = schema.safeParse({ name: formData.get("name"), slug: formData.get("slug") });
   if (!parsed.success) return { error: parsed.error.issues[0].message };
+  if (formData.get("agree") !== "1") return { error: "Tick the box to agree to the terms and the data processing agreement." };
 
   const supabase = await createClient();
   const { data: me } = await supabase.auth.getUser();
@@ -39,6 +41,10 @@ export async function createSchool(_prev: OnboardingState, formData: FormData): 
     console.error("New school not visible to its owner", readError);
     return { error: `The school was created, but your account can't open it yet${readError ? ` (${readError.message})` : ""}. Open simpliskool.com/status and send a screenshot to support.` };
   }
+
+  // Keep proof that the owner agreed to the terms and the data processing agreement.
+  const { error: legalError } = await supabase.rpc("accept_legal", { p_school: schoolId as string, p_documents: ["terms", "dpa"], p_version: LEGAL_VERSION });
+  if (legalError) console.error("accept_legal failed", legalError);
 
   (await cookies()).set(SCHOOL_COOKIE, schoolId as string, { httpOnly: true, sameSite: "lax", secure: true, path: "/", maxAge: 60 * 60 * 24 * 180 });
   redirect("/admin");

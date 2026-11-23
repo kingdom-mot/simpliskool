@@ -28,13 +28,14 @@ export type DueItem = { id: string; title: string; subject: string; due_at: stri
 
 const AVATAR = ["#3FD1B4", "#F4B740", "#93C5FD", "#F9A8D4", "#C4B5FD"];
 
-export function ParentView({ school, fullName, d, childId, basePath = "/parent", due = [] }: { school: ShellSchool; fullName: string; d: ParentData | null; childId?: string; basePath?: string; due?: DueItem[] }) {
+export function ParentView({ school, fullName, d, childId, basePath = "/parent", due = [], notice }: { school: ShellSchool; fullName: string; d: ParentData | null; childId?: string; basePath?: string; due?: DueItem[]; notice?: React.ReactNode }) {
   const kids = d?.children ?? [];
   const kid = kids.find((k) => k.id === childId) ?? kids[0];
   const termName = d?.term ? TERM_NAME[d.term.term_no] : "This term";
 
   return (
     <MobileShell school={school} title={`${greeting()}, ${fullName}`} tabs={PARENT_TABS} active="home">
+      {notice}
       {kids.length === 0 ? (
         <Empty>No children are linked to your account yet. Please contact the school.</Empty>
       ) : (

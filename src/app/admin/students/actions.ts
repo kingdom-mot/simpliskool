@@ -10,6 +10,7 @@ import { findOrCreateUser, normalizeEmail, normalizePhone } from "@/lib/people";
 import { initials } from "@/lib/theme";
 import { classKey, toGender, toIsoDate, type ImportProblem, type ImportRow } from "@/lib/students-import";
 import { createAdminClient, studentLoginEmail } from "@/lib/supabase/admin";
+import { removeSchoolImage } from "@/lib/upload";
 
 const uuid = z.string().uuid();
 const oops = "Something went wrong. Please try again.";
@@ -279,4 +280,32 @@ export async function setOwnSignIn(_prev: ActionState, fd: FormData): Promise<Ac
   }
   revalidatePath(`/admin/students/${id}`);
   return { ok: true, message: "Saved. The student now signs in with a one-time code sent to their phone or email.", at: Date.now() };
+}
+
+/**
+ * Erases a former student's personal details (owner only). Marks and payments stay under
+ * "Former student" so the school's results and accounts still add up. Their sign-in and photo go too.
+ */
+export async function eraseStudent(_prev: ActionState, fd: FormData): Promise<ActionState> {
+  const { supabase, school } = await requireSchool(["owner"]);
+  const id = String(fd.get("student_id") ?? "");
+  if (fd.get("confirm") !== "ERASE") return { error: "Type ERASE in capitals to confirm." };
+  const admin = createAdminClient();
+  const { data: before } = await admin.from("students").select("user_id, school_id").eq("id", id).maybeSingle<{ user_id: string | null; school_id: string }>();
+  if (!before || before.school_id !== school.id) return { error: "Student not found." };
+  const { data: photo, error } = await supabase.rpc("erase_student", { p_student: id });
+  if (error) return { error: error.code === "P0001" ? error.message : "We couldn't erase the details. Try again." };
+  await removeSchoolImage(photo as string | null, school.id);
+  // Remove the student's own sign-in if nothing else at any school still uses it.
+  if (before.user_id) {
+    const uid = before.user_id;
+    const [m, g, st] = await Promise.all([
+      admin.from("memberships").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      admin.from("guardians").select("id", { count: "exact", head: true }).eq("user_id", uid),
+      admin.from("students").select("id", { count: "exact", head: true }).eq("user_id", uid),
+    ]);
+    if (!m.count && !g.count && !st.count) await admin.auth.admin.deleteUser(uid);
+  }
+  revalidatePath(`/admin/students/${id}`);
+  return { ok: true, message: "Personal details erased. Marks and payments stay under \"Former student\".", at: Date.now() };
 }
