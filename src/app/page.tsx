@@ -1,14 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PortalTabs } from "./PortalTabs";
+import { SiteFooter } from "./SiteFooter";
 import { SiteHeader } from "./SiteHeader";
 import { WhatsAppFloat } from "@/components/WhatsAppFloat";
-import {
-  ENQUIRIES_EMAIL,
-  PRICING_CHAT,
-  WHATSAPP_DISPLAY,
-  whatsapp,
-} from "@/lib/contact";
+import { ENQUIRIES_EMAIL, whatsapp } from "@/lib/contact";
 
 const DEMO = `mailto:${ENQUIRIES_EMAIL}?subject=Simpliskool%20demo%20request`;
 const CHAT = whatsapp("Hello Simpliskool, I'd like to join the pilot.");
@@ -271,7 +267,7 @@ function Head({
       </p>
       <h2
         id={id}
-        className="max-w-3xl text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]"
+        className="max-w-3xl text-[30px] font-extrabold leading-[1.12] tracking-[-0.02em] md:text-[40px]"
       >
         {title}
       </h2>
@@ -347,7 +343,7 @@ export default function Home() {
                 </span>
                 Lesson notes approved by the principal, shared with the class
               </span>
-              <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] md:text-[76px]">
+              <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] md:text-[64px]">
                 Run your whole school from{" "}
                 <span className="text-[#07665A]">one simple place.</span>
               </h1>
@@ -620,7 +616,7 @@ export default function Home() {
                 </p>
                 <h2
                   id="demo-h"
-                  className="mt-3 text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]"
+                  className="mt-3 text-[30px] font-extrabold leading-[1.12] tracking-[-0.02em] md:text-[40px]"
                 >
                   Try it now. No sign-up.
                 </h2>
@@ -710,26 +706,26 @@ export default function Home() {
           className="scroll-mt-20 bg-white py-24"
         >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <div className="grid overflow-hidden rounded-[32px] bg-[#07665A] lg:grid-cols-[1.25fr_1fr]">
-              <div className="p-8 md:p-12">
-                <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-white">
+            <div className="grid overflow-hidden rounded-[28px] bg-[#07665A] lg:grid-cols-[1.75fr_1fr]">
+              <div className="p-7 md:p-10">
+                <p className="text-[13px] font-bold uppercase tracking-[0.1em] text-white">
                   Pilot program · Lagos and its environs
                 </p>
                 <h2
                   id="pilot-h"
-                  className="mt-3 text-[34px] font-extrabold leading-[1.08] !text-white md:text-[48px]"
+                  className="mt-3 text-[26px] font-extrabold leading-[1.15] !text-white md:text-[34px]"
                 >
                   Be one of our first pilot schools
                 </h2>
-                <p className="mt-4 max-w-xl text-lg leading-relaxed text-[#E2F5F1]">
+                <p className="mt-3 max-w-xl text-[16px] leading-relaxed text-[#E2F5F1]">
                   Pilot schools get free setup, staff training and free use
                   during the pilot. We&apos;ll move your existing records in for
                   you.
                 </p>
-                <div className="mt-8 flex flex-wrap gap-3">
+                <div className="mt-6 flex flex-wrap gap-3">
                   <a
                     href={DEMO}
-                    className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#FFD979] px-7 text-base font-extrabold text-[#3A2A00] hover:bg-[#FFCE57]"
+                    className="inline-flex min-h-[48px] items-center justify-center rounded-full bg-[#FFD979] px-6 text-[15px] font-extrabold text-[#3A2A00] hover:bg-[#FFCE57]"
                   >
                     Book a free demo
                   </a>
@@ -737,12 +733,12 @@ export default function Home() {
                     href={CHAT}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-[54px] items-center justify-center rounded-full border-[1.5px] border-white/70 px-7 text-base font-bold text-white hover:bg-white/10"
+                    className="inline-flex min-h-[48px] items-center justify-center rounded-full border-[1.5px] border-white/70 px-6 text-[15px] font-bold text-white hover:bg-white/10"
                   >
                     Chat on WhatsApp
                   </a>
                 </div>
-                <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-white/20 pt-8 sm:grid-cols-4">
+                <dl className="mt-8 grid grid-cols-2 gap-5 border-t border-white/20 pt-6 sm:grid-cols-4">
                   {[
                     [String(MODULES.length), "modules"],
                     ["4", "portals"],
@@ -752,7 +748,7 @@ export default function Home() {
                     <div key={l}>
                       <dt className="sr-only">{l}</dt>
                       <dd>
-                        <span className="block font-heading text-[30px] font-extrabold leading-none text-white">
+                        <span className="block font-heading text-[22px] font-extrabold leading-none text-white">
                           {n}
                         </span>
                         <span className="mt-1.5 block text-sm text-[#E2F5F1]">
@@ -763,7 +759,7 @@ export default function Home() {
                   ))}
                 </dl>
               </div>
-              <div className="relative min-h-[280px]">
+              <div className="relative min-h-[220px] lg:min-h-0">
                 <Image
                   src="/landing/parent.jpg"
                   alt="A father and his son smiling at a phone together"
@@ -827,91 +823,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="border-t border-[#ECEFF4] bg-[#FAFBFD]">
-        <div className="mx-auto grid max-w-[1240px] gap-12 px-4 pb-10 pt-16 sm:px-6 lg:grid-cols-[1.2fr_2fr]">
-          <div className="max-w-sm">
-            <Image
-              src="/simpliskool-logo-dark.png"
-              alt="Simpliskool"
-              width={157}
-              height={35}
-              className="h-9 w-auto"
-            />
-            <p className="mt-5 text-[15px] leading-relaxed text-[#4A5A70]">
-              Simplifying school management for schools across Africa. A product
-              of Dream Savvy Solutions, Lagos.
-            </p>
-            <ul className="mt-6 space-y-3 text-[15px]">
-              <li>
-                <span className="block text-[13px] font-bold uppercase tracking-[0.08em] text-[#4A5A70]">
-                  Email
-                </span>
-                <a
-                  href={`mailto:${ENQUIRIES_EMAIL}`}
-                  className="font-bold text-brand-navy underline-offset-2 hover:text-brand-teal-dark hover:underline"
-                >
-                  {ENQUIRIES_EMAIL}
-                </a>
-              </li>
-              <li>
-                <span className="block text-[13px] font-bold uppercase tracking-[0.08em] text-[#4A5A70]">
-                  WhatsApp
-                </span>
-                <a
-                  href={whatsapp()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-bold text-brand-navy underline-offset-2 hover:text-brand-teal-dark hover:underline"
-                >
-                  {WHATSAPP_DISPLAY}
-                </a>
-              </li>
-            </ul>
-          </div>
-          <div className="grid grid-cols-2 gap-8 text-[15px] sm:grid-cols-4">
-            <FooterCol
-              title="Product"
-              links={[
-                ["Features", "#features"],
-                ["Portals", "#portals"],
-                ["Live demo", "/demo"],
-                ["Pricing", PRICING_CHAT],
-              ]}
-            />
-            <FooterCol
-              title="Company"
-              links={[
-                ["Dream Savvy Solutions", "https://dreamsavvysolutions.com"],
-                ["Join the pilot", "#pilot"],
-                ["Sign in", "/login"],
-              ]}
-            />
-            <FooterCol
-              title="Resources"
-              links={[
-                ["How it works", "#how"],
-                ["FAQ", "#faq"],
-                ["Book a demo", DEMO],
-              ]}
-            />
-            <FooterCol
-              title="Legal"
-              links={[
-                ["Privacy policy", "/privacy"],
-                ["Terms of use", "/terms"],
-                ["Data processing agreement", "/dpa"],
-              ]}
-            />
-          </div>
-        </div>
-        <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 border-t border-[#ECEFF4] px-4 py-6 text-sm text-[#4A5A70] sm:px-6">
-          <p>
-            © {new Date().getFullYear()} Dream Savvy Solutions. All rights
-            reserved.
-          </p>
-          <p>Made in Lagos for schools across Africa.</p>
-        </div>
-      </footer>
+      <SiteFooter />
 
       <WhatsAppFloat />
     </div>
@@ -956,10 +868,10 @@ function Split({
         <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-[#07665A]">
           {kicker}
         </p>
-        <h3 className="mt-3 text-[30px] leading-tight md:text-[38px]">
+        <h3 className="mt-3 text-[26px] leading-tight md:text-[32px]">
           {title}
         </h3>
-        <p className="mt-4 text-lg leading-relaxed text-brand-slate">{body}</p>
+        <p className="mt-4 text-[17px] leading-relaxed text-brand-slate">{body}</p>
         <ul className="mt-6 space-y-3">
           {pts.map((x) => (
             <li
@@ -972,46 +884,6 @@ function Split({
           ))}
         </ul>
       </div>
-    </div>
-  );
-}
-
-function FooterCol({
-  title,
-  links,
-}: {
-  title: string;
-  links: [string, string][];
-}) {
-  return (
-    <div className="flex flex-col gap-3">
-      <h2 className="!font-sans text-sm !font-extrabold uppercase tracking-[0.1em] !text-brand-navy">
-        {title}
-      </h2>
-      <ul className="flex flex-col gap-2.5">
-        {links.map(([t, h]) => (
-          <li key={t}>
-            {h.startsWith("/") ? (
-              <Link
-                href={h}
-                className="text-[#4A5A70] hover:text-brand-teal-dark"
-              >
-                {t}
-              </Link>
-            ) : (
-              <a
-                href={h}
-                className="text-[#4A5A70] hover:text-brand-teal-dark"
-                {...(h.startsWith("http")
-                  ? { target: "_blank", rel: "noopener noreferrer" }
-                  : {})}
-              >
-                {t}
-              </a>
-            )}
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }

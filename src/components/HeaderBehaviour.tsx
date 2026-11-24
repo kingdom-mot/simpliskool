@@ -21,7 +21,9 @@ export function HeaderBehaviour({ headerId }: { headerId: string }) {
         header.querySelectorAll("details[open]").forEach((d) => d.removeAttribute("open"));
         (document.activeElement as HTMLElement | null)?.blur();
       }
-      const href = a.getAttribute("href") ?? "";
+      const raw = a.getAttribute("href") ?? "";
+      // "/#section" from the home page is a link to a section of this page.
+      const href = raw.startsWith("/#") && location.pathname === "/" ? raw.slice(1) : raw;
       if (href.startsWith("#") && href.length > 1) {
         const target = document.getElementById(href.slice(1));
         if (!target) return;
@@ -36,12 +38,12 @@ export function HeaderBehaviour({ headerId }: { headerId: string }) {
     const wake = (e: Event) => {
       if (e.type === "mouseleave" || (e.target as HTMLElement).closest(".sk-menu > button")) header.classList.remove("sk-hush");
     };
-    document.addEventListener("click", onClick);
+    document.addEventListener("click", onClick, true);
     header.addEventListener("mouseleave", wake);
     header.addEventListener("pointerover", wake);
     header.addEventListener("focusin", wake);
     return () => {
-      document.removeEventListener("click", onClick);
+      document.removeEventListener("click", onClick, true);
       header.removeEventListener("mouseleave", wake);
       header.removeEventListener("pointerover", wake);
       header.removeEventListener("focusin", wake);
