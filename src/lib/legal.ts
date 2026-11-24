@@ -7,7 +7,7 @@ export const LEGAL_UPDATED = "23 November 2026";
 export const COMPANY = "Dream Savvy Solutions";
 export const COMPANY_PLACE = "Lagos, Nigeria";
 /** Where privacy questions and requests to Dream Savvy go. */
-export const PRIVACY_EMAIL = "support@simpliskool.com";
+export const PRIVACY_EMAIL = "enquiries@simpliskool.com";
 
 /** The outside services that process data for Simpliskool (sub-processors). */
 export const SUBPROCESSORS = [

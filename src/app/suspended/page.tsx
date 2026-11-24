@@ -25,7 +25,7 @@ export default async function SuspendedPage() {
               </li>
             ))}
           </ul>
-          <p className="text-sm text-slate-700">Nothing has been deleted. The school can contact Simpliskool on support@simpliskool.com to switch it back on.</p>
+          <p className="text-sm text-slate-700">Nothing has been deleted. The school can contact Simpliskool on enquiries@simpliskool.com to switch it back on.</p>
           {isParent && (
             <p className="text-sm text-slate-700">
               Parents can still see and pay outstanding fees.{" "}

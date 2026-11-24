@@ -2,68 +2,240 @@ import Image from "next/image";
 import Link from "next/link";
 import { PortalTabs } from "./PortalTabs";
 import { SiteHeader } from "./SiteHeader";
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
+import {
+  ENQUIRIES_EMAIL,
+  PRICING_CHAT,
+  WHATSAPP_DISPLAY,
+  whatsapp,
+} from "@/lib/contact";
 
-const DEMO = "mailto:enquiries@simpliskool.com?subject=Simpliskool%20demo%20request";
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER;
+const DEMO = `mailto:${ENQUIRIES_EMAIL}?subject=Simpliskool%20demo%20request`;
+const CHAT = whatsapp("Hello Simpliskool, I'd like to join the pilot.");
 
-const MODULES = ["Admissions", "Student records", "Attendance", "Results & report cards", "Fee payments", "CBT exams", "Lesson notes", "Homework", "Timetables", "Staff clock-in", "Payroll", "School website", "AI assistant", "Multi-branch"];
+const MODULES = [
+  "Admissions",
+  "Student records",
+  "Attendance",
+  "Results & report cards",
+  "Fee payments",
+  "CBT exams",
+  "Lesson notes",
+  "Homework",
+  "Timetables",
+  "Staff clock-in",
+  "Payroll",
+  "School website",
+  "AI assistant",
+  "Multi-branch",
+];
 
 const HERO_POINTS = [
-  { t: "Works on any phone", icon: "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2", tint: "bg-[#E8F0FB] text-brand-navy" },
-  { t: "Fees paid online", icon: "M2 5h20v14H2zM2 10h20M6 15h4", tint: "bg-[#E2F5F1] text-[#07665A]" },
-  { t: "Keeps working offline", icon: "M5 12.6a10.9 10.9 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M12 20h.01M1.4 9a16 16 0 0 1 21.2 0", tint: "bg-[#FFF1D6] text-[#8A5A00]" },
-  { t: "Data protected", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4", tint: "bg-[#FDE9E4] text-[#A2391F]" },
+  {
+    t: "Works on any phone",
+    icon: "M7 2h10a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zM11 18h2",
+    tint: "bg-[#E8F0FB] text-brand-navy",
+  },
+  {
+    t: "Fees paid online",
+    icon: "M2 5h20v14H2zM2 10h20M6 15h4",
+    tint: "bg-[#E2F5F1] text-[#07665A]",
+  },
+  {
+    t: "Keeps working offline",
+    icon: "M5 12.6a10.9 10.9 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M12 20h.01M1.4 9a16 16 0 0 1 21.2 0",
+    tint: "bg-[#FFF1D6] text-[#8A5A00]",
+  },
+  {
+    t: "Data protected",
+    icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4",
+    tint: "bg-[#FDE9E4] text-[#A2391F]",
+  },
 ];
 
 const PEOPLE = [
-  { img: "/landing/principal.jpg", label: "Admin & proprietor", chip: "bg-[#E8F0FB] text-brand-navy", t: "See the whole school at a glance", d: "Set up sessions, classes and staff once. Then watch fees, attendance and results update in real time.", pts: ["Admissions and student records", "Fees, payments and defaulter lists", "Approve and release results"] },
-  { img: "/landing/teacher.jpg", label: "Teachers", chip: "bg-[#E2F5F1] text-[#07665A]", t: "Classroom overview", d: "Mark attendance in seconds, enter scores once, and the AI assistant helps with notes and comments.", pts: ["Attendance that works offline", "Score entry with automatic grading", "Lesson notes, homework and CBT"] },
-  { img: "/landing/parent.jpg", label: "Parents", chip: "bg-[#FDE9E4] text-[#A2391F]", t: "Parents stay in the loop", d: "One login for all their children. Results, fees, attendance and school news, right on their phone.", pts: ["Pay fees online, download receipts", "View and download report cards", "Attendance and homework updates"] },
-  { img: "/landing/teacher-students.jpg", label: "Students", chip: "bg-[#FFF1D6] text-[#8A5A00]", t: "Everything a student needs", d: "Timetable, homework, lesson notes and CBT practice in one simple space. Younger pupils sign in with a PIN.", pts: ["Today's timetable", "Homework and tests", "Results when released"] },
+  {
+    img: "/landing/principal.jpg",
+    label: "Admin & proprietor",
+    chip: "bg-[#E8F0FB] text-brand-navy",
+    t: "See the whole school at a glance",
+    d: "Set up sessions, classes and staff once. Then watch fees, attendance and results update in real time.",
+    pts: [
+      "Admissions and student records",
+      "Fees, payments and defaulter lists",
+      "Approve and release results",
+    ],
+  },
+  {
+    img: "/landing/teacher.jpg",
+    label: "Teachers",
+    chip: "bg-[#E2F5F1] text-[#07665A]",
+    t: "Classroom overview",
+    d: "Mark attendance in seconds, enter scores once, and the AI assistant helps with notes and comments.",
+    pts: [
+      "Attendance that works offline",
+      "Score entry with automatic grading",
+      "Lesson notes, homework and CBT",
+    ],
+  },
+  {
+    img: "/landing/parent.jpg",
+    label: "Parents",
+    chip: "bg-[#FDE9E4] text-[#A2391F]",
+    t: "Parents stay in the loop",
+    d: "One login for all their children. Results, fees, attendance and school news, right on their phone.",
+    pts: [
+      "Pay fees online, download receipts",
+      "View and download report cards",
+      "Attendance and homework updates",
+    ],
+  },
+  {
+    img: "/landing/teacher-students.jpg",
+    label: "Students",
+    chip: "bg-[#FFF1D6] text-[#8A5A00]",
+    t: "Everything a student needs",
+    d: "Timetable, homework, lesson notes and CBT practice in one simple space. Younger pupils sign in with a PIN.",
+    pts: ["Today's timetable", "Homework and tests", "Results when released"],
+  },
 ];
 
 const MORE = [
-  { t: "CBT exams", d: "Timed computer-based tests with question banks, shuffling and instant marking.", icon: "M3 4h18v12H3zM8 20h8M12 16v4", tint: "bg-[#E8F0FB] text-brand-navy" },
-  { t: "Works when network is unavailable", d: "Take attendance and enter scores offline; they sync the moment you're back online.", icon: "M5 12.6a10.9 10.9 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M12 20h.01M1.4 9a16 16 0 0 1 21.2 0", tint: "bg-[#E2F5F1] text-[#07665A]" },
-  { t: "Lesson notes and staff clock-in", d: "Teachers submit notes for the principal to approve, and the principal clocks staff in and out each day.", icon: "M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", tint: "bg-[#FFF1D6] text-[#8A5A00]" },
-  { t: "Your own school website, included", d: "A clean, mobile-ready site at yourschool.simpliskool.com, with news, gallery and online admission forms that land straight in your admin portal.", icon: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20", tint: "bg-[#FDE9E4] text-[#A2391F]" },
-  { t: "Multi-branch groups", d: "Proprietors monitor every branch's fees, attendance and results from one dashboard.", icon: "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9", tint: "bg-[#E8F0FB] text-brand-navy" },
-  { t: "AI teaching assistant", d: "Helps teachers draft lesson notes and report card comments, ready for them to check and edit.", icon: "M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6l-5 3.6 1.9-5.8L4 8.8h6.1z", tint: "bg-[#E2F5F1] text-[#07665A]" },
+  {
+    t: "CBT exams",
+    d: "Timed computer-based tests with question banks, shuffling and instant marking.",
+    icon: "M3 4h18v12H3zM8 20h8M12 16v4",
+    tint: "bg-[#E8F0FB] text-brand-navy",
+  },
+  {
+    t: "Works when network is unavailable",
+    d: "Take attendance and enter scores offline; they sync the moment you're back online.",
+    icon: "M5 12.6a10.9 10.9 0 0 1 14 0M8.5 16.1a5 5 0 0 1 7 0M12 20h.01M1.4 9a16 16 0 0 1 21.2 0",
+    tint: "bg-[#E2F5F1] text-[#07665A]",
+  },
+  {
+    t: "Lesson notes and staff clock-in",
+    d: "Teachers submit notes for the principal to approve, and the principal clocks staff in and out each day.",
+    icon: "M12 6v6l4 2M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z",
+    tint: "bg-[#FFF1D6] text-[#8A5A00]",
+  },
+  {
+    t: "Your own school website, included",
+    d: "A clean, mobile-ready site at yourschool.simpliskool.com, with news, gallery and online admission forms that land straight in your admin portal.",
+    icon: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20",
+    tint: "bg-[#FDE9E4] text-[#A2391F]",
+  },
+  {
+    t: "Multi-branch groups",
+    d: "Proprietors monitor every branch's fees, attendance and results from one dashboard.",
+    icon: "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9",
+    tint: "bg-[#E8F0FB] text-brand-navy",
+  },
+  {
+    t: "AI teaching assistant",
+    d: "Helps teachers draft lesson notes and report card comments, ready for them to check and edit.",
+    icon: "M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6l-5 3.6 1.9-5.8L4 8.8h6.1z",
+    tint: "bg-[#E2F5F1] text-[#07665A]",
+  },
 ];
 
 const PARTNER = [
-  { t: "We set you up", d: "Sessions, classes, subjects and fees configured, and your records imported. Send us your Excel lists and our team moves them in.", pts: ["Student and parent lists imported", "Classes, subjects and fees ready", "Your school website set up"], icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5", bg: "bg-[#E2F5F1]", ic: "bg-brand-teal-dark" },
-  { t: "We train your staff", d: "A short hands-on session for admins and teachers, in person or online, on the phones and laptops they already use.", pts: ["In person or online", "Any smartphone, tablet or laptop", "Help guides for every role"], icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8", bg: "bg-[#E8F0FB]", ic: "bg-brand-navy" },
-  { t: "Your data stays yours", d: "Each school's data is kept separate, encrypted and backed up daily, in line with the Nigeria Data Protection Act 2023.", pts: ["Role-based access for every user", "We never sell your data", "Export or delete it any time"], icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4", bg: "bg-[#FFF1D6]", ic: "bg-[#8A5A00]" },
+  {
+    t: "We set you up",
+    d: "Sessions, classes, subjects and fees configured, and your records imported. Send us your Excel lists and our team moves them in.",
+    pts: [
+      "Student and parent lists imported",
+      "Classes, subjects and fees ready",
+      "Your school website set up",
+    ],
+    icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M8 13h8M8 17h5",
+    bg: "bg-[#E2F5F1]",
+    ic: "bg-brand-teal-dark",
+  },
+  {
+    t: "We train your staff",
+    d: "A short hands-on session for admins and teachers, in person or online, on the phones and laptops they already use.",
+    pts: [
+      "In person or online",
+      "Any smartphone, tablet or laptop",
+      "Help guides for every role",
+    ],
+    icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8",
+    bg: "bg-[#E8F0FB]",
+    ic: "bg-brand-navy",
+  },
+  {
+    t: "Your data stays yours",
+    d: "Each school's data is kept separate, encrypted and backed up daily, in line with the Nigeria Data Protection Act 2023.",
+    pts: [
+      "Role-based access for every user",
+      "We never sell your data",
+      "Export or delete it any time",
+    ],
+    icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4",
+    bg: "bg-[#FFF1D6]",
+    ic: "bg-[#8A5A00]",
+  },
 ];
 
 const STEPS = [
-  { t: "Book a demo", d: "We walk you through Simpliskool using your school's real setup." },
-  { t: "We set you up", d: "Sessions, classes, subjects and fees configured, and your records imported." },
-  { t: "Train your staff", d: "A short hands-on session for admins and teachers, in person or online." },
+  {
+    t: "Book a demo",
+    d: "We walk you through Simpliskool using your school's real setup.",
+  },
+  {
+    t: "We set you up",
+    d: "Sessions, classes, subjects and fees configured, and your records imported.",
+  },
+  {
+    t: "Train your staff",
+    d: "A short hands-on session for admins and teachers, in person or online.",
+  },
   { t: "Go live", d: "Website is officially launched and ready to use." },
 ];
 
-const PLANS = [
-  { name: "Starter", for: "Small schools getting organised", items: ["Admin, teacher, parent and student portals", "Attendance, results and report cards", "Fees and online payments", "School website"] },
-  { name: "Standard", for: "Growing schools that want it all", popular: true, items: ["Everything in Starter", "CBT exams and lesson notes", "AI teaching assistant", "Staff clock-in, payroll and timetables"] },
-  { name: "Group", for: "Proprietors with several branches", items: ["Everything in Standard", "Multi-branch dashboard", "Shared settings across branches", "Priority support"] },
-];
-
 const FAQS = [
-  { q: "Do we need computers or special equipment?", a: "No. Simpliskool runs in the browser on any smartphone, tablet or laptop. Teachers can take attendance offline and it syncs later." },
-  { q: "Can you move our existing student records in?", a: "Yes. Upload your student and parent lists from Excel, or send them to us and our team will import them during setup." },
-  { q: "How do parents pay fees?", a: "Parents pay by card, bank transfer or USSD. Each payment is matched to the right invoice, receipts are issued instantly, and the money is paid into the school's bank account." },
-  { q: "How do young pupils sign in without a phone?", a: "Older students and parents sign in with a code sent to their phone or email. Younger pupils sign in with their admission number and a PIN printed on a login slip by the school." },
-  { q: "Is our school data safe?", a: "Each school's data is kept separate and protected with role-based access, so teachers, parents and students only see what they should. Data is encrypted and backed up daily. We handle personal data in line with the Nigeria Data Protection Act 2023: your school owns its data, we only use it to run Simpliskool, we never sell it, and you can export or delete it at any time." },
-  { q: "We have more than one campus. Does that work?", a: "Yes. The group dashboard lets proprietors see every branch together while each branch runs its own day-to-day." },
+  {
+    q: "Do we need computers or special equipment?",
+    a: "No. Simpliskool runs in the browser on any smartphone, tablet or laptop. Teachers can take attendance offline and it syncs later.",
+  },
+  {
+    q: "Can you move our existing student records in?",
+    a: "Yes. Upload your student and parent lists from Excel, or send them to us and our team will import them during setup.",
+  },
+  {
+    q: "How do parents pay fees?",
+    a: "Parents pay by card, bank transfer or USSD. Each payment is matched to the right invoice, receipts are issued instantly, and the money is paid into the school's bank account.",
+  },
+  {
+    q: "How do young pupils sign in without a phone?",
+    a: "Older students and parents sign in with a code sent to their phone or email. Younger pupils sign in with their admission number and a PIN printed on a login slip by the school.",
+  },
+  {
+    q: "Is our school data safe?",
+    a: "Each school's data is kept separate and protected with role-based access, so teachers, parents and students only see what they should. Data is encrypted and backed up daily. We handle personal data in line with the Nigeria Data Protection Act 2023: your school owns its data, we only use it to run Simpliskool, we never sell it, and you can export or delete it at any time.",
+  },
+  {
+    q: "We have more than one campus. Does that work?",
+    a: "Yes. The group dashboard lets proprietors see every branch together while each branch runs its own day-to-day.",
+  },
 ];
 
 const ARROW = "M5 12h14M13 6l6 6-6 6";
 
 function Glyph({ d, size = 22 }: { d: string; size?: number }) {
   return (
-    <svg aria-hidden="true" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d={d} />
     </svg>
   );
@@ -77,14 +249,37 @@ function Tick() {
   );
 }
 
-function Head({ id, kicker, title, intro, center = true }: { id: string; kicker: string; title: React.ReactNode; intro?: string; center?: boolean }) {
+function Head({
+  id,
+  kicker,
+  title,
+  intro,
+  center = true,
+}: {
+  id: string;
+  kicker: string;
+  title: React.ReactNode;
+  intro?: string;
+  center?: boolean;
+}) {
   return (
-    <div className={`mb-12 flex flex-col gap-3 ${center ? "items-center text-center" : ""}`}>
-      <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-brand-teal-dark">{kicker}</p>
-      <h2 id={id} className="max-w-3xl text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]">
+    <div
+      className={`mb-12 flex flex-col gap-3 ${center ? "items-center text-center" : ""}`}
+    >
+      <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-brand-teal-dark">
+        {kicker}
+      </p>
+      <h2
+        id={id}
+        className="max-w-3xl text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]"
+      >
         {title}
       </h2>
-      {intro && <p className="max-w-2xl text-lg leading-relaxed text-[#4A5A70]">{intro}</p>}
+      {intro && (
+        <p className="max-w-2xl text-lg leading-relaxed text-[#4A5A70]">
+          {intro}
+        </p>
+      )}
     </div>
   );
 }
@@ -96,9 +291,15 @@ export default function Home() {
         Skip to main content
       </a>
 
-      <aside aria-label="Announcement" className="bg-[#FFD979] px-4 py-2.5 text-center text-sm font-semibold text-[#3A2A00]">
+      <aside
+        aria-label="Announcement"
+        className="bg-[#FFD979] px-4 py-2.5 text-center text-sm font-semibold text-[#3A2A00]"
+      >
         Now onboarding pilot schools in Lagos and its environs.{" "}
-        <a href="#pilot" className="font-extrabold underline underline-offset-2">
+        <a
+          href="#pilot"
+          className="font-extrabold underline underline-offset-2"
+        >
           Join the pilot →
         </a>
       </aside>
@@ -106,55 +307,95 @@ export default function Home() {
       <SiteHeader />
 
       <main id="main">
-        {/* Hero */}
-        <section className="bg-gradient-to-b from-[#FFF6E8] via-[#FFFBF5] to-white">
-          <div className="mx-auto max-w-[1240px] px-4 pb-16 pt-14 sm:px-6 md:pt-20">
-            <div className="mx-auto flex max-w-[860px] flex-col items-center gap-6 text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#F1E3C8] bg-white py-1.5 pl-1.5 pr-4 text-[13px] font-semibold text-brand-navy">
-                <span className="rounded-full bg-brand-teal-dark px-2.5 py-0.5 text-xs font-extrabold text-white">NEW</span>
+        {/* Hero: the school photo fills the background, washed light behind the words. */}
+        <section className="relative isolate overflow-hidden bg-[#FFFCF6]">
+          <Image
+            src="/landing/hero.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="-z-20 hidden object-cover object-[center_68%] md:block"
+          />
+          {/* Phones: the whole scene along the bottom, fading up into the words. */}
+          <Image
+            src="/landing/hero.jpg"
+            alt=""
+            width={1672}
+            height={941}
+            priority
+            sizes="100vw"
+            className="absolute bottom-0 left-0 -z-20 h-auto w-full md:hidden"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 bottom-0 -z-10 aspect-[1672/941] bg-gradient-to-b from-[#FFFCF6] via-[#FFFCF6]/10 to-transparent md:hidden"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 hidden md:block bg-[linear-gradient(180deg,rgba(255,252,246,0.97)_0%,rgba(255,252,246,0.93)_38%,rgba(255,252,246,0.72)_62%,rgba(255,252,246,0.15)_88%,rgba(255,252,246,0)_100%)]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 hidden md:block bg-[radial-gradient(ellipse_60%_55%_at_50%_38%,rgba(255,252,246,0.85),transparent_70%)]"
+          />
+          <div className="mx-auto flex max-w-[1240px] flex-col items-center px-4 pb-[62vw] pt-12 text-center sm:px-6 md:min-h-[820px] md:pb-72 md:pt-24">
+            <div className="flex max-w-[900px] flex-col items-center gap-6">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#F1E3C8] bg-white py-1.5 pl-1.5 pr-4 text-[13px] font-semibold text-brand-navy shadow-sm">
+                <span className="rounded-full bg-brand-teal-dark px-2.5 py-0.5 text-xs font-extrabold text-white">
+                  NEW
+                </span>
                 Lesson notes approved by the principal, shared with the class
               </span>
-              <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] md:text-[72px]">
-                Run your whole school from <span className="text-brand-teal-dark">one simple place.</span>
+              <h1 className="text-[44px] font-extrabold leading-[1.02] tracking-[-0.035em] md:text-[76px]">
+                Run your whole school from{" "}
+                <span className="text-[#07665A]">one simple place.</span>
               </h1>
-              <p className="max-w-[640px] text-lg leading-relaxed text-[#4A5A70] md:text-[20px]">
-                Admissions, attendance, results, fees, computer-based exams and parent updates, connected in one platform. Built for schools in Africa.
+              <p className="max-w-[660px] text-lg font-medium leading-relaxed text-brand-slate md:text-[20px]">
+                Admissions, attendance, results, fees, computer-based exams and
+                parent updates, connected in one platform. Built for schools in
+                Africa.
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <a href={DEMO} className="inline-flex min-h-[54px] items-center gap-2 rounded-full bg-brand-teal-dark px-7 text-base font-bold text-white hover:bg-[#096A5D]">
+                <a
+                  href={DEMO}
+                  className="inline-flex min-h-[56px] items-center gap-2 rounded-full bg-brand-teal-dark px-8 text-base font-bold text-white shadow-[0_14px_30px_-12px_rgba(11,125,110,0.8)] hover:bg-[#096A5D]"
+                >
                   Book a free demo <Glyph d={ARROW} size={18} />
                 </a>
-                <Link href="/demo" className="inline-flex min-h-[54px] items-center gap-2 rounded-full border-[1.5px] border-brand-navy bg-white px-7 text-base font-bold text-brand-navy hover:bg-brand-mist">
+                <Link
+                  href="/demo"
+                  className="inline-flex min-h-[56px] items-center gap-2.5 rounded-full border border-[#DCE5F0] bg-white px-7 text-base font-bold text-brand-navy shadow-sm hover:border-brand-navy"
+                >
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-navy text-white">
+                    <svg
+                      aria-hidden="true"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path d="M6 4l14 8-14 8z" />
+                    </svg>
+                  </span>
                   Try the live demo
                 </Link>
               </div>
-              <ul className="mt-2 grid grid-cols-2 gap-x-8 gap-y-3 text-left sm:flex sm:flex-wrap sm:justify-center">
+              <ul className="mt-1 grid grid-cols-2 gap-x-6 gap-y-3 text-left sm:flex sm:flex-wrap sm:justify-center">
                 {HERO_POINTS.map((p) => (
-                  <li key={p.t} className="flex items-center gap-2.5 text-[15px] font-bold text-brand-slate">
-                    <span className={`flex h-9 w-9 flex-none items-center justify-center rounded-xl ${p.tint}`}>
-                      <Glyph d={p.icon} size={18} />
+                  <li
+                    key={p.t}
+                    className="flex items-center gap-2.5 rounded-full bg-white/85 py-1 pl-1 pr-3.5 text-[14px] font-bold text-brand-slate shadow-sm backdrop-blur"
+                  >
+                    <span
+                      className={`flex h-8 w-8 flex-none items-center justify-center rounded-full ${p.tint}`}
+                    >
+                      <Glyph d={p.icon} size={16} />
                     </span>
                     {p.t}
                   </li>
                 ))}
               </ul>
-            </div>
-
-            <div className="relative mx-auto mt-14 max-w-[1120px]">
-              <Image src="/landing/hero.jpg" alt="Students in uniform looking at a tablet together while a teacher and a parent talk nearby, outside a Nigerian school" width={1672} height={941} priority sizes="(max-width: 1200px) 100vw, 1120px" className="aspect-[16/10] w-full rounded-[28px] object-cover sm:aspect-[16/9]" />
-              <div aria-hidden="true" className="absolute -bottom-6 left-4 hidden items-center gap-3 rounded-2xl bg-white px-4 py-3.5 shadow-[0_20px_40px_-16px_rgba(15,42,82,0.35)] sm:flex lg:-left-6">
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E2F5F1] text-[#07665A]">
-                  <Glyph d="M2 5h20v14H2zM2 10h20" size={20} />
-                </span>
-                <span>
-                  <span className="block text-[14px] font-bold text-brand-navy">₦85,000 fee received</span>
-                  <span className="block text-xs text-[#4A5A70]">Tolu A. · JSS 2 · receipt sent</span>
-                </span>
-              </div>
-              <div aria-hidden="true" className="absolute -bottom-6 right-4 hidden rounded-2xl bg-brand-navy px-4 py-3.5 text-white shadow-[0_20px_40px_-16px_rgba(15,42,82,0.45)] md:block lg:-right-6">
-                <span className="block text-[11px] font-bold tracking-[0.06em] text-[#FFD979]">RESULT RELEASED</span>
-                <span className="mt-0.5 block text-[14px] font-semibold">First Term report cards sent to 588 parents</span>
-              </div>
             </div>
           </div>
         </section>
@@ -162,12 +403,18 @@ export default function Home() {
         {/* Modules */}
         <section aria-labelledby="modules-h" className="bg-white py-14">
           <div className="mx-auto max-w-[1240px] px-4 text-center sm:px-6">
-            <h2 id="modules-h" className="!font-sans text-[14px] !font-bold uppercase tracking-[0.1em] !text-[#4A5A70]">
+            <h2
+              id="modules-h"
+              className="!font-sans text-[14px] !font-bold uppercase tracking-[0.1em] !text-[#4A5A70]"
+            >
               Everything your school runs on
             </h2>
             <ul className="mx-auto mt-6 flex max-w-[1000px] flex-wrap justify-center gap-2.5">
               {MODULES.map((m) => (
-                <li key={m} className="rounded-full border border-[#E3EAF3] bg-white px-4 py-2 text-[15px] font-semibold text-brand-navy">
+                <li
+                  key={m}
+                  className="rounded-full border border-[#E3EAF3] bg-white px-4 py-2 text-[15px] font-semibold text-brand-navy"
+                >
                   {m}
                 </li>
               ))}
@@ -176,27 +423,61 @@ export default function Home() {
         </section>
 
         {/* People */}
-        <section id="people" aria-labelledby="people-h" className="scroll-mt-20 bg-white pb-24 pt-6">
+        <section
+          id="people"
+          aria-labelledby="people-h"
+          className="scroll-mt-20 bg-white pb-24 pt-6"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="people-h" kicker="One platform, a portal for everyone" title="Built for every person in your school" intro="Each person signs in to their own simple view, on the phone or laptop they already have." />
+            <Head
+              id="people-h"
+              kicker="One platform, a portal for everyone"
+              title="Built for every person in your school"
+              intro="Each person signs in to their own simple view, on the phone or laptop they already have."
+            />
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {PEOPLE.map((p) => (
-                <li key={p.label} className="flex flex-col overflow-hidden rounded-[24px] border border-[#ECEFF4] bg-white">
-                  <Image src={p.img} alt="" width={500} height={500} sizes="(max-width: 640px) 100vw, 300px" className="aspect-[5/4] w-full object-cover" />
+                <li
+                  key={p.label}
+                  className="flex flex-col overflow-hidden rounded-[24px] border border-[#ECEFF4] bg-white"
+                >
+                  <Image
+                    src={p.img}
+                    alt=""
+                    width={500}
+                    height={500}
+                    sizes="(max-width: 640px) 100vw, 300px"
+                    className="aspect-[5/4] w-full object-cover"
+                  />
                   <div className="flex flex-1 flex-col p-6">
-                    <span className={`self-start rounded-full px-3 py-1 text-[13px] font-bold ${p.chip}`}>{p.label}</span>
+                    <span
+                      className={`self-start rounded-full px-3 py-1 text-[13px] font-bold ${p.chip}`}
+                    >
+                      {p.label}
+                    </span>
                     <h3 className="mt-4 text-[21px] leading-snug">{p.t}</h3>
-                    <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">{p.d}</p>
+                    <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">
+                      {p.d}
+                    </p>
                     <ul className="mt-4 flex-1 space-y-2">
                       {p.pts.map((x) => (
-                        <li key={x} className="flex items-start gap-2 text-[14px] font-semibold text-brand-slate">
+                        <li
+                          key={x}
+                          className="flex items-start gap-2 text-[14px] font-semibold text-brand-slate"
+                        >
                           <Tick />
                           {x}
                         </li>
                       ))}
                     </ul>
-                    <Link href="/demo" className="mt-5 inline-flex min-h-[44px] items-center gap-1.5 self-start text-[15px] font-bold text-brand-teal-dark hover:gap-2.5">
-                      Try it in the demo <span className="sr-only">as {p.label.toLowerCase()}</span>
+                    <Link
+                      href="/demo"
+                      className="mt-5 inline-flex min-h-[44px] items-center gap-1.5 self-start text-[15px] font-bold text-brand-teal-dark hover:gap-2.5"
+                    >
+                      Try it in the demo{" "}
+                      <span className="sr-only">
+                        as {p.label.toLowerCase()}
+                      </span>
                       <Glyph d={ARROW} size={16} />
                     </Link>
                   </div>
@@ -207,17 +488,33 @@ export default function Home() {
         </section>
 
         {/* Portals */}
-        <section id="portals" aria-labelledby="portals-h" className="scroll-mt-20 bg-[#F1F8F6] py-24">
+        <section
+          id="portals"
+          aria-labelledby="portals-h"
+          className="scroll-mt-20 bg-[#F1F8F6] py-24"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="portals-h" kicker="See it for yourself" title="Everyone in your school gets the view they need" />
+            <Head
+              id="portals-h"
+              kicker="See it for yourself"
+              title="Everyone in your school gets the view they need"
+            />
             <PortalTabs />
           </div>
         </section>
 
         {/* Features */}
-        <section id="features" aria-labelledby="features-h" className="scroll-mt-20 bg-white py-24">
+        <section
+          id="features"
+          aria-labelledby="features-h"
+          className="scroll-mt-20 bg-white py-24"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="features-h" kicker="Built for how schools really work" title="Less paperwork. More teaching." />
+            <Head
+              id="features-h"
+              kicker="Built for how schools really work"
+              title="Less paperwork. More teaching."
+            />
             <div className="flex flex-col gap-8">
               <Split
                 img="/landing/admin.jpg"
@@ -226,7 +523,11 @@ export default function Home() {
                 kicker="Results"
                 title="Results and report cards in minutes"
                 body="Teachers enter CA and exam scores; totals, grades, positions and class averages calculate themselves. Upon approval, branded report cards are released to parents at once."
-                pts={["Automatic totals, grades and positions", "Principal approves before release", "Parents view and download on their phone"]}
+                pts={[
+                  "Automatic totals, grades and positions",
+                  "Principal approves before release",
+                  "Parents view and download on their phone",
+                ]}
               />
               <Split
                 flip
@@ -236,17 +537,28 @@ export default function Home() {
                 kicker="Fees"
                 title="Online fee payments"
                 body="Invoices, part payments, receipts and defaulter lists, matched automatically and paid into your school's bank account. Parents pay by card, bank transfer or USSD."
-                pts={["Each payment matched to the right invoice", "Receipts issued instantly", "Defaulter lists that update themselves"]}
+                pts={[
+                  "Each payment matched to the right invoice",
+                  "Receipts issued instantly",
+                  "Defaulter lists that update themselves",
+                ]}
               />
             </div>
             <ul className="mt-16 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {MORE.map((m) => (
-                <li key={m.t} className="rounded-[22px] border border-[#ECEFF4] bg-white p-7">
-                  <span className={`flex h-12 w-12 items-center justify-center rounded-2xl ${m.tint}`}>
+                <li
+                  key={m.t}
+                  className="rounded-[22px] border border-[#ECEFF4] bg-white p-7"
+                >
+                  <span
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl ${m.tint}`}
+                  >
                     <Glyph d={m.icon} />
                   </span>
                   <h3 className="mt-5 text-[20px] leading-snug">{m.t}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">{m.d}</p>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">
+                    {m.d}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -256,18 +568,33 @@ export default function Home() {
         {/* Partnership */}
         <section aria-labelledby="partner-h" className="bg-[#FAFBFD] py-24">
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="partner-h" kicker="More than software" title="We set you up, train your team and stay with you." intro="Pilot schools get free setup, staff training and free use during the pilot. We'll move your existing records in for you." />
+            <Head
+              id="partner-h"
+              kicker="More than software"
+              title="We set you up, train your team and stay with you."
+              intro="Pilot schools get free setup, staff training and free use during the pilot. We'll move your existing records in for you."
+            />
             <ul className="grid gap-5 lg:grid-cols-3">
               {PARTNER.map((p) => (
-                <li key={p.t} className={`flex flex-col rounded-[26px] p-8 ${p.bg}`}>
-                  <span className={`flex h-14 w-14 items-center justify-center rounded-2xl text-white ${p.ic}`}>
+                <li
+                  key={p.t}
+                  className={`flex flex-col rounded-[26px] p-8 ${p.bg}`}
+                >
+                  <span
+                    className={`flex h-14 w-14 items-center justify-center rounded-2xl text-white ${p.ic}`}
+                  >
                     <Glyph d={p.icon} size={26} />
                   </span>
                   <h3 className="mt-6 text-[24px]">{p.t}</h3>
-                  <p className="mt-3 text-[15px] leading-relaxed text-brand-slate">{p.d}</p>
+                  <p className="mt-3 text-[15px] leading-relaxed text-brand-slate">
+                    {p.d}
+                  </p>
                   <ul className="mt-5 space-y-2.5 border-t border-black/10 pt-5">
                     {p.pts.map((x) => (
-                      <li key={x} className="flex items-start gap-2 text-[15px] font-semibold text-brand-slate">
+                      <li
+                        key={x}
+                        className="flex items-start gap-2 text-[15px] font-semibold text-brand-slate"
+                      >
                         <Tick />
                         {x}
                       </li>
@@ -280,103 +607,140 @@ export default function Home() {
         </section>
 
         {/* Live demo */}
-        <section id="demo" aria-labelledby="demo-h" className="scroll-mt-20 bg-white py-24">
+        <section
+          id="demo"
+          aria-labelledby="demo-h"
+          className="scroll-mt-20 bg-white py-24"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
             <div className="grid overflow-hidden rounded-[32px] bg-[#FFD979] lg:grid-cols-2">
               <div className="p-8 md:p-12">
-                <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-[#5C4300]">Live demo</p>
-                <h2 id="demo-h" className="mt-3 text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]">
+                <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-[#5C4300]">
+                  Live demo
+                </p>
+                <h2
+                  id="demo-h"
+                  className="mt-3 text-[34px] font-extrabold leading-[1.08] tracking-[-0.025em] md:text-[48px]"
+                >
                   Try it now. No sign-up.
                 </h2>
-                <p className="mt-4 text-lg leading-relaxed text-[#3A2A00]">Bright Future Academy is a made-up school in Lekki, Lagos. Pick a role and click around. Nothing is real and everything resets every night.</p>
+                <p className="mt-4 text-lg leading-relaxed text-[#3A2A00]">
+                  Bright Future Academy is a made-up school in Lekki, Lagos.
+                  Pick a role and click around. Nothing is real and everything
+                  resets every night.
+                </p>
                 <ul className="mt-6 flex flex-wrap gap-2">
-                  {["Admin & proprietor", "Teacher", "Parent", "Student"].map((r) => (
-                    <li key={r} className="rounded-full bg-white/70 px-3.5 py-1.5 text-[14px] font-bold text-brand-navy">
-                      {r}
-                    </li>
-                  ))}
+                  {["Admin & proprietor", "Teacher", "Parent", "Student"].map(
+                    (r) => (
+                      <li
+                        key={r}
+                        className="rounded-full bg-white/70 px-3.5 py-1.5 text-[14px] font-bold text-brand-navy"
+                      >
+                        {r}
+                      </li>
+                    ),
+                  )}
                 </ul>
-                <Link href="/demo" className="mt-8 inline-flex min-h-[54px] items-center gap-2 rounded-full bg-brand-navy px-7 text-base font-bold text-white hover:bg-brand-navy-dark">
+                <Link
+                  href="/demo"
+                  className="mt-8 inline-flex min-h-[54px] items-center gap-2 rounded-full bg-brand-navy px-7 text-base font-bold text-white hover:bg-brand-navy-dark"
+                >
                   Open the live demo <Glyph d={ARROW} size={18} />
                 </Link>
               </div>
               <div className="relative min-h-[300px]">
-                <Image src="/landing/teacher-students.jpg" alt="A teacher leaning in to help smiling students working on a tablet in class" fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
+                <Image
+                  src="/landing/teacher-students.jpg"
+                  alt="A teacher leaning in to help smiling students working on a tablet in class"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 600px"
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* How it works */}
-        <section id="how" aria-labelledby="how-h" className="scroll-mt-20 bg-white pb-24">
+        <section
+          id="how"
+          aria-labelledby="how-h"
+          className="scroll-mt-20 bg-white pb-24"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="how-h" kicker="How it works" title="Live in one week, not one term" />
+            <Head
+              id="how-h"
+              kicker="How it works"
+              title="Live in one week, not one term"
+            />
             <ol className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {STEPS.map((s, i) => (
-                <li key={s.t} className="rounded-[22px] border border-[#ECEFF4] bg-white p-7">
-                  <span aria-hidden="true" className="font-heading text-[44px] font-extrabold leading-none text-brand-teal">
+                <li
+                  key={s.t}
+                  className="rounded-[22px] border border-[#ECEFF4] bg-white p-7"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="font-heading text-[44px] font-extrabold leading-none text-brand-teal"
+                  >
                     {String(i + 1).padStart(2, "0")}
                   </span>
                   <h3 className="mt-4 text-[20px]">{s.t}</h3>
-                  <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">{s.d}</p>
+                  <p className="mt-2 text-[15px] leading-relaxed text-[#4A5A70]">
+                    {s.d}
+                  </p>
                 </li>
               ))}
             </ol>
             <div className="mt-10 flex justify-center">
-              <a href={DEMO} className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-brand-teal-dark px-7 text-base font-bold text-white hover:bg-[#096A5D]">
+              <a
+                href={DEMO}
+                className="inline-flex min-h-[52px] items-center gap-2 rounded-full bg-brand-teal-dark px-7 text-base font-bold text-white hover:bg-[#096A5D]"
+              >
                 Talk to our team <Glyph d={ARROW} size={18} />
               </a>
             </div>
           </div>
         </section>
 
-        {/* Pricing */}
-        <section id="pricing" aria-labelledby="pricing-h" className="scroll-mt-20 bg-[#F1F8F6] py-24">
-          <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
-            <Head id="pricing-h" kicker="Simple pricing" title="Pay per student, per term" intro="Pilot schools use Simpliskool free during the pilot. Prices for everyone else will be announced soon." />
-            <div className="grid items-stretch gap-5 md:grid-cols-3">
-              {PLANS.map((p) => (
-                <div key={p.name} className={`relative flex flex-col rounded-[26px] bg-white p-8 ${p.popular ? "border-2 border-brand-teal-dark shadow-[0_30px_60px_-34px_rgba(11,125,110,0.6)]" : "border border-[#E3EAF3]"}`}>
-                  {p.popular && <span className="absolute -top-3.5 left-8 rounded-full bg-brand-teal-dark px-3.5 py-1 text-xs font-extrabold text-white">Most popular</span>}
-                  <h3 className="text-2xl">{p.name}</h3>
-                  <p className="mt-1 text-[15px] text-[#4A5A70]">{p.for}</p>
-                  <p className="mt-6 font-heading text-[30px] font-extrabold text-brand-navy">Free in the pilot</p>
-                  <ul className="mt-6 flex-1 space-y-3.5">
-                    {p.items.map((i) => (
-                      <li key={i} className="flex items-start gap-2.5 text-[15px]">
-                        <Tick />
-                        {i}
-                      </li>
-                    ))}
-                  </ul>
-                  <a href="#pilot" className={`mt-8 inline-flex min-h-[50px] items-center justify-center rounded-full text-base font-bold ${p.popular ? "bg-brand-teal-dark text-white hover:bg-[#096A5D]" : "border-[1.5px] border-brand-navy text-brand-navy hover:bg-brand-mist"}`}>
-                    Join the pilot
-                  </a>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* Pilot */}
-        <section id="pilot" aria-labelledby="pilot-h" className="scroll-mt-20 bg-white py-24">
+        <section
+          id="pilot"
+          aria-labelledby="pilot-h"
+          className="scroll-mt-20 bg-white py-24"
+        >
           <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
             <div className="grid overflow-hidden rounded-[32px] bg-[#07665A] lg:grid-cols-[1.25fr_1fr]">
               <div className="p-8 md:p-12">
-                <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-white">Pilot program · Lagos and its environs</p>
-                <h2 id="pilot-h" className="mt-3 text-[34px] font-extrabold leading-[1.08] !text-white md:text-[48px]">
+                <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-white">
+                  Pilot program · Lagos and its environs
+                </p>
+                <h2
+                  id="pilot-h"
+                  className="mt-3 text-[34px] font-extrabold leading-[1.08] !text-white md:text-[48px]"
+                >
                   Be one of our first pilot schools
                 </h2>
-                <p className="mt-4 max-w-xl text-lg leading-relaxed text-[#E2F5F1]">Pilot schools get free setup, staff training and free use during the pilot. We&apos;ll move your existing records in for you.</p>
+                <p className="mt-4 max-w-xl text-lg leading-relaxed text-[#E2F5F1]">
+                  Pilot schools get free setup, staff training and free use
+                  during the pilot. We&apos;ll move your existing records in for
+                  you.
+                </p>
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <a href={DEMO} className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#FFD979] px-7 text-base font-extrabold text-[#3A2A00] hover:bg-[#FFCE57]">
+                  <a
+                    href={DEMO}
+                    className="inline-flex min-h-[54px] items-center justify-center rounded-full bg-[#FFD979] px-7 text-base font-extrabold text-[#3A2A00] hover:bg-[#FFCE57]"
+                  >
                     Book a free demo
                   </a>
-                  {WHATSAPP && (
-                    <a href={`https://wa.me/${WHATSAPP}`} className="inline-flex min-h-[54px] items-center justify-center rounded-full border-[1.5px] border-white/70 px-7 text-base font-bold text-white hover:bg-white/10">
-                      Chat on WhatsApp
-                    </a>
-                  )}
+                  <a
+                    href={CHAT}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-[54px] items-center justify-center rounded-full border-[1.5px] border-white/70 px-7 text-base font-bold text-white hover:bg-white/10"
+                  >
+                    Chat on WhatsApp
+                  </a>
                 </div>
                 <dl className="mt-10 grid grid-cols-2 gap-6 border-t border-white/20 pt-8 sm:grid-cols-4">
                   {[
@@ -388,28 +752,50 @@ export default function Home() {
                     <div key={l}>
                       <dt className="sr-only">{l}</dt>
                       <dd>
-                        <span className="block font-heading text-[30px] font-extrabold leading-none text-white">{n}</span>
-                        <span className="mt-1.5 block text-sm text-[#E2F5F1]">{l}</span>
+                        <span className="block font-heading text-[30px] font-extrabold leading-none text-white">
+                          {n}
+                        </span>
+                        <span className="mt-1.5 block text-sm text-[#E2F5F1]">
+                          {l}
+                        </span>
                       </dd>
                     </div>
                   ))}
                 </dl>
               </div>
               <div className="relative min-h-[280px]">
-                <Image src="/landing/parent.jpg" alt="A father and his son smiling at a phone together" fill sizes="(max-width: 1024px) 100vw, 520px" className="object-cover" />
+                <Image
+                  src="/landing/parent.jpg"
+                  alt="A father and his son smiling at a phone together"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 520px"
+                  className="object-cover"
+                />
               </div>
             </div>
           </div>
         </section>
 
         {/* FAQ */}
-        <section id="faq" aria-labelledby="faq-h" className="scroll-mt-20 bg-white pb-24">
+        <section
+          id="faq"
+          aria-labelledby="faq-h"
+          className="scroll-mt-20 bg-white pb-24"
+        >
           <div className="mx-auto grid max-w-[1240px] gap-10 px-4 sm:px-6 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
             <div className="lg:sticky lg:top-28 lg:self-start">
-              <Head id="faq-h" center={false} kicker="FAQ" title="Questions schools ask us" />
+              <Head
+                id="faq-h"
+                center={false}
+                kicker="FAQ"
+                title="Questions schools ask us"
+              />
               <p className="-mt-6 text-lg leading-relaxed text-[#4A5A70]">
                 Something else on your mind?{" "}
-                <a href="mailto:enquiries@simpliskool.com" className="font-bold text-brand-teal-dark underline underline-offset-2">
+                <a
+                  href={`mailto:${ENQUIRIES_EMAIL}`}
+                  className="font-bold text-brand-teal-dark underline underline-offset-2"
+                >
                   Email our team
                 </a>
                 .
@@ -417,14 +803,23 @@ export default function Home() {
             </div>
             <div className="space-y-3">
               {FAQS.map((f, i) => (
-                <details key={f.q} className="group rounded-2xl border border-[#E3EAF3] bg-white open:bg-[#F1F8F6]" open={i === 0}>
+                <details
+                  key={f.q}
+                  className="group rounded-2xl border border-[#E3EAF3] bg-white open:bg-[#F1F8F6]"
+                  open={i === 0}
+                >
                   <summary className="flex min-h-[64px] cursor-pointer list-none items-center justify-between gap-4 px-6 py-4 text-[17px] font-bold text-brand-navy [&::-webkit-details-marker]:hidden">
                     {f.q}
-                    <span aria-hidden="true" className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-white text-xl text-brand-teal-dark ring-1 ring-[#E3EAF3] transition-transform group-open:rotate-45">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-8 w-8 flex-none items-center justify-center rounded-full bg-white text-xl text-brand-teal-dark ring-1 ring-[#E3EAF3] transition-transform group-open:rotate-45"
+                    >
                       +
                     </span>
                   </summary>
-                  <p className="px-6 pb-5 text-base leading-relaxed text-brand-slate">{f.a}</p>
+                  <p className="px-6 pb-5 text-base leading-relaxed text-brand-slate">
+                    {f.a}
+                  </p>
                 </details>
               ))}
             </div>
@@ -435,56 +830,142 @@ export default function Home() {
       <footer className="border-t border-[#ECEFF4] bg-[#FAFBFD]">
         <div className="mx-auto grid max-w-[1240px] gap-12 px-4 pb-10 pt-16 sm:px-6 lg:grid-cols-[1.2fr_2fr]">
           <div className="max-w-sm">
-            <Image src="/simpliskool-logo-dark.png" alt="Simpliskool" width={157} height={35} className="h-9 w-auto" />
-            <p className="mt-5 text-[15px] leading-relaxed text-[#4A5A70]">Simplifying school management for schools across Africa. A product of Dream Savvy Solutions, Lagos.</p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <a href={DEMO} className="inline-flex min-h-[46px] items-center rounded-full bg-brand-teal-dark px-5 text-[15px] font-bold text-white hover:bg-[#096A5D]">
-                Book a demo
-              </a>
-              {WHATSAPP && (
-                <a href={`https://wa.me/${WHATSAPP}`} className="inline-flex min-h-[46px] items-center rounded-full border-[1.5px] border-brand-navy px-5 text-[15px] font-bold text-brand-navy hover:bg-brand-mist">
-                  WhatsApp us
+            <Image
+              src="/simpliskool-logo-dark.png"
+              alt="Simpliskool"
+              width={157}
+              height={35}
+              className="h-9 w-auto"
+            />
+            <p className="mt-5 text-[15px] leading-relaxed text-[#4A5A70]">
+              Simplifying school management for schools across Africa. A product
+              of Dream Savvy Solutions, Lagos.
+            </p>
+            <ul className="mt-6 space-y-3 text-[15px]">
+              <li>
+                <span className="block text-[13px] font-bold uppercase tracking-[0.08em] text-[#4A5A70]">
+                  Email
+                </span>
+                <a
+                  href={`mailto:${ENQUIRIES_EMAIL}`}
+                  className="font-bold text-brand-navy underline-offset-2 hover:text-brand-teal-dark hover:underline"
+                >
+                  {ENQUIRIES_EMAIL}
                 </a>
-              )}
-            </div>
+              </li>
+              <li>
+                <span className="block text-[13px] font-bold uppercase tracking-[0.08em] text-[#4A5A70]">
+                  WhatsApp
+                </span>
+                <a
+                  href={whatsapp()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-bold text-brand-navy underline-offset-2 hover:text-brand-teal-dark hover:underline"
+                >
+                  {WHATSAPP_DISPLAY}
+                </a>
+              </li>
+            </ul>
           </div>
           <div className="grid grid-cols-2 gap-8 text-[15px] sm:grid-cols-4">
-            <FooterCol title="Product" links={[["Features", "#features"], ["Portals", "#portals"], ["Live demo", "/demo"], ["Pricing", "#pricing"]]} />
-            <FooterCol title="Company" links={[["Dream Savvy Solutions", "https://dreamsavvysolutions.com"], ["Contact us", "mailto:enquiries@simpliskool.com"], ["Join the pilot", "#pilot"], ["Sign in", "/login"]]} />
-            <FooterCol title="Resources" links={[["How it works", "#how"], ["FAQ", "#faq"], ["Book a demo", DEMO]]} />
-            <FooterCol title="Legal" links={[["Privacy policy", "/privacy"], ["Terms of use", "/terms"], ["Data processing agreement", "/dpa"]]} />
+            <FooterCol
+              title="Product"
+              links={[
+                ["Features", "#features"],
+                ["Portals", "#portals"],
+                ["Live demo", "/demo"],
+                ["Pricing", PRICING_CHAT],
+              ]}
+            />
+            <FooterCol
+              title="Company"
+              links={[
+                ["Dream Savvy Solutions", "https://dreamsavvysolutions.com"],
+                ["Join the pilot", "#pilot"],
+                ["Sign in", "/login"],
+              ]}
+            />
+            <FooterCol
+              title="Resources"
+              links={[
+                ["How it works", "#how"],
+                ["FAQ", "#faq"],
+                ["Book a demo", DEMO],
+              ]}
+            />
+            <FooterCol
+              title="Legal"
+              links={[
+                ["Privacy policy", "/privacy"],
+                ["Terms of use", "/terms"],
+                ["Data processing agreement", "/dpa"],
+              ]}
+            />
           </div>
         </div>
         <div className="mx-auto flex max-w-[1240px] flex-wrap items-center justify-between gap-3 border-t border-[#ECEFF4] px-4 py-6 text-sm text-[#4A5A70] sm:px-6">
-          <p>© {new Date().getFullYear()} Dream Savvy Solutions. All rights reserved.</p>
+          <p>
+            © {new Date().getFullYear()} Dream Savvy Solutions. All rights
+            reserved.
+          </p>
           <p>Made in Lagos for schools across Africa.</p>
         </div>
       </footer>
 
-      {WHATSAPP && (
-        <a href={`https://wa.me/${WHATSAPP}`} aria-label="Chat with us on WhatsApp" className="fixed bottom-5 right-5 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-[#1F8A4C] text-white shadow-[0_16px_32px_-10px_rgba(0,0,0,0.45)] hover:bg-[#18713E]">
-          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.7.8-.8 1-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.3-.4.8-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6a2.7 2.7 0 0 0 1.8-1.2 2.2 2.2 0 0 0 .2-1.3c-.1-.1-.3-.2-.5-.3z" />
-          </svg>
-        </a>
-      )}
+      <WhatsAppFloat />
     </div>
   );
 }
 
-function Split({ img, alt, tint, kicker, title, body, pts, flip = false }: { img: string; alt: string; tint: string; kicker: string; title: string; body: string; pts: string[]; flip?: boolean }) {
+function Split({
+  img,
+  alt,
+  tint,
+  kicker,
+  title,
+  body,
+  pts,
+  flip = false,
+}: {
+  img: string;
+  alt: string;
+  tint: string;
+  kicker: string;
+  title: string;
+  body: string;
+  pts: string[];
+  flip?: boolean;
+}) {
   return (
-    <div className={`grid overflow-hidden rounded-[30px] ${tint} lg:grid-cols-2`}>
-      <div className={`relative min-h-[300px] lg:min-h-[440px] ${flip ? "lg:order-2" : ""}`}>
-        <Image src={img} alt={alt} fill sizes="(max-width: 1024px) 100vw, 600px" className="object-cover" />
+    <div
+      className={`grid overflow-hidden rounded-[30px] ${tint} lg:grid-cols-2`}
+    >
+      <div
+        className={`relative min-h-[300px] lg:min-h-[440px] ${flip ? "lg:order-2" : ""}`}
+      >
+        <Image
+          src={img}
+          alt={alt}
+          fill
+          sizes="(max-width: 1024px) 100vw, 600px"
+          className="object-cover"
+        />
       </div>
       <div className="flex flex-col justify-center p-8 md:p-12">
-        <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-[#07665A]">{kicker}</p>
-        <h3 className="mt-3 text-[30px] leading-tight md:text-[38px]">{title}</h3>
+        <p className="text-[14px] font-bold uppercase tracking-[0.1em] text-[#07665A]">
+          {kicker}
+        </p>
+        <h3 className="mt-3 text-[30px] leading-tight md:text-[38px]">
+          {title}
+        </h3>
         <p className="mt-4 text-lg leading-relaxed text-brand-slate">{body}</p>
         <ul className="mt-6 space-y-3">
           {pts.map((x) => (
-            <li key={x} className="flex items-start gap-2.5 text-base font-semibold text-brand-slate">
+            <li
+              key={x}
+              className="flex items-start gap-2.5 text-base font-semibold text-brand-slate"
+            >
               <Tick />
               {x}
             </li>
@@ -495,19 +976,36 @@ function Split({ img, alt, tint, kicker, title, body, pts, flip = false }: { img
   );
 }
 
-function FooterCol({ title, links }: { title: string; links: [string, string][] }) {
+function FooterCol({
+  title,
+  links,
+}: {
+  title: string;
+  links: [string, string][];
+}) {
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="!font-sans text-sm !font-extrabold uppercase tracking-[0.1em] !text-brand-navy">{title}</h2>
+      <h2 className="!font-sans text-sm !font-extrabold uppercase tracking-[0.1em] !text-brand-navy">
+        {title}
+      </h2>
       <ul className="flex flex-col gap-2.5">
         {links.map(([t, h]) => (
           <li key={t}>
             {h.startsWith("/") ? (
-              <Link href={h} className="text-[#4A5A70] hover:text-brand-teal-dark">
+              <Link
+                href={h}
+                className="text-[#4A5A70] hover:text-brand-teal-dark"
+              >
                 {t}
               </Link>
             ) : (
-              <a href={h} className="text-[#4A5A70] hover:text-brand-teal-dark">
+              <a
+                href={h}
+                className="text-[#4A5A70] hover:text-brand-teal-dark"
+                {...(h.startsWith("http")
+                  ? { target: "_blank", rel: "noopener noreferrer" }
+                  : {})}
+              >
                 {t}
               </a>
             )}

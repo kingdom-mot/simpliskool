@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ScrollTop } from "@/components/ScrollTop";
 // Brand fonts (self-hosted): Nunito Sans for titles and headers, Plus Jakarta Sans for body text.
 import "@fontsource-variable/nunito-sans";
 import "@fontsource-variable/plus-jakarta-sans";
@@ -20,7 +21,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        <ScrollTop />
+        {children}
+      </body>
     </html>
   );
 }

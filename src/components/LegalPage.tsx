@@ -1,3 +1,4 @@
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import Image from "next/image";
 import Link from "next/link";
 import { COMPANY, DOCS, LEGAL_UPDATED } from "@/lib/legal";
@@ -57,6 +58,7 @@ export function LegalPage({ path, title, intro, sections }: { path: string; titl
           </Link>
         </div>
       </footer>
+      <WhatsAppFloat />
     </div>
   );
 }

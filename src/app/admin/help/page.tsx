@@ -23,7 +23,7 @@ export default async function HelpPage(props: { searchParams: Promise<{ t?: stri
     <AdminPage ctx={ctx} active="help" crumb={[{ label: "Get help" }]} title="Get help">
       <Flash />
       {error ? (
-        <Empty>Help requests aren&apos;t switched on yet. Email support@simpliskool.com and we&apos;ll get back to you.</Empty>
+        <Empty>Help requests aren&apos;t switched on yet. Email enquiries@simpliskool.com and we&apos;ll get back to you.</Empty>
       ) : (
         <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           <div className="flex flex-col gap-5">

@@ -18,8 +18,8 @@ export async function openTicket(_prev: ActionState, fd: FormData): Promise<Acti
   const priority = fd.get("urgent") === "on" ? "urgent" : "normal";
   const { data, error } = await supabase.rpc("open_ticket", { p_school: school.id, p_subject: subject, p_body: body, p_priority: priority });
   if (error) {
-    if (/function/i.test(error.message)) return { error: "Help requests aren't switched on yet. Email support@simpliskool.com instead." };
-    return { error: error.code === "P0001" ? error.message : "We couldn't send your request. Try again, or email support@simpliskool.com." };
+    if (/function/i.test(error.message)) return { error: "Help requests aren't switched on yet. Email enquiries@simpliskool.com instead." };
+    return { error: error.code === "P0001" ? error.message : "We couldn't send your request. Try again, or email enquiries@simpliskool.com." };
   }
   const inbox = process.env.SUPPORT_EMAIL;
   if (inbox) await teamEmail(inbox, `${priority === "urgent" ? "URGENT: " : ""}${subject} [#${data}]`, `New request from ${school.name}`, [`From ${fullName}:`, body], { label: "Open the support inbox", path: `/super/support?t=${data}` });

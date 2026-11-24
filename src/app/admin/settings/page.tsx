@@ -1,4 +1,5 @@
 import { AdminPage, Panel, requireAdminPage } from "@/components/admin";
+import { PRICING_CHAT } from "@/lib/contact";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { initials } from "@/lib/theme";
 import { saveProfile } from "./actions";
@@ -479,8 +480,8 @@ Sender name parents see
             <span className="font-heading text-2xl font-black text-c1">{activeStudents ?? 0}</span>
           </div>
         </div>
-        <a className="s-btn2 self-start" href="mailto:hello@simpliskool.com?subject=Pricing">
-          Talk to us about pricing
+        <a className="s-btn2 self-start" href={PRICING_CHAT}>
+          Ask about pricing on WhatsApp
         </a>
       </Panel>
     </AdminPage>

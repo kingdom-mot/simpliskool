@@ -1,7 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HeaderBehaviour } from "@/components/HeaderBehaviour";
+import { ENQUIRIES_EMAIL, PRICING_CHAT, WHATSAPP_DISPLAY, whatsapp } from "@/lib/contact";
 
-const DEMO_MAIL = "mailto:enquiries@simpliskool.com?subject=Simpliskool%20demo%20request";
+const DEMO_MAIL = `mailto:${ENQUIRIES_EMAIL}?subject=Simpliskool%20demo%20request`;
 
 type Item = { href: string; t: string; d: string; icon: string; tint: string };
 type Menu = { label: string; eyebrow: string; title: string; text: string; cta: [string, string]; img?: string; cols: string; items: Item[] };
@@ -42,9 +44,9 @@ const MENUS: Menu[] = [
     items: [
       { href: "#how", t: "How it works", d: "From demo to go-live in one week.", icon: "M4 12h4l3-8 4 16 3-8h2", tint: BLUE },
       { href: "#faq", t: "FAQ", d: "Questions schools ask us.", icon: "M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", tint: TEAL },
-      { href: "#pricing", t: "Pricing", d: "Pay per student, per term. Free for pilot schools.", icon: "M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", tint: SUN },
+      { href: PRICING_CHAT, t: "Pricing", d: "Ask us on WhatsApp for your school's price.", icon: "M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", tint: SUN },
       { href: "#pilot", t: "Join the pilot", d: "Free setup, training and use during the pilot.", icon: "M4 22V4M4 4h13l-2 4 2 4H4", tint: ROSE },
-      { href: "mailto:enquiries@simpliskool.com", t: "Contact us", d: "enquiries@simpliskool.com", icon: "M4 4h16v16H4zM4 6l8 7 8-7", tint: BLUE },
+      { href: whatsapp("Hello Simpliskool, I have a question."), t: "Chat on WhatsApp", d: WHATSAPP_DISPLAY, icon: "M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z", tint: BLUE },
       { href: "/privacy", t: "Privacy and terms", d: "Privacy policy, terms of use and data processing.", icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6", tint: TEAL },
     ],
   },
@@ -71,6 +73,10 @@ const go = (href: string, cls: string, children: React.ReactNode) =>
     <Link href={href} className={cls}>
       {children}
     </Link>
+  ) : href.startsWith("http") ? (
+    <a href={href} className={cls} target="_blank" rel="noopener noreferrer">
+      {children}
+    </a>
   ) : (
     <a href={href} className={cls}>
       {children}
@@ -80,7 +86,8 @@ const go = (href: string, cls: string, children: React.ReactNode) =>
 /** Marketing header: wide mega menus on computers (hover or keyboard), a fold-out menu on phones. No JavaScript needed. */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b border-[#ECEFF4] bg-white">
+    <header id="site-header" className="sticky top-0 z-40 border-b border-[#ECEFF4] bg-white">
+      <HeaderBehaviour headerId="site-header" />
       <div className="mx-auto flex min-h-[72px] max-w-[1240px] items-stretch justify-between gap-6 px-4 sm:px-6">
         <Link href="/" aria-label="Simpliskool home" className="flex flex-none items-center">
           <Image src="/simpliskool-logo-dark.png" alt="Simpliskool" width={157} height={35} priority className="h-8 w-auto sm:h-9" />
@@ -88,14 +95,14 @@ export function SiteHeader() {
 
         <nav aria-label="Main" className="hidden items-stretch gap-1 lg:flex">
           {MENUS.map((m) => (
-            <div key={m.label} className="group flex items-center">
+            <div key={m.label} className="sk-menu group flex items-center">
               <button type="button" aria-haspopup="true" className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full px-4 text-[15px] font-semibold text-brand-slate hover:text-brand-teal-dark group-hover:text-brand-teal-dark group-focus-within:text-brand-teal-dark">
                 {m.label}
                 <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" className="transition-transform group-hover:rotate-180 group-focus-within:rotate-180">
                   <path d="m6 9 6 6 6-6" />
                 </svg>
               </button>
-              <div className="invisible absolute inset-x-0 top-full px-4 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100 sm:px-6">
+              <div className="sk-mega absolute inset-x-0 top-full px-4 pt-3 sm:px-6">
                 <div className="mx-auto grid max-w-[1180px] gap-6 rounded-[28px] border border-[#ECEFF4] bg-white p-5 shadow-[0_30px_70px_-30px_rgba(15,42,82,0.35)] lg:grid-cols-[300px_1fr]">
                   <div className="flex flex-col overflow-hidden rounded-[22px] bg-[#FFF7EA]">
                     <div className="flex flex-1 flex-col p-6">
@@ -137,7 +144,7 @@ export function SiteHeader() {
             </div>
           ))}
           <div className="flex items-center">
-            <a href="#pricing" className="inline-flex min-h-[44px] items-center rounded-full px-4 text-[15px] font-semibold text-brand-slate hover:text-brand-teal-dark">
+            <a href={PRICING_CHAT} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center rounded-full px-4 text-[15px] font-semibold text-brand-slate hover:text-brand-teal-dark">
               Pricing
             </a>
           </div>

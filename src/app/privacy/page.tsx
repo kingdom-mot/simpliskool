@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LegalPage, type LegalSection } from "@/components/LegalPage";
-import { COMPANY, COMPANY_PLACE, PRIVACY_EMAIL, SUBPROCESSORS } from "@/lib/legal";
+import { COMPANY, COMPANY_PLACE, PRIVACY_EMAIL } from "@/lib/legal";
 
 export const metadata = { title: "Privacy policy" };
 
@@ -110,30 +110,7 @@ const sections: LegalSection[] = [
     title: "Who we share it with",
     body: (
       <>
-        <p>Records are only shown to the people the school lets in (its staff, the parents of each child, the student) and to the outside services below, which work for us under contracts that require them to protect the data.</p>
-        <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
-          <table>
-            <caption className="sr-only">Services that process data for Simpliskool</caption>
-            <thead>
-              <tr>
-                <th scope="col">Service</th>
-                <th scope="col">What it does</th>
-                <th scope="col">Data it handles</th>
-                <th scope="col">Where</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SUBPROCESSORS.map((s) => (
-                <tr key={s.name}>
-                  <th scope="row">{s.name}</th>
-                  <td>{s.what}</td>
-                  <td>{s.data}</td>
-                  <td>{s.where}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <p>Records are only shown to the people the school lets in (its staff, the parents of each child, the student) and to the trusted service providers that host and run Simpliskool, take online fee payments and send our texts and emails. They work for us under contracts that require them to protect the data.</p>
         <p>
           A small number of {COMPANY} staff can view a school&apos;s records, read only, when the school asks for help. Every such view is logged. We share data with the police or a regulator only when the law requires it, and we tell the school unless the law forbids it.
         </p>
@@ -146,7 +123,7 @@ const sections: LegalSection[] = [
     body: (
       <>
         <p>
-          Some of the services above keep data in data centres outside Nigeria. Part VIII of the NDPA allows this only with proper protection. We use providers that offer strong security and binding data protection terms, including standard contractual clauses, and we follow the Nigeria Data Protection Commission&apos;s rules on transfers as they are issued.
+          Some of these service providers keep data in data centres outside Nigeria. Part VIII of the NDPA allows this only with proper protection. We use providers that offer strong security and binding data protection terms, including standard contractual clauses, and we follow the Nigeria Data Protection Commission&apos;s rules on transfers as they are issued.
         </p>
       </>
     ),

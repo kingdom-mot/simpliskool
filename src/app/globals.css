@@ -188,3 +188,24 @@ h1, h2, h3, h4, h5, h6 {
 .legal table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .legal th, .legal td { border: 1px solid #DCE5F0; padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
 .legal th { background: #EEF3F9; color: #0A1F3D; }
+
+/* Marketing mega menus: open on hover or keyboard focus; closed straight after an item is chosen (.sk-hush). */
+.sk-mega {
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.sk-menu:hover .sk-mega,
+.sk-menu:focus-within .sk-mega {
+  visibility: visible;
+  opacity: 1;
+}
+.sk-hush .sk-mega {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+/* Only one mega menu at a time: the one under the pointer wins over one opened from the keyboard. */
+nav:has(.sk-menu:hover) .sk-menu:not(:hover) .sk-mega {
+  visibility: hidden;
+  opacity: 0;
+}

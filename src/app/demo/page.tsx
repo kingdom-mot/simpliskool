@@ -1,3 +1,4 @@
+import { WhatsAppFloat } from "@/components/WhatsAppFloat";
 import Image from "next/image";
 import Link from "next/link";
 import { PERSONAS } from "@/lib/demo";
@@ -86,10 +87,11 @@ export default async function DemoPage(props: { searchParams: Promise<{ error?: 
           <h2 id="note-h" className="mb-1 text-base font-extrabold text-[#173B70]">About the demo</h2>
           <p>All names, numbers and records are made up. Emails, text messages and real payments are switched off, so feel free to mark registers, record payments or send announcements. Other visitors may be using the same demo at the same time, and it&apos;s reset to fresh data every night.</p>
           <p className="mt-2">
-            Want Simpliskool for your school? <a className="font-bold text-[#0B6B5A] underline" href="mailto:hello@simpliskool.com?subject=Simpliskool%20for%20our%20school">Talk to us</a>.
+            Want Simpliskool for your school? <a className="font-bold text-[#0B6B5A] underline" href="mailto:enquiries@simpliskool.com?subject=Simpliskool%20for%20our%20school">Talk to us</a>.
           </p>
         </section>
       </div>
+      <WhatsAppFloat />
     </main>
   );
 }
