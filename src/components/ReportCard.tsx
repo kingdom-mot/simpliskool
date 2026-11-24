@@ -45,8 +45,8 @@ export function ReportCard({ r }: { r: StudentResult }) {
         ))}
       </dl>
 
-      <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Subjects table: scroll sideways to see more">
-        <table className="tbl min-w-[620px]">
+      <div className="rc-scroll overflow-x-auto" tabIndex={0} role="region" aria-label="Subjects table: scroll sideways to see more">
+        <table className="tbl rc-table min-w-[620px]">
           <caption className="sr-only">Scores for each subject</caption>
           <thead>
             <tr>

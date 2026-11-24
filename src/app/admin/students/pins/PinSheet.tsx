@@ -52,7 +52,7 @@ export function PinSheet({ students, className, schoolName, schoolCode, loginHos
             Print slips
           </button>
         </div>
-        <div className="print-area grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
+        <div className="print-area print-slips grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2">
           {slips.map((s) => (
             <PinSlip key={s.admissionNo} slip={s} schoolName={schoolName} schoolCode={schoolCode} loginHost={loginHost} />
           ))}

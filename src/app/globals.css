@@ -122,8 +122,12 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Printing PIN slips: only the slips, two to a row, no app chrome. */
+/* Printing: only the .print-area, full width, no app chrome. PIN slips (.print-slips) go two to a row. */
 @media print {
+  html,
+  body {
+    background: #fff !important;
+  }
   body * {
     visibility: hidden;
   }
@@ -135,9 +139,30 @@ h1, h2, h3, h4, h5, h6 {
     position: absolute;
     inset: 0 auto auto 0;
     width: 100%;
+  }
+  .print-area.print-slips {
     display: grid !important;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
+  }
+  /* The report card's subjects table fits the page: no sideways scrolling on paper. */
+  .print-area .rc-scroll {
+    overflow: visible !important;
+  }
+  .print-area .rc-table {
+    min-width: 0 !important;
+    table-layout: auto;
+    font-size: 11px;
+  }
+  .print-area .rc-table th,
+  .print-area .rc-table td {
+    white-space: normal;
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+  .print-area .rc-table td:nth-last-child(2),
+  .print-area .rc-table th:nth-last-child(2) {
+    white-space: nowrap;
   }
   .no-print {
     display: none !important;
