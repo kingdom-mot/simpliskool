@@ -9,7 +9,7 @@ import { ENQUIRIES_EMAIL, whatsapp } from "@/lib/contact";
 export const metadata: Metadata = {
   title: "About us · Simpliskool",
   description:
-    "Simpliskool is built in Lagos by Dream Savvy Solutions to make running a school simple. Our mission, vision and values.",
+    "Simpliskool is built by Dream Savvy Solutions for schools across Africa, to make running a school simple. Our mission, vision and values.",
 };
 
 const VALUES = [
@@ -83,10 +83,10 @@ export default function AboutPage() {
                 We make running a school simple.
               </h1>
               <p className="mt-5 max-w-[520px] text-[17px] leading-relaxed text-[#4A5A70]">
-                Simpliskool is built in Lagos by Dream Savvy Solutions. One
-                place for admissions, attendance, results, fees and parent
-                updates, so school leaders spend less time on paperwork and more
-                time on their pupils.
+                Simpliskool is built by Dream Savvy Solutions for schools across
+                Africa. One place for admissions, attendance, results, fees and
+                parent updates, so school leaders spend less time on paperwork
+                and more time on their pupils.
               </p>
             </div>
             <div className="relative">
@@ -99,11 +99,8 @@ export default function AboutPage() {
                 className="aspect-[4/3.4] w-full rounded-[28px] object-cover"
               />
               <div className="absolute -bottom-5 left-5 rounded-2xl bg-white px-5 py-3.5 shadow-[0_18px_40px_-16px_rgba(15,42,82,0.35)]">
-                <span className="block font-heading text-[22px] font-extrabold leading-none text-brand-navy">
-                  Made in Lagos
-                </span>
-                <span className="mt-1 block text-[13px] text-[#4A5A70]">
-                  for schools across Africa
+                <span className="block font-heading text-[19px] font-extrabold leading-tight text-brand-navy">
+                  Built for schools across Africa
                 </span>
               </div>
             </div>

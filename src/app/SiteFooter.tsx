@@ -95,7 +95,7 @@ export function SiteFooter() {
           © {new Date().getFullYear()} Dream Savvy Solutions. All rights
           reserved.
         </p>
-        <p>Made in Lagos for schools across Africa.</p>
+        <p>Built for schools across Africa.</p>
       </div>
     </footer>
   );
