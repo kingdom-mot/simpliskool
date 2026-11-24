@@ -147,3 +147,8 @@ Team members only see a school by "viewing" it: read only, time-limited, written
 ## Tooltips
 
 Small "?" buttons beside labels, cards and panels explain things in plain words. They open on hover, keyboard focus or tap, close with Escape or a tap elsewhere, and open towards whichever side has room so they stay on screen on phones. Use `<Tip>` or `<TipLabel>` from `src/components/Tip.tsx`; `StatCard` and `Panel` take a `tip` prop. Never put a `Tip` inside a `<label>`.
+
+## Phones and installing the app
+
+- **Teachers** get app-style bottom tabs on phones: Home, Register, Scores, Homework and More (the full menu, account and help). On a computer they keep the sidebar. Parents and students already had bottom tabs.
+- **Installing.** `src/app/manifest.ts` lets every role install Simpliskool on a phone. It opens full screen on `/dashboard`, which sends each person to their own home page. On Android a card offers "Install app" when Chrome allows it; on iPhone the card shows the Safari steps (Share, then Add to Home Screen). The card hides for good once dismissed or installed. Icons are in `public/app-icon-*.png`.

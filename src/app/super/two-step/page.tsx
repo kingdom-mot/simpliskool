@@ -17,8 +17,11 @@ export default async function TwoStepPage() {
   const setup = !m.team.totp_on_at;
   let secret = unseal(m.team.totp_secret);
   if (setup && !secret) {
-    secret = newTotpSecret();
-    await m.admin.from("platform_team").update({ totp_secret: seal(secret) }).eq("user_id", m.user.id);
+    // Only saved if no other load got there first (a prefetch or double tap), then read back,
+    // so the key on screen is always the one the codes are checked against.
+    await m.admin.from("platform_team").update({ totp_secret: seal(newTotpSecret()) }).eq("user_id", m.user.id).is("totp_secret", null);
+    const { data: saved } = await m.admin.from("platform_team").select("totp_secret").eq("user_id", m.user.id).maybeSingle<{ totp_secret: string | null }>();
+    secret = unseal(saved?.totp_secret ?? null);
   }
   const svg = setup && secret ? await QRCode.toString(otpauthUri(secret, m.user.email ?? m.user.phone ?? "team"), { type: "svg", margin: 1, width: 200, color: { dark: "#0A1F3D", light: "#FFFFFF" } }) : "";
 

@@ -5,7 +5,9 @@ import { DemoBar } from "@/components/DemoBar";
 import { PlatformBanners } from "@/components/PlatformBanners";
 import { FeedbackButton } from "@/components/FeedbackButton";
 import type { Role } from "@/lib/auth";
-import type { NavGroup } from "@/lib/nav";
+import { TEACHER_TABS, type NavGroup } from "@/lib/nav";
+import { PhoneTabs } from "@/components/PhoneTabs";
+import { InstallApp } from "@/components/InstallApp";
 import { hiddenNavKeys } from "@/lib/platform-settings";
 import { initials, schoolThemeStyle } from "@/lib/theme";
 import { personInitials } from "@/lib/format";
@@ -82,6 +84,9 @@ export async function PortalShell({
 }) {
   const hidden = schoolId ? await hiddenNavKeys(schoolId) : new Set<string>();
   const groups = allGroups.map((g) => ({ ...g, items: g.items.filter((i) => !hidden.has(i.key)) })).filter((g) => g.items.length);
+  // Teachers get app-style bottom tabs on phones (only for pages the school hasn't switched off).
+  const shown = new Set(groups.flatMap((g) => g.items.map((i) => i.key)));
+  const tabs = role === "teacher" ? TEACHER_TABS.filter((t) => shown.has(t.key)) : [];
   return (
     <div style={schoolThemeStyle(school.primary_color, school.secondary_color)} className="min-h-screen bg-brand-cloud md:flex">
       <a className="sk-skip" href="#main">
@@ -109,8 +114,8 @@ export async function PortalShell({
           <span className="sr-only">Switch school or role</span>
         </Link>
 
-        {/* Phones: the menu folds away. */}
-        <details className="group md:hidden">
+        {/* Phones: the menu folds away (teachers use the bottom tabs instead). */}
+        <details className={`group md:hidden ${tabs.length ? "hidden" : ""}`}>
           <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl border border-white/30 px-3 text-sm font-bold">
             Menu
             <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" className="transition group-open:rotate-180">
@@ -149,9 +154,25 @@ export async function PortalShell({
       <main id="main" className="min-w-0 flex-1 px-4 pb-20 pt-6 md:px-7">
         <DemoBar />
         <PlatformBanners schoolId={schoolId} role={role} />
+        {schoolId && <InstallApp />}
         {children}
       </main>
-      {schoolId && <FeedbackButton />}
+      {schoolId && <FeedbackButton raised={tabs.length ? "phone" : false} />}
+      {tabs.length > 0 && (
+        <PhoneTabs tabs={tabs} active={active} label={`${roleLabel} tabs`}>
+          <nav aria-label={`${roleLabel} menu`}>
+            <NavList groups={groups} active={active} />
+          </nav>
+          <div className="flex flex-col gap-2 border-t border-white/20 pt-3">
+            <Link href="/account" className="flex min-h-[44px] items-center rounded-xl border border-white/30 px-3 text-sm font-bold text-white">
+              My account
+            </Link>
+            <Link href="/help" className="flex min-h-[44px] items-center rounded-xl border border-white/30 px-3 text-sm font-bold text-white">
+              Help and support
+            </Link>
+          </div>
+        </PhoneTabs>
+      )}
     </div>
   );
 }

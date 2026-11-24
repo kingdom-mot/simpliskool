@@ -6,6 +6,7 @@ import { schoolThemeStyle } from "@/lib/theme";
 import { SCHOOL_GRADIENT } from "@/components/ui";
 import { SchoolBadge, type ShellSchool } from "@/components/PortalShell";
 import { FeedbackButton } from "@/components/FeedbackButton";
+import { InstallApp } from "@/components/InstallApp";
 
 /** Phone-first layout for parents and students: school-coloured header and bottom tabs. */
 export function MobileShell({
@@ -54,6 +55,7 @@ export function MobileShell({
       </header>
 
       <main id="main" className={`mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-3.5 px-4 pb-20 ${overlap ? "-mt-12" : "pt-4"}`}>
+        <InstallApp className="" />
         {children}
       </main>
       <FeedbackButton raised />

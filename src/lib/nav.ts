@@ -119,3 +119,11 @@ export const STUDENT_TABS: Tab[] = [
   { key: "homework", label: "Homework", href: "/student/homework", icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
   { key: "results", label: "Results", href: "/student/results", icon: "M4 20V10M10 20V4M16 20v-7M22 20H2" },
 ];
+
+/** Bottom tabs for teachers on a phone; everything else is under "More". */
+export const TEACHER_TABS: Tab[] = [
+  { key: "today", label: "Home", href: "/teacher", icon: "M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" },
+  { key: "register", label: "Register", href: "/teacher/register", icon: "M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" },
+  { key: "scores", label: "Scores", href: "/teacher/scores", icon: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" },
+  { key: "homework", label: "Homework", href: "/teacher/homework", icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5M8 7h8M8 11h6" },
+];

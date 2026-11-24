@@ -26,7 +26,8 @@ function Send() {
  * A small "Feedback" button that stays in the corner of every school portal. It opens a short
  * form; the page the person was on is sent with it so the team can see where the problem is.
  */
-export function FeedbackButton({ raised = false }: { raised?: boolean }) {
+/** raised: above bottom tabs (always, or "phone" for layouts whose tabs show only on phones). */
+export function FeedbackButton({ raised = false }: { raised?: boolean | "phone" }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const form = useRef<HTMLFormElement>(null);
   const page = usePathname();
@@ -50,7 +51,7 @@ export function FeedbackButton({ raised = false }: { raised?: boolean }) {
       <button
         type="button"
         onClick={() => dialog.current?.showModal()}
-        className={`fixed right-4 z-40 flex min-h-[44px] items-center gap-2 rounded-full bg-c1 px-4 text-sm font-bold text-white shadow-[0_10px_28px_-8px_rgba(10,31,61,0.55)] hover:opacity-90 print:hidden ${raised ? "bottom-[84px]" : "bottom-4"}`}
+        className={`fixed right-4 z-40 flex min-h-[44px] items-center gap-2 rounded-full bg-c1 px-4 text-sm font-bold text-white shadow-[0_10px_28px_-8px_rgba(10,31,61,0.55)] hover:opacity-90 print:hidden ${raised === "phone" ? "bottom-[84px] md:bottom-4" : raised ? "bottom-[84px]" : "bottom-4"}`}
       >
         <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
