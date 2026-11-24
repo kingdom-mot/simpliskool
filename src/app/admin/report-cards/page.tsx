@@ -11,6 +11,7 @@ import { approveResults, releaseResults, savePrincipalComment } from "@/lib/resu
 import { RESULTS_ADMIN, suggestComment, type ClassResults, type StudentResult } from "@/lib/results";
 import { loadClasses } from "@/lib/results-load";
 import { ReleaseButton } from "./ReleaseButton";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Report cards" };
 
@@ -86,9 +87,9 @@ export default async function ReportCardsPage(props: { searchParams: Promise<{ c
         <form method="get" className="flex flex-wrap items-end gap-2">
           <input type="hidden" name="class" value={cls.id} />
           <div>
-            <label className="label" htmlFor="rc-term">
-              Term
-            </label>
+            <TipLabel htmlFor="rc-term" tip={"Report cards are made from the scores teachers enter for this term. Parents only see them after you release them."}>
+Term
+</TipLabel>
             <select className="sk-input py-2" id="rc-term" name="term" defaultValue={term.id}>
               {terms.map((t) => (
                 <option key={t.id} value={t.id}>
@@ -122,7 +123,7 @@ export default async function ReportCardsPage(props: { searchParams: Promise<{ c
         </nav>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <Panel id="cls-h" title={`${name} · ${termLabel(term)}`}>
+          <Panel id="cls-h" tip={"Check each report card, add comments, then release. Parents and students only see a report card after it's released."} title={`${name} · ${termLabel(term)}`}>
             {notice && (
               <p role="status" className="rounded-xl bg-[#E7F6F2] px-4 py-3 text-sm font-semibold text-[#0B6B5A]">
                 {notice}

@@ -1,6 +1,8 @@
 import { releaseDueSoon } from "@/lib/announce";
 import { requireSchool } from "@/lib/auth";
 import { homeworkFor } from "@/lib/homework-load";
+import { SurveyCard } from "@/components/SurveyCard";
+import { surveyDue } from "@/lib/survey-due";
 import { StudentView, type StudentData } from "./StudentView";
 
 const nowMs = () => Date.now();
@@ -20,5 +22,6 @@ export default async function StudentHome() {
     homework: hw.filter((h) => h.state === "todo" && h.submit_modes.join() !== "paper" && (at(h.due_at) >= now || h.allow_late)).length,
     tests: ((tests as { opens_at: string; closes_at: string; submitted_at: string | null }[] | null) ?? []).filter((t) => !t.submitted_at && at(t.opens_at) <= now && now <= at(t.closes_at)).length,
   };
-  return <StudentView school={school} fullName={fullName} d={(data as StudentData | null) ?? null} todo={todo} />;
+  const survey = await surveyDue(supabase, school.id, "student");
+  return <StudentView school={school} fullName={fullName} d={(data as StudentData | null) ?? null} todo={todo} extra={survey ? <SurveyCard survey={survey.survey} group={survey.group} page="/student" /> : undefined} />;
 }

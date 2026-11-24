@@ -6,6 +6,7 @@ import { ROLE_LABEL, type Role } from "@/lib/auth";
 import { Pager, SearchBar, noMatch } from "@/components/ListTools";
 import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
 import { changeRole, inviteStaff, removeStaff, resendInvite } from "./actions";
+import { TipLabel } from "@/components/Tip";
 
 type StaffRow = { user_id: string; full_name: string | null; email: string | null; phone: string | null; roles: Role[]; joined: boolean; class_teacher_of: string[]; teaches: string[] };
 
@@ -30,7 +31,7 @@ export default async function StaffPage(props: { searchParams: Promise<{ q?: str
 
   return (
     <AdminPage ctx={ctx} active="staff" crumb={[{ label: "People" }]} title="Staff" count={staff.length}>
-      <Panel id="inv-h" title="Invite a staff member">
+      <Panel id="inv-h" tip={"Invited staff get an email with a link to sign in. Their role decides what they can see and change."} title="Invite a staff member">
         <ActionForm action={inviteStaff} resetOnSuccess className="flex flex-col gap-4">
           <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-3">
             <div>
@@ -38,7 +39,9 @@ export default async function StaffPage(props: { searchParams: Promise<{ q?: str
               <input className="sk-input" id="i-name" name="name" required autoComplete="off" placeholder="e.g. Mrs Ngozi Okafor" />
             </div>
             <div>
-              <label className="label" htmlFor="i-email">Email</label>
+              <TipLabel htmlFor="i-email" tip={"They sign in with this email. We send them a link to join your school."}>
+Email
+</TipLabel>
               <input className="sk-input" id="i-email" name="email" type="email" required autoComplete="off" aria-describedby="i-email-hint" />
               <p id="i-email-hint" className="mt-1 text-[13px] text-[#4A5A70]">We send their sign-in link here.</p>
             </div>

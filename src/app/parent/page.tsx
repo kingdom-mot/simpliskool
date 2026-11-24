@@ -4,6 +4,8 @@ import { homeworkFor } from "@/lib/homework-load";
 import { LEGAL_VERSION } from "@/lib/legal";
 import { ParentView, type DueItem, type ParentData } from "./ParentView";
 import { PrivacyNotice } from "./PrivacyNotice";
+import { SurveyCard } from "@/components/SurveyCard";
+import { surveyDue } from "@/lib/survey-due";
 
 const dueWindow = () => ({ until: Date.now() + 7 * 86400000, since: Date.now() - 86400000 });
 
@@ -30,5 +32,12 @@ export default async function ParentHome(props: { searchParams: Promise<{ child?
       : [];
   }
   const showNotice = !seenError && !seen;
-  return <ParentView school={school} fullName={fullName} d={d} childId={searchParams.child} due={due} notice={showNotice ? <PrivacyNotice schoolName={school.name} /> : undefined} />;
+  const survey = await surveyDue(supabase, school.id, "parent");
+  const top = (
+    <>
+      {showNotice && <PrivacyNotice schoolName={school.name} />}
+      {survey && !showNotice && <SurveyCard survey={survey.survey} group={survey.group} page="/parent" />}
+    </>
+  );
+  return <ParentView school={school} fullName={fullName} d={d} childId={searchParams.child} due={due} notice={top} />;
 }

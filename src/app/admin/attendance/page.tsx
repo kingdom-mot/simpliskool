@@ -210,7 +210,7 @@ export default async function AttendancePage(props: { searchParams: Promise<{ da
         </Panel>
       </div>
 
-      <Panel id="set-h" title="Absence emails to parents">
+      <Panel id="set-h" tip={"When a class register marks a student absent, their parents get an email (and a text if SMS is on) so they know the same morning."} title="Absence emails to parents">
         <ActionForm action={setAbsenceEmails} className="flex flex-col gap-3">
           <input type="hidden" name="on" value={o?.notify_absence_email ? "0" : "1"} />
           <p className="text-[15px]">

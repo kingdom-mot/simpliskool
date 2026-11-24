@@ -19,7 +19,7 @@ function lagosNow(): string {
   return new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Africa/Lagos" }).format(new Date());
 }
 
-export function TeacherView({ school, fullName, d, now: nowOverride }: { school: ShellSchool & { id?: string }; fullName: string; d: TeacherData | null; now?: string }) {
+export function TeacherView({ school, fullName, d, now: nowOverride, extra }: { school: ShellSchool & { id?: string }; fullName: string; d: TeacherData | null; now?: string; extra?: React.ReactNode }) {
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
   const now = nowOverride ?? lagosNow();
 
@@ -40,6 +40,7 @@ export function TeacherView({ school, fullName, d, now: nowOverride }: { school:
             {greeting()}, {fullName}
           </h1>
         </div>
+        {extra}
 
         {(next || nowLesson) && (
           <section aria-labelledby="next-h" className="flex items-start gap-3.5 rounded-[20px] border-2 border-[#F4B740] bg-[#FFF6E3] p-5">

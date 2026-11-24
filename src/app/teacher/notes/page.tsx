@@ -11,6 +11,7 @@ import { TEACHER_NAV } from "@/lib/nav";
 import { levelOrder } from "@/lib/nigeria";
 import { NoteEditor } from "./NoteEditor";
 import { shareNote } from "./actions";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Lesson notes" };
 
@@ -46,9 +47,9 @@ export default async function TeacherNotes(props: { searchParams: Promise<{ cs?:
       <>
         <form method="get" className="flex flex-wrap items-end gap-3 rounded-[18px] border border-[#E3EAF3] bg-white p-4">
           <div className="min-w-[220px] flex-1">
-            <label className="label" htmlFor="ln-cs">
-              Class and subject
-            </label>
+            <TipLabel htmlFor="ln-cs" tip={"Only the classes and subjects you teach are listed. Ask an admin if one is missing."}>
+Class and subject
+</TipLabel>
             <select className="sk-input sk-select" id="ln-cs" name="cs" defaultValue={cs.id}>
               {list.map((c) => (
                 <option key={c.id} value={c.id}>

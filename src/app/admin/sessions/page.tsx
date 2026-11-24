@@ -3,6 +3,7 @@ import { ActionForm, SubmitButton } from "@/components/forms";
 import { Pill } from "@/components/ui";
 import { TERM_NAME } from "@/lib/format";
 import { createSession, makeCurrentTerm, saveTermDates } from "./actions";
+import { TipLabel } from "@/components/Tip";
 
 type Term = { id: string; term_no: number; starts_on: string | null; ends_on: string | null; is_current: boolean };
 type Session = { id: string; name: string; starts_on: string | null; ends_on: string | null; is_current: boolean; terms: Term[] };
@@ -149,7 +150,9 @@ function SessionForm({ defaults, firstTime = false }: { defaults: ReturnType<typ
           <p id="sess-hint" className="mt-1 text-[13px] text-[#4A5A70]">For example 2026/2027</p>
         </div>
         <div>
-          <label className="label" htmlFor="sess-current">Current term</label>
+          <TipLabel htmlFor="sess-current" tip={"Fees, registers, scores and report cards all use the current term. Change it when a new term starts."}>
+Current term
+</TipLabel>
           <select className="sk-input sk-select" id="sess-current" name="current" defaultValue={firstTime ? "1" : ""}>
             <option value="">Keep the current term as it is</option>
             <option value="1">First Term of this session</option>

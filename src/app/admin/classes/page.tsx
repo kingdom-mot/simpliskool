@@ -1,3 +1,4 @@
+import { TipLabel } from "@/components/Tip";
 import Link from "next/link";
 import { AdminPage, classLabel, Panel, requireAdminPage, SECTION_ORDER, sectionOf } from "@/components/admin";
 import { ActionForm, SubmitButton } from "@/components/forms";
@@ -88,7 +89,9 @@ export default async function ClassesPage(props: { searchParams: Promise<{ class
                   <input className="sk-input" id="nc-name" name="name" placeholder="e.g. JSS 1" required />
                 </div>
                 <div>
-                  <label className="label" htmlFor="nc-arms">Arms</label>
+                  <TipLabel htmlFor="nc-arms" tip={"Arms are parallel groups of the same class, for example JSS 1A and JSS 1B. Leave empty if there's only one."}>
+Arms
+</TipLabel>
                   <input className="sk-input" id="nc-arms" name="arms" placeholder="e.g. A, B, C" aria-describedby="nc-arms-hint" />
                   <p id="nc-arms-hint" className="mt-1 text-[13px] text-[#4A5A70]">Leave empty if the class has one arm. Separate arms with commas.</p>
                 </div>
@@ -120,7 +123,9 @@ export default async function ClassesPage(props: { searchParams: Promise<{ class
                       <input className="sk-input" id="c-arm" name="arm" defaultValue={sel.arm} />
                     </div>
                     <div>
-                      <label className="label" htmlFor="c-teacher">Class teacher</label>
+                      <TipLabel htmlFor="c-teacher" tip={"The class teacher takes the register and writes the class teacher's comment on report cards."}>
+Class teacher
+</TipLabel>
                       <select className="sk-input sk-select" id="c-teacher" name="class_teacher_id" defaultValue={sel.class_teacher_id ?? ""}>
                         <option value="">No class teacher yet</option>
                         {teachers.map((t) => (
@@ -146,7 +151,7 @@ export default async function ClassesPage(props: { searchParams: Promise<{ class
                 </ActionForm>
               </Panel>
 
-              <Panel id="sub-h" title={`Subjects and teachers (${cs.length})`}>
+              <Panel id="sub-h" tip={"Each subject in a class needs a teacher. That teacher enters its scores and sees it on their timetable."} title={`Subjects and teachers (${cs.length})`}>
                 {cs.length ? (
                   <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Table: scroll sideways to see more">
                     <table className="tbl min-w-[520px]">

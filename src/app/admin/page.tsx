@@ -1,12 +1,14 @@
 import { releaseDueSoon } from "@/lib/announce";
 import { requireSchool } from "@/lib/auth";
 import { LEGAL_VERSION } from "@/lib/legal";
+import { SurveyCard } from "@/components/SurveyCard";
+import { surveyDue } from "@/lib/survey-due";
 import { AdminView, type AdminData } from "./AdminView";
 
 export default async function AdminHome() {
   const { supabase, school, membership, fullName } = await requireSchool(["owner", "admin", "principal", "bursar"]);
   await releaseDueSoon();
-  const [{ data }, agreed] = await Promise.all([
+  const [{ data }, agreed, due] = await Promise.all([
     supabase.rpc("admin_dashboard", { p_school: school.id }),
     // Owners are reminded until they accept the current terms and data processing agreement (not in the demo).
     membership.role === "owner"
@@ -15,6 +17,7 @@ export default async function AdminHome() {
           supabase.from("schools").select("is_demo").eq("id", school.id).maybeSingle<{ is_demo: boolean }>(),
         ]).then(([a, s]) => (a.error ? true : (a.count ?? 0) > 0 || !!s.data?.is_demo))
       : Promise.resolve(true),
+    surveyDue(supabase, school.id, membership.role),
   ]);
-  return <AdminView school={school} role={membership.role} fullName={fullName} d={(data as AdminData | null) ?? null} agreementDue={!agreed} />;
+  return <AdminView school={school} role={membership.role} fullName={fullName} d={(data as AdminData | null) ?? null} agreementDue={!agreed} extra={due ? <SurveyCard survey={due.survey} group={due.group} page="/admin" /> : undefined} />;
 }

@@ -94,7 +94,7 @@ export default async function StaffAttendancePage(props: { searchParams: Promise
       </nav>
 
       {tab === "today" ? (
-        <Panel id="day-h" title={`Staff clock-in and clock-out for ${longDate}`}>
+        <Panel id="day-h" tip={"Staff clock in when they arrive and out when they leave. Anyone clocking in after the late time you set is shown as late."} title={`Staff clock-in and clock-out for ${longDate}`}>
           {rows.length > 6 && <SearchBar id="sa-q" label="Find a staff member" placeholder="Name or role" q={q} keep={{ date: date === today ? "" : date }} clearHref={`/admin/staff-attendance${date === today ? "" : `?date=${date}`}`} compact />}
           {shown.length ? (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Staff attendance: scroll sideways to see more">

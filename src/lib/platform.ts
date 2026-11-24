@@ -33,6 +33,7 @@ const NAV: NavGroup[] = [
     label: "Support",
     items: [
       { key: "support", label: "Support inbox", href: "/super/support" },
+      { key: "feedback", label: "Feedback", href: "/super/feedback" },
       { key: "messaging", label: "SMS and email", href: "/super/messaging" },
       { key: "notices", label: "Notices to schools", href: "/super/notices" },
     ],
@@ -44,15 +45,16 @@ const NAV: NavGroup[] = [
       { key: "privacy", label: "Data protection", href: "/super/privacy" },
       { key: "team", label: "Dream Savvy team", href: "/super/team" },
       { key: "platform", label: "Platform settings", href: "/super/platform" },
+      { key: "pilot", label: "Pilot measures", href: "/super/pilot" },
     ],
   },
 ];
 
 const PAGES: Record<TeamRole, string[] | null> = {
   super: null,
-  support: ["overview", "schools", "approvals", "payments", "support", "messaging", "notices"],
+  support: ["overview", "schools", "approvals", "payments", "support", "feedback", "pilot", "messaging", "notices"],
   finance: ["overview", "schools", "payments", "billing", "messaging", "audit"],
-  growth: ["overview", "schools", "approvals", "billing", "support", "notices"],
+  growth: ["overview", "schools", "approvals", "billing", "support", "feedback", "pilot", "notices"],
 };
 
 export type Ability =
@@ -123,13 +125,14 @@ export async function requirePlatform(page: string) {
   const { data: demoRows } = await m.admin.from("schools").select("id").eq("is_demo", true).then((r) => (r.error ? { data: [] as { id: string }[] } : r));
   const demo = (demoRows ?? []).map((d: { id: string }) => d.id);
   const skip = (ids: string[]) => (ids.length ? `(${ids.join(",")})` : null);
-  const [checks, tickets] = await Promise.all([
+  const [checks, tickets, fresh] = await Promise.all([
     canOpen(role, "approvals")
       ? (skip(demo) ? m.admin.from("schools").select("id", { count: "exact", head: true }).not("id", "in", skip(demo)!) : m.admin.from("schools").select("id", { count: "exact", head: true })).is("payments_approved_at", null).eq("check_status", "waiting").eq("status", "active").then((r) => r.count ?? 0)
       : Promise.resolve(0),
     canOpen(role, "support") ? (skip(demo) ? m.admin.from("support_tickets").select("id", { count: "exact", head: true }).not("school_id", "in", skip(demo)!) : m.admin.from("support_tickets").select("id", { count: "exact", head: true })).eq("status", "open").then((r) => r.count ?? 0) : Promise.resolve(0),
+    canOpen(role, "feedback") ? m.admin.from("feedback").select("id", { count: "exact", head: true }).eq("status", "new").then((r) => (r.error ? 0 : (r.count ?? 0))) : Promise.resolve(0),
   ]);
-  const badge: Record<string, number> = { approvals: checks, support: tickets };
+  const badge: Record<string, number> = { approvals: checks, support: tickets, feedback: fresh };
   const nav = NAV.map((g) => ({
     ...g,
     items: g.items.filter((i) => canOpen(role, i.key)).map((i) => (badge[i.key] ? { ...i, label: `${i.label} (${badge[i.key]})` } : i)),

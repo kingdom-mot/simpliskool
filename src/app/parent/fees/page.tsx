@@ -9,6 +9,7 @@ import { naira, pct, TERM_NAME } from "@/lib/format";
 import { PARENT_TABS } from "@/lib/nav";
 import { paystackReady } from "@/lib/paystack";
 import { PayOnline } from "./PayOnline";
+import { Tip } from "@/components/Tip";
 
 export const metadata = { title: "Fees" };
 
@@ -99,9 +100,12 @@ export default async function ParentFees(props: { searchParams: Promise<{ child?
           )}
 
           <section aria-labelledby="left-h" className="flex flex-col gap-2 rounded-[18px] bg-c1 p-[18px] text-white">
-            <h2 id="left-h" className="text-sm font-bold !text-white">
-              {current.length ? `Total left to pay for ${termName(current[0].i)}` : "This term"}
-            </h2>
+            <span className="flex items-center">
+              <h2 id="left-h" className="text-sm font-bold !text-white">
+                {current.length ? `Total left to pay for ${termName(current[0].i)}` : "This term"}
+              </h2>
+              <Tip light label="About fees">What&apos;s still owed for this term for all your children, after every payment the school has recorded. Online payments show here as soon as they go through.</Tip>
+            </span>
             {current.length ? (
               <>
                 <div className="font-heading text-[34px] font-black leading-none">{naira(left)}</div>

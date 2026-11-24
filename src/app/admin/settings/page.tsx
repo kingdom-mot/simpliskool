@@ -15,6 +15,7 @@ import { changeRole, inviteStaff, removeStaff } from "@/app/admin/staff/actions"
 import { Pill } from "@/components/ui";
 import { Flash } from "@/components/Flash";
 import { asParts } from "@/lib/results";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Settings" };
 
@@ -221,9 +222,9 @@ export default async function SettingsPage() {
             <input id="ia-phone" name="phone" type="tel" className="sk-input" />
           </div>
           <div>
-            <label className="label" htmlFor="ia-role">
-              Role
-            </label>
+            <TipLabel htmlFor="ia-role" tip={"Owners and admins can change everything. Principals look after teaching and results. Bursars look after fees and payroll."}>
+Role
+</TipLabel>
             <select id="ia-role" name="role" className="sk-input sk-select" defaultValue="admin">
               <option value="admin">Admin</option>
               <option value="principal">Principal / Head teacher</option>
@@ -291,9 +292,9 @@ export default async function SettingsPage() {
               </select>
             </div>
             <div>
-              <label className="label" htmlFor="po-acct">
-                Account number
-              </label>
+              <TipLabel htmlFor="po-acct" tip={"Online fee payments are paid into this account. A change is checked by Simpliskool before online payments start again, to keep the school's money safe."}>
+Account number
+</TipLabel>
               <input id="po-acct" name="account_no" className="sk-input" inputMode="numeric" pattern="\d{10}" maxLength={10} required defaultValue={payout?.account_no ?? ""} aria-describedby="po-acct-h" />
               <span id="po-acct-h" className="mt-1 block text-[13px] text-[#4A5A70]">
                 10 digits. We check the name with the bank.
@@ -409,9 +410,9 @@ export default async function SettingsPage() {
             </p>
             <ActionForm action={requestSenderName} className="flex flex-wrap items-end gap-3">
               <div className="min-w-[200px] flex-1">
-                <label className="label" htmlFor="snd">
-                  Sender name parents see
-                </label>
+                <TipLabel htmlFor="snd" tip={"The name parents see as the sender of text messages (up to 11 letters). The network has to approve it first, which can take a few days."}>
+Sender name parents see
+</TipLabel>
                 <input id="snd" name="sender_id" className="sk-input uppercase" maxLength={11} pattern="[A-Za-z0-9 ]{3,11}" defaultValue={plat.sender_id ?? ""} placeholder="GREENFIELD" aria-describedby="snd-h" />
                 <span id="snd-h" className="mt-1 block text-[13px] text-[#4A5A70]">
                   {plat.sender_status === "live"

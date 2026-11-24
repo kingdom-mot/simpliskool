@@ -9,6 +9,7 @@ import { loadTerms, termLabel } from "@/lib/fees";
 import { TEACHER_NAV } from "@/lib/nav";
 import { levelOrder } from "@/lib/nigeria";
 import { loadSheet } from "@/lib/score-sheet";
+import { Tip } from "@/components/Tip";
 
 export const metadata = { title: "Score entry" };
 
@@ -64,9 +65,12 @@ export default async function TeacherScores(props: { searchParams: Promise<{ cs?
         </form>
         <section aria-labelledby="sheet-h" className="flex flex-col gap-3 rounded-[18px] border border-[#E3EAF3] bg-white p-[22px]">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 id="sheet-h" className="text-lg !text-c1">
-              {label(cs)} scores
-            </h2>
+            <span className="flex items-center">
+              <h2 id="sheet-h" className="text-lg !text-c1">
+                {label(cs)} scores
+              </h2>
+              <Tip label="How scores work">Enter each test and the exam out of the marks shown. Totals and grades are worked out for you. Changes save automatically, even without internet. Press Submit when the sheet is finished so the class teacher knows it&apos;s ready.</Tip>
+            </span>
             {sheet.submittedAt ? <Pill kind="good">Submitted</Pill> : <Pill kind="warn">Not submitted</Pill>}
           </div>
           {sheet.students.length ? (

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SignOutButton } from "@/components/SignOutButton";
 import { DemoBar } from "@/components/DemoBar";
 import { PlatformBanners } from "@/components/PlatformBanners";
+import { FeedbackButton } from "@/components/FeedbackButton";
 import type { Role } from "@/lib/auth";
 import type { NavGroup } from "@/lib/nav";
 import { hiddenNavKeys } from "@/lib/platform-settings";
@@ -145,11 +146,12 @@ export async function PortalShell({
         </div>
       </aside>
 
-      <main id="main" className="min-w-0 flex-1 px-4 pb-12 pt-6 md:px-7">
+      <main id="main" className="min-w-0 flex-1 px-4 pb-20 pt-6 md:px-7">
         <DemoBar />
         <PlatformBanners schoolId={schoolId} role={role} />
         {children}
       </main>
+      {schoolId && <FeedbackButton />}
     </div>
   );
 }

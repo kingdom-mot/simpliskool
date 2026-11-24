@@ -89,7 +89,7 @@ export default async function ParentsPage(props: { searchParams: Promise<{ f?: s
         </form>
       </div>
 
-      <Panel id="list-h" title="Parents">
+      <Panel id="list-h" tip={"Joined: the parent has signed in. Invite sent: they have a link but haven't signed in yet. Not invited: send them an invite (they need a phone or email first)."} title="Parents">
         {rows.length ? (
           <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Parents table: scroll sideways to see more">
             <table className="tbl min-w-[860px]">

@@ -8,6 +8,7 @@ import { SignInPanel } from "./SignInPanel";
 import { ProfileTab } from "./ProfileTabs";
 import Link from "next/link";
 import { naira } from "@/lib/format";
+import { TipLabel } from "@/components/Tip";
 
 type Student = {
   id: string;
@@ -175,7 +176,9 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
                     <In id="address" label="Home address" value={s.address ?? ""} />
                   </div>
                   <div>
-                    <label className="label" htmlFor="status">Status</label>
+                    <TipLabel htmlFor="status" tip={"\"Left school\" and \"Graduated\" keep the student's records but stop new invoices and hide them from registers."}>
+Status
+</TipLabel>
                     <select className="sk-input sk-select" id="status" name="status" defaultValue={s.status}>
                       <option value="active">Active</option>
                       <option value="graduated">Graduated</option>
@@ -234,7 +237,9 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
                   <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
                     <In id="g-name" name="name" label="Full name" />
                     <div>
-                      <label className="label" htmlFor="g-rel">Relationship</label>
+                      <TipLabel htmlFor="g-rel" tip={"How this person is related to the student, for example Mother, Father or Guardian."}>
+Relationship
+</TipLabel>
                       <select className="sk-input sk-select" id="g-rel" name="relationship" defaultValue="">
                         <option value="">Not given</option>
                         <option>Father</option>
@@ -256,7 +261,7 @@ export default async function StudentProfile(props: { params: Promise<{ id: stri
           </Panel>
 
           {canEdit && (
-            <Panel id="si-h" title={`How ${s.first_name} signs in`}>
+            <Panel id="si-h" tip={"Young students usually sign in with a PIN the school gives them. Older students can use their own email or phone instead."} title={`How ${s.first_name} signs in`}>
               <SignInPanel
                 studentId={s.id}
                 firstName={s.first_name}

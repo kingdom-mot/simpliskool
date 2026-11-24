@@ -149,7 +149,7 @@ export default async function ArchivePage(props: { searchParams: Promise<{ term?
         )}
       </Panel>
 
-      <Panel id="insp-h" title="Give an inspector access">
+      <Panel id="insp-h" tip={"Gives an inspector a private link to read approved lesson notes for a limited time, without signing in or seeing anything else."} title="Give an inspector access">
         <p className="text-sm text-brand-slate">Create a read-only link for a visiting inspector. They can view approved notes only, and nothing else in your school. Each note they open is recorded.</p>
         <ActionForm action={createInspectorLink} resetOnSuccess className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div>

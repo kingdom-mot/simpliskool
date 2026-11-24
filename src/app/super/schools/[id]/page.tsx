@@ -58,6 +58,9 @@ export default async function SuperSchool(props: { params: Promise<{ id: string 
       c(a.from("payroll_runs").select("id", { count: "exact", head: true }).eq("school_id", id)),
       c(a.from("classes").select("id", { count: "exact", head: true }).eq("school_id", id)),
     ]);
+    // Record completeness (database file 0022); left out quietly if it hasn't been run.
+    const { data: rc } = await a.rpc("school_completeness", { p_school: id }).then((x) => (x.error ? { data: null } : x));
+    const rec = rc as { students: number; complete: number; no_class: number; no_dob: number; no_admission_no: number; no_gender: number; no_parent: number; no_parent_contact: number; classes: number; classes_no_teacher: number; subjects: number; subjects_no_teacher: number } | null;
     const usage = (n: number, daily = false) => (n === 0 ? { s: "Not used", k: "info" as const } : daily ? { s: "Daily", k: "good" as const } : { s: "In use", k: "good" as const });
     const feats = [
       { n: "Attendance", d: markedToday ? `Marked in ${markedToday} of ${classes} classes today` : `${marked7.toLocaleString("en-NG")} marks in the last 7 days`, ...(markedToday ? usage(1, true) : marked7 ? { s: "Some use", k: "warn" as const } : usage(0)) },
@@ -78,6 +81,32 @@ export default async function SuperSchool(props: { params: Promise<{ id: string 
           <Stat label="Parents joined" value={`${parentsPct(r)}%`} sub={`${r.families_joined.toLocaleString("en-NG")} of ${r.students.toLocaleString("en-NG")} students have a parent account`} />
           <Stat label="Fees paid online" value={money(onlineSum)} sub="this term" />
         </div>
+        {rec && (
+          <Box id="records-h" title={`Student records: ${rec.students ? Math.round((100 * rec.complete) / rec.students) : 0}% complete`}>
+            <p className="text-[13px] text-[#4A5A70]">
+              {rec.complete} of {rec.students} active students have a class, date of birth, admission number and a parent the school can reach. Help the school fill these gaps before results and fee reminders go out.
+            </p>
+            <ul className="grid gap-2 text-sm [grid-template-columns:repeat(auto-fill,minmax(240px,1fr))]">
+              {(
+                [
+                  ["No parent linked", rec.no_parent],
+                  ["Parent has no phone or email", rec.no_parent_contact],
+                  ["No date of birth", rec.no_dob],
+                  ["No class", rec.no_class],
+                  ["No admission number", rec.no_admission_no],
+                  ["No gender", rec.no_gender],
+                  ["Classes without a class teacher", rec.classes_no_teacher],
+                  ["Subjects without a teacher", rec.subjects_no_teacher],
+                ] as const
+              ).map(([l, n]) => (
+                <li key={l} className="flex items-center justify-between gap-2 rounded-xl bg-[#F5F8FC] px-3.5 py-2.5">
+                  <span className="text-[#263449]">{l}</span>
+                  <Pill kind={n ? "warn" : "good"}>{n ? String(n) : "None"}</Pill>
+                </li>
+              ))}
+            </ul>
+          </Box>
+        )}
         <Box id="ft-h" title="What they use">
           <ul className="grid gap-3 [grid-template-columns:repeat(auto-fill,minmax(260px,1fr))]">
             {feats.map((f) => (

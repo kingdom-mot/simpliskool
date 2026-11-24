@@ -40,6 +40,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0019_demo.sql` (the public demo school: Bright Future Academy, Lekki and Ajah, with made-up data, rebuilt every night)
      - `0020_hardening.sql` (owners can't change Simpliskool-only school settings such as the demo marker; people can't change the email or phone on their profile)
      - `0021_data_protection.sql` (Nigeria Data Protection Act: agreement and notice records, privacy requests, school deletion requests, the breach register, erasing a former student)
+     - `0022_pilot_measures.sql` (pilot measures: in-app feedback, baseline and end surveys, student record completeness, support reply times and per-school usage for the back office)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -136,3 +137,13 @@ Team members only see a school by "viewing" it: read only, time-limited, written
 - A former student's personal details can be erased from their page (owner only); marks and payments stay as "Former student".
 - Back office → Data protection (super admins): schools waiting to be deleted (deletes records, files and unused sign-ins), and the breach register with the 72-hour NDPC clock.
 
+## Measuring the pilot
+
+- **Feedback button.** Every signed-in school user sees a "Feedback" button at the bottom right. They pick a kind (problem, idea, hard to use, like), write a message and can add a 1–5 rating. Each person can send up to 10 a day. Problems are also emailed to `SUPPORT_EMAIL`. The team reads and closes them at `/super/feedback`.
+- **Surveys.** The baseline survey shows on the home page for a school's first 30 days (change this under `/super/pilot`). Leaders give hours per month on registers, report cards, fees, parent messages and admin; teachers and parents answer a few short questions. Turn on the end survey under `/super/pilot` near the end of the pilot. "Not now" hides the card for 3 days. Demo schools never see surveys.
+- **Pilot measures (`/super/pilot`).** Per school: families joined, teachers active weekly, register days, student records complete, notices opened, fees paid online, help requests, first reply time and survey counts. Support reply times are counted in working hours (Mon–Fri, 8am–5pm Lagos time). Downloads (usage, efficiency, satisfaction, all answers) use the same columns as the pilot readiness scorecard, so they paste straight in.
+- **Record completeness.** Each school's back-office page (Usage tab) shows how many student records are complete (class, date of birth, admission number, gender, a parent with a phone or email) and what is missing.
+
+## Tooltips
+
+Small "?" buttons beside labels, cards and panels explain things in plain words. They open on hover, keyboard focus or tap, close with Escape or a tap elsewhere, and open towards whichever side has room so they stay on screen on phones. Use `<Tip>` or `<TipLabel>` from `src/components/Tip.tsx`; `StatCard` and `Panel` take a `tip` prop. Never put a `Tip` inside a `<label>`.

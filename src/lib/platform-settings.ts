@@ -27,6 +27,10 @@ export type PlatformSettings = {
   view_minutes: number;
   pilot_ends: string | null;
   plans: Record<PlanKey, { price: string; desc: string }>;
+  /** The end-of-pilot survey is shown to everyone while this is on. */
+  end_survey_open: boolean;
+  /** The baseline survey is shown for this many days after a school signs up. */
+  baseline_days: number;
 };
 
 export const DEFAULT_SETTINGS: PlatformSettings = {
@@ -39,6 +43,8 @@ export const DEFAULT_SETTINGS: PlatformSettings = {
   pin_lock_minutes: 15,
   view_minutes: 30,
   pilot_ends: null,
+  end_survey_open: false,
+  baseline_days: 30,
   plans: {
     pilot: { price: "Free", desc: "Everything included until the pilot ends. For our first 20 schools." },
     single: { price: "", desc: "All features for one school. SMS bought separately." },

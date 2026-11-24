@@ -155,7 +155,7 @@ export default async function WebsiteEditor(props: { searchParams: Promise<{ pag
           )}
 
           {page === "admissions" && (
-            <Panel id="adm-h" title="Admissions" actions={<Link className="s-btn2" href="/admin/admissions">See applications{newApps ? ` (${newApps} new)` : ""}</Link>}>
+            <Panel id="adm-h" tip={"When admissions are open, parents can apply on your website. Applications arrive in Admissions in the admin portal."} title="Admissions" actions={<Link className="s-btn2" href="/admin/admissions">See applications{newApps ? ` (${newApps} new)` : ""}</Link>}>
               <ActionForm action={saveAdmissions} className="flex flex-col gap-3">
                 <label className="flex min-h-[44px] items-center gap-2 text-sm font-bold text-brand-slate">
                   <input type="checkbox" name="open" value="1" defaultChecked={w.admissions_open !== false} className="h-5 w-5" /> Admissions are open (show the application form)

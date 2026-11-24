@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Tip } from "@/components/Tip";
 
 /**
  * Colourful data tones used on every dashboard, whatever the school's own colours are.
@@ -53,7 +54,7 @@ export function Bar({ value, fill, track = "#EEF3F9", height = 8, label }: { val
 }
 
 /** Colourful headline number card. */
-export function StatCard({ tone, icon, label, value, sub, percent, href }: { tone: Tone; icon: string; label: string; value: string; sub: string; percent?: number; href?: string }) {
+export function StatCard({ tone, icon, label, value, sub, percent, href, tip }: { tone: Tone; icon: string; label: string; value: string; sub: string; percent?: number; href?: string; tip?: React.ReactNode }) {
   const t = TONES[tone];
   const body = (
     <>
@@ -79,13 +80,25 @@ export function StatCard({ tone, icon, label, value, sub, percent, href }: { ton
   );
   const cls = "relative flex flex-col gap-1.5 overflow-hidden rounded-[18px] border p-5";
   const style = { background: t.bg, borderColor: t.border };
-  return href ? (
+  const card = href ? (
     <Link href={href} className={cls} style={style}>
       {body}
     </Link>
   ) : (
     <div className={cls} style={style}>
       {body}
+    </div>
+  );
+  if (!tip) return card;
+  // The tip sits outside the card (the card clips its corners, and a link can't hold a button).
+  return (
+    <div className="relative">
+      {card}
+      <span className="absolute right-3 top-3 z-10">
+        <Tip align="right" label={`About ${label}`}>
+          {tip}
+        </Tip>
+      </span>
     </div>
   );
 }

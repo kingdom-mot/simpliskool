@@ -62,7 +62,7 @@ export default async function DataProtectionPage(props: { searchParams: Promise<
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4 xl:grid-cols-[1.4fr_1fr]">
         <div className="flex min-w-0 flex-col gap-4">
-          <Panel id="req-h" title={`Privacy requests${openCount ? ` (${openCount} open)` : ""}`}>
+          <Panel id="req-h" tip={"The Nigeria Data Protection Act lets people see, correct or delete their data. Reply to each request and keep a record here."} title={`Privacy requests${openCount ? ` (${openCount} open)` : ""}`}>
             <p className="text-sm text-[#4A5A70]">Parents, students and staff can ask to see, correct or delete their data. Requests from the parent app arrive here. Reply to each one; the person gets your reply by email.</p>
             <nav aria-label="Requests" className="flex flex-wrap gap-2">
               {[
@@ -136,7 +136,7 @@ export default async function DataProtectionPage(props: { searchParams: Promise<
         </div>
 
         <div className="flex min-w-0 flex-col gap-4">
-          <Panel id="agree-h" title="Agreement with Simpliskool">
+          <Panel id="agree-h" title="Agreement with Simpliskool" tip="Your school is the data controller: you decide what is recorded and why. Simpliskool is the data processor: we keep the records safe and only use them to run Simpliskool for you.">
             {accepted ? (
               <p className="text-sm text-[#263449]">
                 <Pill kind="good">Accepted</Pill> The <Link className="s-link" href="/terms">terms of use</Link> and <Link className="s-link" href="/dpa">data processing agreement</Link> (version of {LEGAL_UPDATED}) were accepted by {current("dpa")?.profiles?.full_name?.trim() || "the owner"} on {day(current("dpa")!.accepted_at)}.

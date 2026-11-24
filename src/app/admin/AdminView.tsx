@@ -29,7 +29,7 @@ export type AdminData = {
 
 const METHOD: Record<string, string> = { paystack: "Online", transfer: "Transfer", cash: "Cash", pos: "POS" };
 
-export function AdminView({ school, role, fullName, d, agreementDue = false }: { school: ShellSchool & { slug: string; id?: string }; role: Role; fullName: string; d: AdminData | null; agreementDue?: boolean }) {
+export function AdminView({ school, role, fullName, d, agreementDue = false, extra }: { school: ShellSchool & { slug: string; id?: string }; role: Role; fullName: string; d: AdminData | null; agreementDue?: boolean; extra?: React.ReactNode }) {
   const membership = { role };
   const rootDomain = process.env.NEXT_PUBLIC_ROOT_DOMAIN ?? "simpliskool.com";
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
@@ -83,6 +83,7 @@ export function AdminView({ school, role, fullName, d, agreementDue = false }: {
             </a>
           </div>
         )}
+        {extra}
 
         {doneCount < setup.length && (
           <section aria-labelledby="setup-h" className="flex flex-wrap items-center justify-between gap-4 rounded-[20px] px-[22px] py-5 text-white" style={{ background: SCHOOL_GRADIENT }}>
@@ -97,11 +98,12 @@ export function AdminView({ school, role, fullName, d, agreementDue = false }: {
         )}
 
         <div className="grid grid-cols-[minmax(0,1fr)] gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard tone="teal" icon={ICONS.users} label="Students enrolled" value={String(d?.students ?? 0)} sub={d?.new_students ? `${d.new_students} new this term` : "Active students"} />
+          <StatCard tone="teal" icon={ICONS.users} label="Students enrolled" tip="Students marked as active. Students who have left or graduated aren't counted." value={String(d?.students ?? 0)} sub={d?.new_students ? `${d.new_students} new this term` : "Active students"} />
           <StatCard
             tone="blue"
             icon={ICONS.check}
             label="Present today"
+            tip="Out of the students in classes whose register has been taken today. Students with an excused absence count as absent here."
             value={d?.marked ? `${presentPct}%` : "—"}
             percent={d?.marked ? presentPct : 0}
             sub={d?.marked ? `${d.present} of ${d.students} marked present` : "No registers taken yet today"}
@@ -111,6 +113,7 @@ export function AdminView({ school, role, fullName, d, agreementDue = false }: {
               tone="amber"
               icon={ICONS.cash}
               label="Fees collected"
+              tip="Money recorded against this term's invoices: cash, transfers, POS and online payments. Cancelled payments aren't counted."
               value={naira(d?.fees.paid, true)}
               percent={feePct}
               sub={d?.fees.total ? `${feePct}% of ${naira(d.fees.total, true)} invoiced` : "No fees invoiced this term"}
@@ -122,6 +125,7 @@ export function AdminView({ school, role, fullName, d, agreementDue = false }: {
             tone="purple"
             icon={ICONS.chart}
             label="Scores entered"
+            tip="A subject class counts as started once its teacher has entered at least one score this term."
             value={d?.subject_classes ? `${scorePct}%` : "—"}
             percent={scorePct}
             sub={d?.subject_classes ? `${d.subject_classes_scored} of ${d.subject_classes} subject classes started` : "No subjects assigned yet"}

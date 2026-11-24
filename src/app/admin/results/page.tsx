@@ -128,7 +128,7 @@ export default async function ResultsPage(props: { searchParams: Promise<{ class
         )}
       </Panel>
 
-      <Panel id="bs-h" title={`${name} broadsheet · ${termLabel(term)}`}>
+      <Panel id="bs-h" tip={"The broadsheet shows every student's total in every subject, their average and position in the class. It updates as teachers enter scores."} title={`${name} broadsheet · ${termLabel(term)}`}>
         {r?.students.length && subjects.length ? (
           <>
             <Broadsheet r={r} scale={scale} caption={`${name} broadsheet: total score per subject out of 100, with average and position`} />

@@ -17,6 +17,7 @@ type T = { id: string; title: string; practice: boolean; opens_at: string; close
 const tomorrow = () => lagosParts(new Date(Date.now() + 86400000)).date;
 import { Pager, SearchBar, noMatch } from "@/components/ListTools";
 import { ilikeSafe, linkTo, pageNum, pagedFromCount, rangeOf, searchText } from "@/lib/paging";
+import { Tip } from "@/components/Tip";
 
 const nowMs = () => Date.now();
 const at = (iso: string) => Date.parse(iso);
@@ -62,9 +63,12 @@ export default async function TeacherCbt(props: { searchParams: Promise<{ q?: st
         ) : (
           <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-5 xl:grid-cols-[1.1fr_1fr]">
             <section aria-labelledby="my-h" className="flex flex-col gap-3 rounded-[18px] border border-t-[5px] border-[#E3EAF3] border-t-c2 bg-white p-[22px]">
-              <h2 id="my-h" className="text-lg !text-c1">
-                My tests
-              </h2>
+              <span className="flex items-center">
+                <h2 id="my-h" className="text-lg !text-c1">
+                  My tests
+                </h2>
+                <Tip label="About tests">Students sit tests on their phone or a computer between the opening and closing times. Marks are worked out instantly. A practice quiz doesn&apos;t count, and students see the right answers at the end. A class test can count towards a CA score.</Tip>
+              </span>
               {((testCount ?? 0) > 8 || q) && <SearchBar id="cbt-q" label="Search my tests" placeholder="Test title" q={q} clearHref="/teacher/cbt" compact />}
               {tests?.length ? (
                 <ul className="flex flex-col gap-2">

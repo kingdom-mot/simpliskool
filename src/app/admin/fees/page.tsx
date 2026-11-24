@@ -8,6 +8,7 @@ import { naira } from "@/lib/format";
 import { levelOrder } from "@/lib/nigeria";
 import { addFeeItem, copyLastTerm, deleteFeeItem, saveTermSettings, updateFeeItem } from "./actions";
 import { PublishInvoices } from "./PublishInvoices";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Fee setup" };
 
@@ -156,7 +157,7 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
       </nav>
 
       <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-4">
-        <Panel id="items-h" title={`${section.label} fee items`}>
+        <Panel id="items-h" tip={"Each item (tuition, books, uniform…) is added to the invoice of every student in the classes you choose. Optional items are only added where you tick them."} title={`${section.label} fee items`}>
           {sectionItems.length ? (
             <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Fee items: scroll sideways to see more">
               <table className="tbl min-w-[860px]">
@@ -247,15 +248,15 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
               <input id="n-name" name="name" className="sk-input" required maxLength={80} placeholder="e.g. Tuition" />
             </div>
             <div>
-              <label className="label" htmlFor="n-amount">
-                Amount (₦)
-              </label>
+              <TipLabel htmlFor="n-amount" tip={"The amount for one student for the whole term."}>
+Amount (₦)
+</TipLabel>
               <input id="n-amount" name="amount" className="sk-input" inputMode="decimal" required placeholder="e.g. 65000" />
             </div>
             <div>
-              <label className="label" htmlFor="n-level">
-                Classes
-              </label>
+              <TipLabel htmlFor="n-level" tip={"Which classes pay this item. Students in those classes get it on their invoice."}>
+Classes
+</TipLabel>
               <select id="n-level" name="level" className="sk-input" defaultValue="">
                 <option value="">All {section.key === "other" ? "other" : section.label.split(" (")[0]} classes</option>
                 {sectionLevels.map((l) => (
@@ -313,9 +314,9 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
             <ActionForm action={saveTermSettings} className="flex flex-col gap-3">
               <input type="hidden" name="term" value={term.id} />
               <div>
-                <label className="label" htmlFor="due">
-                  Payment due by
-                </label>
+                <TipLabel htmlFor="due" tip={"Shown on invoices and in the parent app. Students who still owe after this date appear as defaulters."}>
+Payment due by
+</TipLabel>
                 <input id="due" name="due_on" type="date" className="sk-input" defaultValue={settings?.due_on ?? ""} />
               </div>
               <label className="flex min-h-[44px] items-center gap-2 text-sm font-semibold text-brand-slate">
@@ -323,9 +324,9 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
                 Allow part payments
               </label>
               <div>
-                <label className="label" htmlFor="instr">
-                  How parents pay
-                </label>
+                <TipLabel htmlFor="instr" tip={"Tells parents how to pay (for example your bank account for transfers). Shown on invoices and in the parent app."}>
+How parents pay
+</TipLabel>
                 <span id="instr-h" className="mb-1.5 block text-[13px] text-[#4A5A70]">
                   Shown on invoices and in the parent app, for every term. For example: bank name, account number and account name.
                 </span>
@@ -346,7 +347,7 @@ export default async function FeesPage(props: { searchParams: Promise<{ term?: s
             </ActionForm>
           </Panel>
 
-          <Panel id="pub-h" title="Invoices">
+          <Panel id="pub-h" tip={"Publishing creates each student's invoice for the term from the fee items. Parents see it in the parent app and can pay online."} title="Invoices">
             <p className="text-sm text-brand-slate">
               {settings?.published_at ? (
                 <>

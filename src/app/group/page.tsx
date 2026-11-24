@@ -58,8 +58,8 @@ export default async function GroupOverview(props: { searchParams: Promise<{ met
         <>
           <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatCard tone="blue" icon={ICONS.users} label="Students" value={students.toLocaleString("en-NG")} sub={`across ${s.length} branch${s.length === 1 ? "" : "es"}`} />
-            {showMoney && <StatCard tone="teal" icon={ICONS.cash} label="Fees collected" value={naira(collected)} sub={`${pct(collected, billed)}% of ${naira(billed)} billed`} percent={pct(collected, billed)} />}
-            <StatCard tone="green" icon={ICONS.check} label="Students present today" value={marked ? `${pct(present, marked)}%` : "—"} sub={marked ? `${present} of ${marked} marked` : "No registers yet today"} />
+            {showMoney && <StatCard tone="teal" icon={ICONS.cash} label="Fees collected" tip="This term's payments across all branches, against what was invoiced. Open Fees and payouts for each branch." value={naira(collected)} sub={`${pct(collected, billed)}% of ${naira(billed)} billed`} percent={pct(collected, billed)} />}
+            <StatCard tone="green" icon={ICONS.check} label="Students present today" tip="Across the classes whose register has been taken today in every branch." value={marked ? `${pct(present, marked)}%` : "—"} sub={marked ? `${present} of ${marked} marked` : "No registers yet today"} />
             <StatCard tone="amber" icon={ICONS.clock} label="Staff clocked in today" value={`${clocked} / ${staff}`} sub={`${late} late · marked by each principal`} />
           </div>
 

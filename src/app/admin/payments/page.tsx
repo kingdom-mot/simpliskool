@@ -13,6 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { Pager, SearchBar, noMatch } from "@/components/ListTools";
 import { Picker } from "@/components/Picker";
 import { matches, pageNum, paginate, searchText } from "@/lib/paging";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Payments and defaulters" };
 
@@ -414,7 +415,7 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
             ))}
         </section>
 
-        <Panel id="record" title="Record a payment">
+        <Panel id="record" tip={"For cash, bank transfers and POS payments made at the school. Payments parents make online are recorded automatically."} title="Record a payment">
           {owingInvoices.length ? (
             <ActionForm action={recordPayment} resetOnSuccess className="flex flex-col gap-3">
               <Picker
@@ -430,9 +431,9 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
                 options={owingInvoices.map((i) => ({ value: i.id, label: i.name, sub: `${i.class ?? "No class"} · ${i.admission_no} · owes ${naira(i.balance)}`, keywords: i.admission_no }))}
               />
               <div>
-                <label className="label" htmlFor="r-amt">
-                  Amount (₦)
-                </label>
+                <TipLabel htmlFor="r-amt" tip={"Part payments are fine. The balance goes down straight away and the rest stays owing."}>
+Amount (₦)
+</TipLabel>
                 <input id="r-amt" name="amount" className="sk-input" inputMode="decimal" required placeholder="e.g. 50000" />
               </div>
               <fieldset>
@@ -448,15 +449,15 @@ export default async function PaymentsPage(props: { searchParams: Promise<{ term
               </fieldset>
               <div className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
                 <div>
-                  <label className="label" htmlFor="r-date">
-                    Date paid
-                  </label>
+                  <TipLabel htmlFor="r-date" tip={"The day the money was received. It can't be in the future."}>
+Date paid
+</TipLabel>
                   <input id="r-date" name="paid_on" type="date" className="sk-input" required defaultValue={today()} max={today()} />
                 </div>
                 <div>
-                  <label className="label" htmlFor="r-ref">
-                    Reference (optional)
-                  </label>
+                  <TipLabel htmlFor="r-ref" tip={"The bank transfer or POS reference, so you can match it with your bank statement later."}>
+Reference (optional)
+</TipLabel>
                   <input id="r-ref" name="reference" className="sk-input" maxLength={80} placeholder="Bank or POS reference" />
                 </div>
               </div>

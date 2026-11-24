@@ -4,6 +4,7 @@ import { classLabel } from "@/components/admin";
 import { Empty } from "@/components/ui";
 import { requireSchool } from "@/lib/auth";
 import { PARENT_TABS } from "@/lib/nav";
+import { Tip } from "@/components/Tip";
 
 export const metadata = { title: "Attendance" };
 
@@ -87,9 +88,12 @@ export default async function ParentAttendance(props: { searchParams: Promise<{ 
               <Link href={q({ month: shift(-1) })} className="flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] border-[#DCE5F0] text-lg font-bold text-c1" aria-label="Previous month">
                 ‹
               </Link>
-              <h2 id="cal-h" className="text-base !text-c1">
-                {monthName}
-              </h2>
+              <span className="flex items-center">
+                <h2 id="cal-h" className="text-base !text-c1">
+                  {monthName}
+                </h2>
+                <Tip align="center" label="What the letters mean">P present, L late, A absent, E absent and reported by you. Days without a letter had no register (weekends, holidays or not taken yet).</Tip>
+              </span>
               <Link href={q({ month: shift(1) })} className="flex h-11 w-11 items-center justify-center rounded-xl border-[1.5px] border-[#DCE5F0] text-lg font-bold text-c1" aria-label="Next month">
                 ›
               </Link>

@@ -3,6 +3,7 @@ import { PortalShell } from "@/components/PortalShell";
 import { requireSchool, ROLE_LABEL, type Role } from "@/lib/auth";
 import { adminNav } from "@/lib/nav";
 import { SCHOOL_GRADIENT, TONES, TONE_CYCLE } from "@/components/ui";
+import { Tip } from "@/components/Tip";
 
 /** Roles that can change the school's setup (classes, students, terms, staff). */
 export const SETUP_ROLES: Role[] = ["owner", "admin", "principal"];
@@ -87,7 +88,7 @@ function toneFor(id: string) {
   return TONES[TONE_CYCLE[h % TONE_CYCLE.length]];
 }
 
-export function Panel({ title, id, children, actions, className = "" }: { title: string; id: string; children: React.ReactNode; actions?: React.ReactNode; className?: string }) {
+export function Panel({ title, id, children, actions, className = "", tip }: { title: string; id: string; children: React.ReactNode; actions?: React.ReactNode; className?: string; tip?: React.ReactNode }) {
   return (
     <section aria-labelledby={id} className={`flex flex-col gap-4 rounded-[18px] border border-t-[5px] border-[#E3EAF3] bg-white p-[22px] ${className}`} style={{ borderTopColor: toneFor(id).icon }}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -95,6 +96,11 @@ export function Panel({ title, id, children, actions, className = "" }: { title:
           <span aria-hidden="true" className="h-3 w-3 flex-none rounded-full" style={{ background: toneFor(id).bar }} />
           {title}
         </h2>
+        {tip && (
+          <span className="-ml-2 mr-auto">
+            <Tip label={`About ${title}`}>{tip}</Tip>
+          </span>
+        )}
         {actions}
       </div>
       {children}

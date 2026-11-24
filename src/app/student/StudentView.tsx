@@ -17,7 +17,7 @@ export type StudentData = {
   announcements: { title: string; at: string }[];
 };
 
-export function StudentView({ school, fullName, d, now: nowOverride, todo }: { school: ShellSchool; fullName: string; d: StudentData | null; now?: string; todo?: { homework: number; tests: number } }) {
+export function StudentView({ school, fullName, d, now: nowOverride, todo, extra }: { school: ShellSchool; fullName: string; d: StudentData | null; now?: string; todo?: { homework: number; tests: number }; extra?: React.ReactNode }) {
   const today = d?.today ?? new Date().toISOString().slice(0, 10);
   const name = d?.first_name ?? fullName.split(" ")[0];
 
@@ -50,6 +50,7 @@ export function StudentView({ school, fullName, d, now: nowOverride, todo }: { s
           </>
         )}
       </section>
+      {extra}
 
       {todo && (todo.homework > 0 || todo.tests > 0) && (
         <section aria-labelledby="todo-h" className="flex flex-col gap-2 rounded-[18px] border border-[#E3EAF3] bg-white p-[18px]">

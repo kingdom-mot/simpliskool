@@ -5,6 +5,7 @@ import type { Tab } from "@/lib/nav";
 import { schoolThemeStyle } from "@/lib/theme";
 import { SCHOOL_GRADIENT } from "@/components/ui";
 import { SchoolBadge, type ShellSchool } from "@/components/PortalShell";
+import { FeedbackButton } from "@/components/FeedbackButton";
 
 /** Phone-first layout for parents and students: school-coloured header and bottom tabs. */
 export function MobileShell({
@@ -52,9 +53,10 @@ export function MobileShell({
         </div>
       </header>
 
-      <main id="main" className={`mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-3.5 px-4 pb-6 ${overlap ? "-mt-12" : "pt-4"}`}>
+      <main id="main" className={`mx-auto flex w-full max-w-[640px] flex-1 flex-col gap-3.5 px-4 pb-20 ${overlap ? "-mt-12" : "pt-4"}`}>
         {children}
       </main>
+      <FeedbackButton raised />
 
       <nav aria-label="Main" className="sticky bottom-0 mx-auto w-full max-w-[640px] border-t border-[#E3EAF3] bg-white px-2 pb-2 pt-1.5">
         <ul className="grid grid-cols-5">

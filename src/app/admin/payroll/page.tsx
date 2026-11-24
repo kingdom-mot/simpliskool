@@ -12,6 +12,7 @@ import { approvePayroll, deleteStructure, markPaid, preparePayroll, saveStaffPay
 
 import { Pager, SearchBar, noMatch } from "@/components/ListTools";
 import { linkTo, matches, pageNum, paginate, searchText } from "@/lib/paging";
+import { TipLabel } from "@/components/Tip";
 
 export const metadata = { title: "Payroll" };
 
@@ -194,7 +195,7 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
 
       {tab === "structures" && (
         <>
-          <Panel id="st-h" title="Salary structures">
+          <Panel id="st-h" tip={"A salary structure is a set of allowances and deductions (for example housing and transport). Give staff on the same terms the same structure."} title="Salary structures">
             {(structures ?? []).length ? (
               <div className="overflow-x-auto" tabIndex={0} role="region" aria-label="Salary structures: scroll sideways to see more">
                 <table className="tbl min-w-[760px]">
@@ -245,9 +246,9 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                   <input id="ps-name" name="name" className="sk-input" required maxLength={60} placeholder="e.g. Graduate teacher" />
                 </div>
                 <div>
-                  <label className="label" htmlFor="ps-basic">
-                    Basic salary a month (₦)
-                  </label>
+                  <TipLabel htmlFor="ps-basic" tip={"The monthly pay before allowances and deductions. Allowances and deductions are added in the salary structure."}>
+Basic salary a month (₦)
+</TipLabel>
                   <input id="ps-basic" name="basic" className="sk-input" inputMode="decimal" required placeholder="120000" />
                 </div>
               </div>
@@ -372,7 +373,7 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
       )}
 
       {tab === "tax" && (
-        <Panel id="tx-h" title="Pension and tax">
+        <Panel id="tx-h" tip={"Pension and PAYE tax are worked out on each payslip from these settings, so staff see exactly what was taken and why."} title="Pension and tax">
           <p className="text-sm text-brand-slate">Not every school deducts pension or tax. Turn on only what your school does. Once on, it&apos;s worked out for every payslip automatically.</p>
           <ActionForm action={saveTaxSettings} className="flex flex-col gap-4">
             <fieldset className="flex flex-col gap-2 rounded-xl border border-[#E3EAF3] p-4">
@@ -382,15 +383,15 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
               </label>
               <div className="grid grid-cols-2 gap-3 sm:max-w-md">
                 <div>
-                  <label className="label" htmlFor="pen-s">
-                    Staff contribution (%)
-                  </label>
+                  <TipLabel htmlFor="pen-s" tip={"The share of pay taken from the staff member for their pension. 8% is the legal minimum under the Pension Reform Act."}>
+Staff contribution (%)
+</TipLabel>
                   <input id="pen-s" name="pension_staff_pct" className="sk-input" inputMode="decimal" defaultValue={String(s.pension_staff_pct)} />
                 </div>
                 <div>
-                  <label className="label" htmlFor="pen-e">
-                    School contribution (%)
-                  </label>
+                  <TipLabel htmlFor="pen-e" tip={"The share the school adds on top for the pension. 10% is the legal minimum."}>
+School contribution (%)
+</TipLabel>
                   <input id="pen-e" name="pension_employer_pct" className="sk-input" inputMode="decimal" defaultValue={String(s.pension_employer_pct)} />
                 </div>
               </div>
@@ -412,9 +413,9 @@ export default async function PayrollPage(props: { searchParams: Promise<{ tab?:
                   </select>
                 </div>
                 <div>
-                  <label className="label" htmlFor="tx-tin">
-                    School tax ID (TIN)
-                  </label>
+                  <TipLabel htmlFor="tx-tin" tip={"Your school's Tax Identification Number, printed on PAYE schedules for the state tax office."}>
+School tax ID (TIN)
+</TipLabel>
                   <input id="tx-tin" name="tin" className="sk-input" maxLength={30} defaultValue={s.tin ?? ""} />
                 </div>
               </div>

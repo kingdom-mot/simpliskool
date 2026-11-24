@@ -16,7 +16,7 @@ export default async function PeriodsPage() {
   return (
     <AdminPage ctx={ctx} active="timetable" crumb={[{ label: "Timetable", href: "/admin/timetable" }]} title="Period times">
       <p className="-mt-2 text-sm text-[#4A5A70]">The same times are used for every class. Changing a time moves the lessons in it.</p>
-      <Panel id="per-h" title="School day">
+      <Panel id="per-h" tip={"The lessons and breaks in a school day. The timetable, teachers' daily lists and students' timetables all use these times."} title="School day">
         {periods.length ? (
           <ul className="flex flex-col gap-2">
             {periods.map((p) => (

@@ -54,7 +54,7 @@ export default async function AnnouncementsPage(props: { searchParams: Promise<{
         sms={!smsReady() ? "not-connected" : smsRow?.sms_enabled ? "on" : "off"}
       />
       {waiting.length > 0 && (
-        <Panel id="wait-h" title="Waiting to send">
+        <Panel id="wait-h" tip={"Announcements you scheduled for later. They send automatically at the time you chose; cancel one here if plans change."} title="Waiting to send">
           <ul className="flex flex-col gap-2">
             {waiting.map((w) => (
               <li key={w.id} className="flex flex-wrap items-center gap-3 rounded-xl border border-[#E3EAF3] p-3">
