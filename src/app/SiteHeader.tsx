@@ -23,14 +23,14 @@ const MENUS: Menu[] = [
     img: "/landing/hero.jpg",
     cols: "lg:grid-cols-3",
     items: [
-      { href: "#features", t: "Features", d: "Attendance, results, fees, CBT exams and reports.", icon: "M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6l-5 3.6 1.9-5.8L4 8.8h6.1z", tint: BLUE },
-      { href: "#portals", t: "Portals", d: "See exactly what each person in your school gets.", icon: "M3 4h7v7H3zM14 4h7v7h-7zM3 15h7v6H3zM14 15h7v6h-7z", tint: TEAL },
+      { href: "/#features", t: "Features", d: "Attendance, results, fees, CBT exams and reports.", icon: "M12 3l1.9 5.8H20l-4.9 3.6 1.9 5.8L12 14.6l-5 3.6 1.9-5.8L4 8.8h6.1z", tint: BLUE },
+      { href: "/#portals", t: "Portals", d: "See exactly what each person in your school gets.", icon: "M3 4h7v7H3zM14 4h7v7h-7zM3 15h7v6H3zM14 15h7v6h-7z", tint: TEAL },
       { href: "/demo", t: "Live demo", d: "Click around a made-up school. No sign-up.", icon: "M5 3l14 9-14 9z", tint: SUN },
-      { href: "#people", t: "For admins", d: "Fees, admissions, staff and results on one dashboard.", icon: "M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6", tint: BLUE },
-      { href: "#people", t: "For teachers", d: "Register, scores, lesson notes and homework, even offline.", icon: "M2 7l10-4 10 4-10 4zM6 9v5c0 2 3 4 6 4s6-2 6-4V9", tint: TEAL },
-      { href: "#people", t: "For parents", d: "Results, fees and notices for every child on one phone.", icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8", tint: ROSE },
-      { href: "#people", t: "For students", d: "Timetable, homework, tests and results.", icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5", tint: SUN },
-      { href: "#features", t: "Multi-branch groups", d: "Every branch together, each running its own day.", icon: "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9", tint: BLUE },
+      { href: "/#people", t: "For admins", d: "Fees, admissions, staff and results on one dashboard.", icon: "M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6", tint: BLUE },
+      { href: "/#people", t: "For teachers", d: "Register, scores, lesson notes and homework, even offline.", icon: "M2 7l10-4 10 4-10 4zM6 9v5c0 2 3 4 6 4s6-2 6-4V9", tint: TEAL },
+      { href: "/#people", t: "For parents", d: "Results, fees and notices for every child on one phone.", icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8", tint: ROSE },
+      { href: "/#people", t: "For students", d: "Timetable, homework, tests and results.", icon: "M4 19.5V5a2 2 0 0 1 2-2h14v16H6.5A2.5 2.5 0 0 0 4 21.5", tint: SUN },
+      { href: "/#features", t: "Multi-branch groups", d: "Every branch together, each running its own day.", icon: "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM18 9a9 9 0 0 1-9 9", tint: BLUE },
       { href: "/privacy", t: "Data protection", d: "How we keep children's data safe, in line with the NDPA.", icon: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4", tint: TEAL },
     ],
   },
@@ -42,10 +42,10 @@ const MENUS: Menu[] = [
     cta: ["Book a free demo", DEMO_MAIL],
     cols: "lg:grid-cols-2",
     items: [
-      { href: "#how", t: "How it works", d: "From demo to go-live in one week.", icon: "M4 12h4l3-8 4 16 3-8h2", tint: BLUE },
-      { href: "#faq", t: "FAQ", d: "Questions schools ask us.", icon: "M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", tint: TEAL },
+      { href: "/#how", t: "How it works", d: "From demo to go-live in one week.", icon: "M4 12h4l3-8 4 16 3-8h2", tint: BLUE },
+      { href: "/#faq", t: "FAQ", d: "Questions schools ask us.", icon: "M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z", tint: TEAL },
       { href: PRICING_CHAT, t: "Pricing", d: "Ask us on WhatsApp for your school's price.", icon: "M12 2v20M17 6H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6", tint: SUN },
-      { href: "#pilot", t: "Join the pilot", d: "Free setup, training and use during the pilot.", icon: "M4 22V4M4 4h13l-2 4 2 4H4", tint: ROSE },
+      { href: "/#pilot", t: "Join the pilot", d: "Free setup, training and use during the pilot.", icon: "M4 22V4M4 4h13l-2 4 2 4H4", tint: ROSE },
       { href: whatsapp("Hello Simpliskool, I have a question."), t: "Chat on WhatsApp", d: WHATSAPP_DISPLAY, icon: "M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.1-5.4A8.5 8.5 0 1 1 21 11.5z", tint: BLUE },
       { href: "/privacy", t: "Privacy and terms", d: "Privacy policy, terms of use and data processing.", icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6", tint: TEAL },
     ],
@@ -144,9 +144,9 @@ export function SiteHeader() {
             </div>
           ))}
           <div className="flex items-center">
-            <a href={PRICING_CHAT} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-[44px] items-center rounded-full px-4 text-[15px] font-semibold text-brand-slate hover:text-brand-teal-dark">
-              Pricing
-            </a>
+            <Link href="/about" className="inline-flex min-h-[44px] items-center rounded-full px-4 text-[15px] font-semibold text-brand-slate hover:text-brand-teal-dark">
+              About us
+            </Link>
           </div>
         </nav>
 
@@ -186,7 +186,10 @@ export function SiteHeader() {
                   </ul>
                 </div>
               ))}
-              <div className="mt-5 grid grid-cols-2 gap-2">
+              <Link href="/about" className="mt-3 flex min-h-[48px] items-center rounded-xl px-2 text-[15px] font-bold text-brand-navy hover:bg-brand-cloud">
+                About us
+              </Link>
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <Link href="/login" className="inline-flex min-h-[48px] items-center justify-center rounded-full border-[1.5px] border-brand-navy font-bold text-brand-navy">
                   Sign in
                 </Link>
