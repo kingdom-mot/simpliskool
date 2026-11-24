@@ -188,3 +188,27 @@ h1, h2, h3, h4, h5, h6 {
 .legal table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .legal th, .legal td { border: 1px solid #DCE5F0; padding: 0.5rem 0.65rem; text-align: left; vertical-align: top; }
 .legal th { background: #EEF3F9; color: #0A1F3D; }
+
+/* Landing page: the modules strip drifts slowly sideways; it pauses on hover and stays still if motion is reduced. */
+@keyframes sk-marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.sk-marquee-track {
+  animation: sk-marquee 45s linear infinite;
+}
+.sk-marquee:hover .sk-marquee-track {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-marquee-track {
+    animation: none;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: auto;
+  }
+  .sk-marquee-track > [aria-hidden="true"] {
+    display: none;
+  }
+}
