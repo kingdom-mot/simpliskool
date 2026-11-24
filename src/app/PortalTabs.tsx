@@ -65,7 +65,7 @@ export function PortalTabs() {
 
   return (
     <div>
-      <div role="tablist" aria-label="Portals" className="mx-auto flex max-w-full flex-wrap justify-center gap-1.5 rounded-2xl bg-white/10 p-1.5 sm:w-fit">
+      <div role="tablist" aria-label="Portals" className="mx-auto flex max-w-full flex-wrap justify-center gap-1.5 rounded-full border border-[#E3EAF3] bg-white p-1.5 sm:w-fit">
         {ROLES.map((r, i) => (
           <button
             key={r.id}
@@ -79,7 +79,7 @@ export function PortalTabs() {
             tabIndex={i === active ? 0 : -1}
             onClick={() => setActive(i)}
             onKeyDown={(e) => onKey(e, i)}
-            className={`min-h-[44px] rounded-xl px-4 text-[15px] ${i === active ? "bg-brand-teal font-extrabold text-[#0A1F3D]" : "font-semibold text-[#E3EAF3] hover:bg-white/10"}`}
+            className={`min-h-[44px] rounded-full px-5 text-[15px] ${i === active ? "bg-brand-navy font-extrabold text-white" : "font-semibold text-brand-slate hover:bg-brand-mist"}`}
           >
             {r.label}
           </button>
@@ -88,12 +88,12 @@ export function PortalTabs() {
 
       <div id="portal-panel" role="tabpanel" aria-labelledby={`ptab-${role.id}`} className="mt-12 grid items-center gap-10 lg:grid-cols-[1fr_1.1fr]">
         <div>
-          <h3 className="text-3xl leading-tight !text-white md:text-4xl">{role.title}</h3>
-          <p className="mt-4 text-lg leading-relaxed text-[#DCE5F0]">{role.desc}</p>
+          <h3 className="text-3xl leading-tight md:text-4xl">{role.title}</h3>
+          <p className="mt-4 text-lg leading-relaxed text-[#4A5A70]">{role.desc}</p>
           <ul className="mt-6 space-y-3">
             {role.points.map((p) => (
-              <li key={p} className="flex items-start gap-3 text-base text-white">
-                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3FD1B4" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="mt-px flex-none">
+              <li key={p} className="flex items-start gap-3 text-base text-brand-slate">
+                <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B7D6E" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" className="mt-px flex-none">
                   <circle cx="12" cy="12" r="10" />
                   <path d="m8 12 3 3 5-6" />
                 </svg>
@@ -102,7 +102,7 @@ export function PortalTabs() {
             ))}
           </ul>
         </div>
-        <div className="rounded-3xl border border-white/10 bg-white p-6 shadow-[0_30px_60px_-20px_rgba(0,0,0,0.45)]">
+        <div className="rounded-3xl border border-[#E3EAF3] bg-white p-6 shadow-[0_24px_50px_-28px_rgba(15,42,82,0.35)]">
           <div className="flex items-center justify-between gap-3 border-b border-[#EEF3F9] pb-4">
             <span className="font-heading text-lg font-extrabold text-brand-navy">{role.panel}</span>
             <span className="rounded-full bg-[#E7F6F2] px-3 py-1 text-xs font-extrabold text-[#0B6B5A]">Live example</span>
