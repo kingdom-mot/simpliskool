@@ -41,6 +41,7 @@ Next.js 14 (App Router, TypeScript, Tailwind) + Supabase (Postgres, row-level se
      - `0020_hardening.sql` (owners can't change Simpliskool-only school settings such as the demo marker; people can't change the email or phone on their profile)
      - `0021_data_protection.sql` (Nigeria Data Protection Act: agreement and notice records, privacy requests, school deletion requests, the breach register, erasing a former student)
      - `0022_pilot_measures.sql` (pilot measures: in-app feedback, baseline and end surveys, student record completeness, support reply times and per-school usage for the back office)
+     - `0023_staff_self_clock.sql` (staff clock themselves in and out from the school premises: school location, allowed distance and closing time; refused tries kept as flags; official duty requests)
    - **Authentication → Sign In / Providers → Email**: keep Email enabled.
    - **Authentication → URL Configuration**: set the Site URL to `https://simpliskool.com` and add these Redirect URLs: `http://localhost:3000/auth/callback` and `https://simpliskool.com/auth/callback` (plus your Vercel preview URL + `/auth/callback`).
    - Sign-in works with Supabase's default email: users click the link in the email. Open it in the same browser you requested it from.
@@ -152,3 +153,12 @@ Small "?" buttons beside labels, cards and panels explain things in plain words.
 
 - **Teachers** get app-style bottom tabs on phones: Home, Register, Scores, Homework and More (the full menu, account and help). On a computer they keep the sidebar. Parents and students already had bottom tabs.
 - **Installing.** `src/app/manifest.ts` lets every role install Simpliskool on a phone. It opens full screen on `/dashboard`, which sends each person to their own home page. On Android a card offers "Install app" when Chrome allows it; on iPhone the card shows the Safari steps (Share, then Add to Home Screen). The card hides for good once dismissed or installed. Icons are in `public/app-icon-*.png`.
+
+## Staff clock-in
+
+- Teachers, principals, admins and bursars clock themselves in and out from the "My attendance today" card on their home page. The phone sends its location and `self_clock()` checks it on the server: more than the school's allowed distance from its pin, or a location less accurate than 100 m, is refused. The time is the server's.
+- Every refused try is saved in `staff_clock_attempts` and shown to the principal as a flag with a map link. Late (after the late time), Left early (before the closing time) and Didn't clock out are flagged too, daily and in the monthly summary and download.
+- "I'm on official duty": staff send a note; the principal approves or declines on the Staff attendance page.
+- The principal can mark absent, on leave or official duty, but can't clock anyone in or out, and can't mark someone absent or on leave once they've clocked in.
+- Only the school owner can set the school's location (stand at school and press "Use my current location"), allowed distance (30–1000 m, default 100), late time and closing time. The database refuses changes to these from anyone else.
+- In the demo school there are no real premises, so everyone counts as at school.

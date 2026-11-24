@@ -38,7 +38,7 @@ const sections: LegalSection[] = [
             <strong>Parents and guardians:</strong> name, phone number, email, relationship to the child, messages to the school, and payments made.
           </li>
           <li>
-            <strong>Staff:</strong> name, phone number, email, role, classes and subjects, clock-in and clock-out times, lesson notes and, for payroll, salary, bank account and pension details.
+            <strong>Staff:</strong> name, phone number, email, role, classes and subjects, clock-in and clock-out times with the phone&apos;s location at that moment only (to confirm they were at school; we never track staff during the day), lesson notes and, for payroll, salary, bank account and pension details.
           </li>
           <li>
             <strong>Admission applications</strong> made on a school&apos;s website: the child&apos;s details and the parent&apos;s contact details.
